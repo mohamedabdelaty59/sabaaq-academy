@@ -162,9 +162,6 @@ td.num.blue{color:var(--blue)}
 .sd-head .add-btn{background:var(--brand);color:#06251c;border:none;padding:6px 12px;border-radius:8px;font-family:inherit;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;transition:.18s}
 .sd-head .add-btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
 .sd-row{display:grid;gap:8px;padding:10px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;align-items:center;animation:fade .25s}
-.sd-row.mem{grid-template-columns:36px 1fr 130px 1fr 34px}
-.sd-row.con{grid-template-columns:36px 1fr 2fr 34px}
-.sd-row.rd{grid-template-columns:36px 1fr 34px}
 .sd-row .num{width:30px;height:30px;display:grid;place-items:center;background:var(--card2);border:1px solid var(--border);border-radius:8px;font-size:11.5px;font-weight:800;color:var(--text3)}
 .sd-row input,.sd-row select{background:var(--card);border:1px solid var(--border);color:var(--text);padding:9px 11px;border-radius:8px;font-family:inherit;font-size:13px;outline:none;transition:.18s;width:100%}
 .sd-row input:focus,.sd-row select:focus{border-color:var(--brand);box-shadow:0 0 0 2px var(--brand-glow)}
@@ -306,6 +303,16 @@ td.num.blue{color:var(--blue)}
 .sdd-clear{display:block;width:100%;padding:9px;background:transparent;border:1px dashed var(--border);color:var(--text3);border-radius:8px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;margin-top:4px;transition:.18s}
 .sdd-clear:hover{color:var(--red);border-color:rgba(255,107,107,.4);background:rgba(255,107,107,.06)}
 
+/* ═══ 📖 حقول التقارير الموسّعة (حسب نوع الحلقة) ═══ */
+.sd-row.rev{grid-template-columns:36px 1fr 1fr 130px 1fr 34px}
+.sd-row.taj{grid-template-columns:36px 1fr 120px 130px 1fr 34px}
+.sd-row.mem{grid-template-columns:36px 1fr 100px 130px 1fr 34px}
+.sd-row.rd{grid-template-columns:36px 1fr 120px 1fr 34px}
+.sd-row.con{grid-template-columns:36px 1fr 120px 2fr 34px}
+.sd-row input,.sd-row select{background:var(--card);border:1px solid var(--border);color:var(--text);padding:9px 11px;border-radius:8px;font-family:inherit;font-size:13px;outline:none;transition:.18s;width:100%}
+.sd-row input:focus,.sd-row select:focus{border-color:var(--brand);box-shadow:0 0 0 2px var(--brand-glow)}
+.sd-row select.surah-select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239fb0c4' stroke-width='3'><path d='M6 9l6 6 6-6'/></svg>");background-repeat:no-repeat;background-position:left 11px center;padding-left:34px;cursor:pointer;font-weight:700;color:var(--brand)}
+
 @media(max-width:1080px){.grid-2{grid-template-columns:1fr}}
 @media(max-width:860px){
   .sidebar{transform:translateX(100%);transition:.32s;inset-inline-end:0}
@@ -320,12 +327,11 @@ td.num.blue{color:var(--blue)}
   .modal{max-height:95vh;border-radius:16px}
   .fab{width:54px;height:54px;bottom:88px;font-size:22px}
   .fab-menu{bottom:152px;inset-inline-end:16px}
-  .sd-row.mem{grid-template-columns:30px 1fr 100px 1fr 30px}
-  .sd-row.con{grid-template-columns:30px 1fr 1fr 30px}
   .cal-grid{gap:4px}
   .cal-cell{min-height:70px;padding:5px}
   .cal-cell .day-num{font-size:11px}
   .cal-cell .sess-badge{font-size:9px;padding:1px 4px}
+  .sd-row.rev,.sd-row.taj,.sd-row.mem,.sd-row.rd,.sd-row.con{grid-template-columns:30px 1fr 1fr 30px}
 }
 </style>
 </head>
@@ -1766,20 +1772,24 @@ function openForm(key){
 
       if(feeInp) feeInp.value = '0 ج.م';
 
+      /* ═══════════════════════════════════════════════════════════ */
+      /* 📖 الحفظ */
+      /* ═══════════════════════════════════════════════════════════ */
       const renderMemorizationUI = () => {
         container.querySelector('[data-sd-content]').innerHTML = `
           <div class="sd-head"><div class="title">📖 السور المقيّمة (الحفظ)</div>
             <button type="button" class="add-btn" data-add-row>➕ إضافة سورة</button></div>
           <div data-rows></div>`;
         const rowsBox = container.querySelector('[data-rows]');
-        const addRow = (surah='', rating='ممتاز', note='') => {
+        const addRow = (surah='', range='', rating='ممتاز', note='') => {
           const idx = rowsBox.children.length + 1;
           const div = document.createElement('div');
           div.className = 'sd-row mem';
           div.innerHTML = `<span class="num">${idx}</span>
             <select data-f="surah" class="surah-select">${surahOptions(surah)}</select>
+            <input type="text" data-f="range" placeholder="الآيات (1-5)" value="${escapeHtml(range)}">
             <select data-f="rating">${['ممتاز','جيد جداً','جيد','مقبول','يحتاج مراجعة'].map(r => `<option value="${r}" ${r===rating?'selected':''}>${r}</option>`).join('')}</select>
-            <input type="text" data-f="note" placeholder="ملاحظة (95 من 100)" value="${escapeHtml(note)}">
+            <input type="text" data-f="note" placeholder="ملاحظة" value="${escapeHtml(note)}">
             <button type="button" class="del-btn" data-del>✕</button>`;
           rowsBox.appendChild(div);
           div.querySelector('[data-del]').onclick = () => {
@@ -1791,19 +1801,24 @@ function openForm(key){
         addRow();
       };
 
-      const renderContemplationUI = () => {
+      /* ═══════════════════════════════════════════════════════════ */
+      /* 🔄 المراجعة */
+      /* ═══════════════════════════════════════════════════════════ */
+      const renderReviewUI = () => {
         container.querySelector('[data-sd-content]').innerHTML = `
-          <div class="sd-head"><div class="title">💭 السور المتدبَّرة</div>
+          <div class="sd-head"><div class="title">🔄 السور المراجَعة</div>
             <button type="button" class="add-btn" data-add-row>➕ إضافة سورة</button></div>
           <div data-rows></div>`;
         const rowsBox = container.querySelector('[data-rows]');
-        const addRow = (surah='', note='') => {
+        const addRow = (surah='', range='', rating='ممتاز', note='') => {
           const idx = rowsBox.children.length + 1;
           const div = document.createElement('div');
-          div.className = 'sd-row con';
+          div.className = 'sd-row rev';
           div.innerHTML = `<span class="num">${idx}</span>
             <select data-f="surah" class="surah-select">${surahOptions(surah)}</select>
-            <input type="text" data-f="note" placeholder="ملاحظة التدبر..." value="${escapeHtml(note)}">
+            <input type="text" data-f="range" placeholder="نطاق المراجعة" value="${escapeHtml(range)}">
+            <select data-f="rating">${['ممتاز','جيد جداً','جيد','مقبول','يحتاج مراجعة'].map(r => `<option value="${r}" ${r===rating?'selected':''}>${r}</option>`).join('')}</select>
+            <input type="text" data-f="note" placeholder="ملاحظة" value="${escapeHtml(note)}">
             <button type="button" class="del-btn" data-del>✕</button>`;
           rowsBox.appendChild(div);
           div.querySelector('[data-del]').onclick = () => {
@@ -1815,18 +1830,81 @@ function openForm(key){
         addRow();
       };
 
+      /* ═══════════════════════════════════════════════════════════ */
+      /* 🎯 التجويد */
+      /* ═══════════════════════════════════════════════════════════ */
+      const TAJWEED_RULES = ['إدغام','إخفاء','إظهار','إقلاب','مدود','غنة','تفخيم','ترقيق','وقف وابتداء','مخارج الحروف','صفات الحروف'];
+      const renderTajweedUI = () => {
+        container.querySelector('[data-sd-content]').innerHTML = `
+          <div class="sd-head"><div class="title">🎯 أحكام التجويد</div>
+            <button type="button" class="add-btn" data-add-row>➕ إضافة سورة</button></div>
+          <div data-rows></div>`;
+        const rowsBox = container.querySelector('[data-rows]');
+        const addRow = (surah='', rule='إدغام', rating='ممتاز', note='') => {
+          const idx = rowsBox.children.length + 1;
+          const div = document.createElement('div');
+          div.className = 'sd-row taj';
+          div.innerHTML = `<span class="num">${idx}</span>
+            <select data-f="surah" class="surah-select">${surahOptions(surah)}</select>
+            <select data-f="rule">${TAJWEED_RULES.map(r => `<option value="${r}" ${r===rule?'selected':''}>${r}</option>`).join('')}</select>
+            <select data-f="rating">${['ممتاز','جيد جداً','جيد','مقبول','يحتاج مراجعة'].map(r => `<option value="${r}" ${r===rating?'selected':''}>${r}</option>`).join('')}</select>
+            <input type="text" data-f="note" placeholder="ملاحظة" value="${escapeHtml(note)}">
+            <button type="button" class="del-btn" data-del>✕</button>`;
+          rowsBox.appendChild(div);
+          div.querySelector('[data-del]').onclick = () => {
+            div.remove();
+            [...rowsBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1);
+          };
+        };
+        container.querySelector('[data-add-row]').onclick = () => addRow();
+        addRow();
+      };
+
+      /* ═══════════════════════════════════════════════════════════ */
+      /* 📗 القراءة */
+      /* ═══════════════════════════════════════════════════════════ */
       const renderReadingUI = () => {
         container.querySelector('[data-sd-content]').innerHTML = `
           <div class="sd-head"><div class="title">📗 السور المقروءة</div>
             <button type="button" class="add-btn" data-add-row>➕ إضافة سورة</button></div>
           <div data-rows></div>`;
         const rowsBox = container.querySelector('[data-rows]');
-        const addRow = (surah='') => {
+        const addRow = (surah='', pages='', note='') => {
           const idx = rowsBox.children.length + 1;
           const div = document.createElement('div');
           div.className = 'sd-row rd';
           div.innerHTML = `<span class="num">${idx}</span>
             <select data-f="surah" class="surah-select">${surahOptions(surah)}</select>
+            <input type="text" data-f="pages" placeholder="عدد الصفحات" value="${escapeHtml(pages)}">
+            <input type="text" data-f="note" placeholder="ملاحظة" value="${escapeHtml(note)}">
+            <button type="button" class="del-btn" data-del>✕</button>`;
+          rowsBox.appendChild(div);
+          div.querySelector('[data-del]').onclick = () => {
+            div.remove();
+            [...rowsBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1);
+          };
+        };
+        container.querySelector('[data-add-row]').onclick = () => addRow();
+        addRow();
+      };
+
+      /* ═══════════════════════════════════════════════════════════ */
+      /* 💭 التدبر */
+      /* ═══════════════════════════════════════════════════════════ */
+      const renderContemplationUI = () => {
+        container.querySelector('[data-sd-content]').innerHTML = `
+          <div class="sd-head"><div class="title">💭 السور المتدبَّرة</div>
+            <button type="button" class="add-btn" data-add-row>➕ إضافة سورة</button></div>
+          <div data-rows></div>`;
+        const rowsBox = container.querySelector('[data-rows]');
+        const addRow = (surah='', verse='', note='') => {
+          const idx = rowsBox.children.length + 1;
+          const div = document.createElement('div');
+          div.className = 'sd-row con';
+          div.innerHTML = `<span class="num">${idx}</span>
+            <select data-f="surah" class="surah-select">${surahOptions(surah)}</select>
+            <input type="text" data-f="verse" placeholder="رقم الآية (اختياري)" value="${escapeHtml(verse)}">
+            <input type="text" data-f="note" placeholder="ملاحظة التدبر..." value="${escapeHtml(note)}">
             <button type="button" class="del-btn" data-del>✕</button>`;
           rowsBox.appendChild(div);
           div.querySelector('[data-del]').onclick = () => {
@@ -1842,6 +1920,8 @@ function openForm(key){
         const t = typeSel.value;
         if(t === 'تدبر') renderContemplationUI();
         else if(t === 'قراءة') renderReadingUI();
+        else if(t === 'مراجعة') renderReviewUI();
+        else if(t === 'تجويد') renderTajweedUI();
         else renderMemorizationUI();
       };
       typeSel.addEventListener('change', switchUI);

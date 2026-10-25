@@ -603,6 +603,7 @@ td.num.blue{color:var(--blue)}
         <div class="rh-body">
           <div class="rh-title">تذكير بسداد الاشتراك الشهري</div>
           <div class="rh-sub">يُرسل تلقائياً <b>يوم 25 من كل شهر</b> — يشمل الاشتراك + رسوم التأجيل + <b>طرق السداد (إنستا باي / فودافون كاش)</b></div>
+          <div id="reminderPeriodBadge" style="margin-top:10px"></div>
         </div>
         <div id="autoReminderStatus"></div>
       </div>
@@ -620,8 +621,8 @@ td.num.blue{color:var(--blue)}
               <table>
                 <thead><tr>
                   <th>#</th><th>اسم الطالب</th><th>الباقة</th>
-                  <th>الاشتراك</th><th>تأجيلات</th><th>المدفوع</th>
-                  <th>المستحق</th><th>الحالة</th><th>تذكير</th>
+                  <th>الاشتراك الحالي</th><th>🔔 الشهر القادم</th><th>تأجيلات</th>
+                  <th>المدفوع</th><th>المستحق</th><th>الحالة</th><th>تذكير</th>
                 </tr></thead>
                 <tbody id="reminderBody"></tbody>
               </table>
@@ -2234,67 +2235,136 @@ async function resendReceiptEmail(no){
 
 <script>
 /* ══════════════════════════════════════════════════════════════════ */
-/* 🆕 نظام التذكير الشهري */
+/* 🆕 نظام التذكير الشهري — v9.1 (يشمل الشهر القادم من يوم 25) */
 /* ══════════════════════════════════════════════════════════════════ */
 
+/**
+ * حساب بيانات التذكير لكل طالب.
+ * 🔔 المهم: من يوم 25 من الشهر → نعتبر اشتراك الشهر القادم مستحقاً
+ *     فيظهر كل الطلاب (حتى المسددين) في قائمة التذكير للشهر القادم.
+ */
 function computeReminderData(){
   const now = new Date();
-  return STATE.students.filter(s => s.status !== 'موقوف' && s.email).map(s => {
-    const payments = STATE.receipts.filter(r => r.student === s.name);
-    const paid = payments.reduce((a,r) => a + r.paid, 0);
-    const disc = payments.reduce((a,r) => a + (r.disc || 0), 0);
-    const postponed = STATE.reports.filter(r => r.student === s.name && r.status === 'مؤجل');
-    const postponeFees = postponed.reduce((a,r) => a + (r.postponeFee || POSTPONE_FEE), 0);
-    let months = 1;
-    if (s.reg) {
-      const r = new Date(s.reg);
-      if (!isNaN(r)) {
-        months = Math.max(1,
-          (now.getFullYear() - r.getFullYear()) * 12 +
-          (now.getMonth() - r.getMonth()) + 1);
+  const dayOfMonth = now.getDate();
+  const isReminderPeriod = dayOfMonth >= REMINDER_DAY;
+
+  // اسم الشهر القادم لعرضه
+  const nextMonthDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const nextMonthLabel = `${AR_MONTHS[nextMonthDate.getMonth()]} ${nextMonthDate.getFullYear()}`;
+
+  const data = STATE.students
+    .filter(s => s.status !== 'موقوف' && s.email)
+    .map(s => {
+      const payments = STATE.receipts.filter(r => r.student === s.name);
+      const paid = payments.reduce((a,r) => a + r.paid, 0);
+      const disc = payments.reduce((a,r) => a + (r.disc || 0), 0);
+      const postponed = STATE.reports.filter(r => r.student === s.name && r.status === 'مؤجل');
+      const postponeFees = postponed.reduce((a,r) => a + (r.postponeFee || POSTPONE_FEE), 0);
+
+      let months = 1;
+      if (s.reg) {
+        const r = new Date(s.reg);
+        if (!isNaN(r)) {
+          months = Math.max(1,
+            (now.getFullYear() - r.getFullYear()) * 12 +
+            (now.getMonth() - r.getMonth()) + 1);
+        }
       }
-    }
-    const subscriptionDue = months * s.price;
-    const totalDue = subscriptionDue + postponeFees;
-    const remaining = Math.max(0, totalDue - paid - disc);
-    return {
-      name: s.name, pkg: s.pkg, email: s.email, price: s.price, months,
-      subscriptionDue, postponeFees, postponedCount: postponed.length,
-      paid, disc, totalDue, remaining, isPaid: remaining <= 0
-    };
-  });
+
+      // اشتراك الشهور الحالية (حتى الشهر الجاري)
+      const currentSubDue = months * s.price;
+      // 🔔 اشتراك الشهر القادم — يُحتسب فقط من يوم 25
+      const nextMonthDue = isReminderPeriod ? s.price : 0;
+
+      const subscriptionDue = currentSubDue + nextMonthDue;
+      const totalDue = subscriptionDue + postponeFees;
+
+      const remaining = Math.max(0, totalDue - paid - disc);
+      // المتبقي قبل احتساب الشهر القادم — لتمييز "عليه فقط شهر قادم"
+      const remainingCurrent = Math.max(0, currentSubDue + postponeFees - paid - disc);
+
+      return {
+        name: s.name, pkg: s.pkg, email: s.email, price: s.price, months,
+        currentSubDue,
+        nextMonthDue,
+        subscriptionDue,
+        postponeFees,
+        postponedCount: postponed.length,
+        paid, disc, totalDue, remaining,
+        remainingCurrent,
+        isPaid: remaining <= 0,
+        onlyNextMonthDue: (remaining > 0 && remainingCurrent <= 0),
+        isReminderPeriod,
+        nextMonthLabel
+      };
+    });
+
+  return data;
 }
 
 function renderReminder(){
   const data = computeReminderData();
+  const isReminderPeriod = data.length ? data[0].isReminderPeriod : (new Date().getDate() >= REMINDER_DAY);
+  const nextMonthLabel = data.length
+    ? data[0].nextMonthLabel
+    : (() => { const n = new Date(); const d = new Date(n.getFullYear(), n.getMonth()+1, 1);
+               return `${AR_MONTHS[d.getMonth()]} ${d.getFullYear()}`; })();
+
   const due = data.filter(d => !d.isPaid);
   const totalDue = due.reduce((a,d) => a + d.remaining, 0);
   const totalSubscription = due.reduce((a,d) => a + d.subscriptionDue, 0);
   const totalPostpone = due.reduce((a,d) => a + d.postponeFees, 0);
+  const totalNextMonth = due.reduce((a,d) => a + d.nextMonthDue, 0);
   const auto = STATE_REMINDER.hasAuto;
 
+  // ─── KPIs ───
   const kpis = [
     { ic:'👥', lbl:'إجمالي الطلاب', val: fmt(data.length), c:'var(--blue)', bg:'rgba(77,157,255,.12)', tr:'طالب' },
-    { ic:'⏳', lbl:'مستحق عليهم', val: fmt(due.length), c:'var(--gold)', bg:'rgba(245,181,68,.12)', tr:'طالب' },
+    { ic:'⏳', lbl: isReminderPeriod ? 'مستحق عليهم (شامل القادم)' : 'مستحق عليهم', val: fmt(due.length), c:'var(--gold)', bg:'rgba(245,181,68,.12)', tr:'طالب' },
     { ic:'✅', lbl:'مسددون', val: fmt(data.length - due.length), c:'var(--brand)', bg:'rgba(45,212,167,.12)', tr:'طالب' },
     { ic:'💵', lbl:'إجمالي المستحق', val: money(totalDue), c:'var(--red)', bg:'rgba(255,107,107,.12)', tr:'مستحق' },
     { ic:'📅', lbl:'مستحقات الاشتراك', val: money(totalSubscription), c:'var(--blue)', bg:'rgba(77,157,255,.12)', tr:'اشتراك' },
+    { ic:'🔔', lbl:`اشتراك ${nextMonthLabel}`, val: money(totalNextMonth), c:'var(--purple)', bg:'rgba(167,139,250,.12)', tr:'قادم' },
     { ic:'⏸️', lbl:'رسوم التأجيل', val: money(totalPostpone), c:'var(--gold)', bg:'rgba(245,181,68,.12)', tr:'تأجيل' }
   ];
-  document.getElementById('reminderKpiGrid').innerHTML = kpis.map(k => `
-    <div class="kpi" style="--accent:${k.c};--accent-bg:${k.bg}">
-      <div class="kpi-head"><div class="kpi-ic">${k.ic}</div><div class="kpi-trend">${k.tr}</div></div>
-      <div class="kpi-val" style="color:${k.c}">${k.val}</div>
-      <div class="kpi-lbl">${k.lbl}</div>
-    </div>`).join('');
-
-  const statusEl = document.getElementById('autoReminderStatus');
-  if (statusEl){
-    statusEl.innerHTML = auto
-      ? '<span class="reminder-status on">التذكير التلقائي مُفعَّل</span>'
-      : '<span class="reminder-status off">التذكير التلقائي معطَّل</span>';
+  const kpiGridEl = document.getElementById('reminderKpiGrid');
+  if (kpiGridEl) {
+    kpiGridEl.innerHTML = kpis.map(k => `
+      <div class="kpi" style="--accent:${k.c};--accent-bg:${k.bg}">
+        <div class="kpi-head"><div class="kpi-ic">${k.ic}</div><div class="kpi-trend">${k.tr}</div></div>
+        <div class="kpi-val" style="color:${k.c}">${k.val}</div>
+        <div class="kpi-lbl">${k.lbl}</div>
+      </div>`).join('');
   }
 
+  // ─── badge فوق الهيرو ───
+  const periodBadge = document.getElementById('reminderPeriodBadge');
+  if (periodBadge) {
+    if (isReminderPeriod) {
+      periodBadge.innerHTML = `<span class="badge purple" style="font-size:12.5px;padding:7px 14px">
+        🔔 التذكير المبكر نشط الآن — يُحتسب اشتراك <b>${escapeHtml(nextMonthLabel)}</b> على جميع الطلاب
+      </span>`;
+    } else {
+      const daysLeft = REMINDER_DAY - new Date().getDate();
+      periodBadge.innerHTML = `<span class="badge off" style="font-size:12.5px;padding:7px 14px">
+        ⏰ التذكير المبكر يبدأ يوم ${REMINDER_DAY} — متبقي ${daysLeft} يوم
+      </span>`;
+    }
+  }
+
+  // ─── مؤشر حالة التذكير التلقائي ───
+  const statusEl = document.getElementById('autoReminderStatus');
+  if (statusEl){
+    let html = auto
+      ? '<span class="reminder-status on">التذكير التلقائي مُفعَّل</span>'
+      : '<span class="reminder-status off">التذكير التلقائي معطَّل</span>';
+    if (isReminderPeriod) {
+      html += ` <span class="reminder-status on" style="margin-inline-start:6px;background:rgba(167,139,250,.14);color:var(--purple)">🔔 التذكير المبكر مفعّل</span>`;
+    }
+    statusEl.innerHTML = html;
+  }
+
+  // ─── أزرار التحكم ───
   const controls = document.getElementById('autoReminderControls');
   if (controls){
     controls.innerHTML = auto
@@ -2304,27 +2374,48 @@ function renderReminder(){
          <button class="btn btn-reminder" data-act="sendAllReminders" style="flex:1;justify-content:center">📤 إرسال الآن</button>`;
   }
 
+  // ─── الجدول ───
   const body = document.getElementById('reminderBody');
   if (!body) return;
-  if (!data.length){ body.innerHTML = emptyRow(9); return; }
+  if (!data.length){ body.innerHTML = emptyRow(10); return; }
 
-  body.innerHTML = data.sort((a,b) => b.remaining - a.remaining).map((d, i) => {
-    const statusBadge = d.isPaid ? '<span class="badge ok">مسدد</span>' : '<span class="badge late">مستحق</span>';
-    const btn = d.isPaid
-      ? '<span style="color:var(--text3);font-size:11px">—</span>'
-      : `<button class="btn btn-reminder" data-act="sendReminder" data-name="${escapeHtml(d.name)}" title="إرسال تذكير">🔔</button>`;
-    return `<tr>
-      <td><span class="idx">${i+1}</span></td>
-      <td class="name">${escapeHtml(d.name)}</td>
-      <td><span class="pkg-pill">${d.pkg} حلقات</span></td>
-      <td class="num blue">${fmt(d.subscriptionDue)}</td>
-      <td class="num gold">${d.postponeFees > 0 ? fmt(d.postponeFees) + ' ('+d.postponedCount+')' : '—'}</td>
-      <td class="num green">${fmt(d.paid)}</td>
-      <td class="num ${d.isPaid ? 'green' : 'red'}">${fmt(d.remaining)}</td>
-      <td>${statusBadge}</td>
-      <td>${btn}</td>
-    </tr>`;
-  }).join('');
+  body.innerHTML = data
+    .sort((a,b) => b.remaining - a.remaining)
+    .map((d, i) => {
+      let statusBadge;
+      if (d.isPaid) {
+        statusBadge = '<span class="badge ok">مسدد</span>';
+      } else if (d.onlyNextMonthDue) {
+        statusBadge = `<span class="badge purple" title="مستحق بسبب اشتراك ${escapeHtml(d.nextMonthLabel)}">🔔 شهر قادم</span>`;
+      } else {
+        statusBadge = '<span class="badge late">مستحق</span>';
+      }
+
+      const postCell = d.postponeFees > 0
+        ? `<span class="num gold">${fmt(d.postponeFees)} <small style="color:var(--text3)">(${d.postponedCount})</small></span>`
+        : '<span style="color:var(--text3)">—</span>';
+
+      const nextCell = d.nextMonthDue > 0
+        ? `<span class="num" style="color:var(--purple);font-weight:800">+${fmt(d.nextMonthDue)}</span>`
+        : '<span style="color:var(--text3)">—</span>';
+
+      const btn = d.isPaid
+        ? '<span style="color:var(--text3);font-size:11px">—</span>'
+        : `<button class="btn btn-reminder" data-act="sendReminder" data-name="${escapeHtml(d.name)}" title="إرسال تذكير">🔔</button>`;
+
+      return `<tr>
+        <td><span class="idx">${i+1}</span></td>
+        <td class="name">${escapeHtml(d.name)}</td>
+        <td><span class="pkg-pill">${d.pkg} حلقات</span></td>
+        <td class="num blue">${fmt(d.currentSubDue)}</td>
+        <td style="text-align:center">${nextCell}</td>
+        <td class="num gold">${postCell}</td>
+        <td class="num green">${fmt(d.paid)}</td>
+        <td class="num ${d.isPaid ? 'green' : 'red'}">${fmt(d.remaining)}</td>
+        <td>${statusBadge}</td>
+        <td>${btn}</td>
+      </tr>`;
+    }).join('');
 }
 
 async function sendReminder(name, btnEl){

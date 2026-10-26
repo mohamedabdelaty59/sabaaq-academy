@@ -1075,7 +1075,7 @@ function calcDue(opts){
   const nowIdx = nowY * 12 + (nowM - 1);
   const isReminderPeriod = nowD >= REMINDER_DAY;
 
-  const targetIdx = isReminderPeriod ? nowIdx + 1 : nowIdx;
+  const targetIdx = (isReminderPeriod && subStartIdx <= nowIdx) ? nowIdx + 1 : nowIdx;
   const lastIdx = Math.max(targetIdx, subStartIdx);
   const months = Math.max(0, lastIdx - subStartIdx + 1);
 

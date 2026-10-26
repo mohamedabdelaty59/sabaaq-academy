@@ -306,6 +306,27 @@ td.num.blue{color:var(--blue)}
 .sd-row input,.sd-row select{background:var(--card);border:1px solid var(--border);color:var(--text);padding:9px 11px;border-radius:8px;font-family:inherit;font-size:13px;outline:none;transition:.18s;width:100%}
 .sd-row input:focus,.sd-row select:focus{border-color:var(--brand);box-shadow:0 0 0 2px var(--brand-glow)}
 .sd-row select.surah-select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239fb0c4' stroke-width='3'><path d='M6 9l6 6 6-6'/></svg>");background-repeat:no-repeat;background-position:left 11px center;padding-left:34px;cursor:pointer;font-weight:700;color:var(--brand)}
+
+/* 🆕 v9.2 */
+.postpone-detail-tbl{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:10px;border-radius:8px;overflow:hidden;background:rgba(245,181,68,.06);border:1px solid rgba(245,181,68,.25)}
+.postpone-detail-tbl thead th{background:rgba(245,181,68,.18);color:var(--gold);padding:7px 8px;font-weight:800;font-size:10.5px;text-align:center;border-bottom:1px solid rgba(245,181,68,.25);white-space:nowrap}
+.postpone-detail-tbl tbody td{padding:6px 8px;border-bottom:1px solid rgba(245,181,68,.12);text-align:center;color:var(--text2);font-weight:600;font-variant-numeric:tabular-nums}
+.postpone-detail-tbl tbody tr:last-child td{border-bottom:none}
+.postpone-detail-tbl tbody tr:nth-child(even) td{background:rgba(245,181,68,.04)}
+.postpone-detail-tbl .fee{color:var(--red);font-weight:800}
+.student-preview{grid-column:1/-1;background:linear-gradient(160deg,rgba(45,212,167,.08),rgba(45,212,167,.02));border:1.5px solid rgba(45,212,167,.3);border-radius:12px;padding:14px 18px}
+.student-preview .sp-title{font-size:12px;color:var(--brand);font-weight:800;margin-bottom:10px;letter-spacing:.5px;display:flex;align-items:center;gap:6px}
+.student-preview .sp-row{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-bottom:1px dashed rgba(45,212,167,.2);align-items:baseline;gap:10px}
+.student-preview .sp-row:last-child{border-bottom:none}
+.student-preview .sp-row .k{color:var(--text2);font-weight:600;line-height:1.5}
+.student-preview .sp-row .v{font-weight:900;color:var(--text);font-variant-numeric:tabular-nums;white-space:nowrap}
+.student-preview .sp-total{border-top:1.5px solid var(--brand);margin-top:8px;padding-top:10px}
+.student-preview .sp-total .k{color:var(--brand);font-weight:800;font-size:14px}
+.student-preview .sp-total .v{color:var(--brand);font-size:20px;font-weight:900}
+.student-preview .sp-meta{margin-top:10px;padding:10px 12px;background:rgba(45,212,167,.08);border-radius:8px;font-size:12px;color:var(--brand);font-weight:700;line-height:1.7}
+.student-preview .sp-warn{background:rgba(245,181,68,.12);border-color:rgba(245,181,68,.35)}
+.student-preview .sp-warn .sp-title{color:var(--gold)}
+
 @media(max-width:1080px){.grid-2{grid-template-columns:1fr}}
 @media(max-width:860px){
   .sidebar{transform:translateX(100%);transition:.32s;inset-inline-end:0}
@@ -325,6 +346,8 @@ td.num.blue{color:var(--blue)}
   .cal-cell .day-num{font-size:11px}
   .cal-cell .sess-badge{font-size:9px;padding:1px 4px}
   .sd-row.rev,.sd-row.taj,.sd-row.mem,.sd-row.rd,.sd-row.con{grid-template-columns:30px 1fr 1fr 30px}
+  .postpone-detail-tbl{font-size:10px}
+  .postpone-detail-tbl thead th,.postpone-detail-tbl tbody td{padding:5px 4px}
 }
 </style>
 </head>
@@ -350,7 +373,7 @@ td.num.blue{color:var(--blue)}
 
     <div class="nav-label">المالية</div>
     <div class="nav-item" data-sec="cash"><span class="ic">💰</span> استلام نقدي <span class="nav-badge" id="nb-cash">0</span></div>
-    <div class="nav-item" data-sec="reminder"><span class="ic">🔔</span> تذكير السداد <span class="nav-badge" id="nb-reminder">جديد</span></div>
+    <div class="nav-item" data-sec="reminder"><span class="ic">🔔</span> تذكير السداد <span class="nav-badge" id="nb-reminder">—</span></div>
     <div class="nav-item" data-sec="follow"><span class="ic">⏰</span> متابعة الاستحقاقات</div>
     <div class="nav-item" data-sec="income"><span class="ic">💵</span> مصادر دخل أخرى</div>
     <div class="nav-item" data-sec="expenses"><span class="ic">💸</span> المصروفات</div>
@@ -366,7 +389,7 @@ td.num.blue{color:var(--blue)}
 
     <div class="sidebar-foot">
       <div>📅 آخر تحديث: <span id="lastUpd">—</span></div>
-      <div>💾 نظام إدارة الاشتراكات v9.0</div>
+      <div>💾 نظام إدارة الاشتراكات v9.2</div>
     </div>
   </aside>
 
@@ -462,16 +485,16 @@ td.num.blue{color:var(--blue)}
       <div class="card">
         <div class="card-head">
           <h3>📋 ملخص الطلاب والمتأخرات</h3>
-          <span class="sub">المستحق = الاشتراك + رسوم التأجيل − (المدفوع + الخصم)</span>
+          <span class="sub">المستحق = الافتتاحي + (الشهور × السعر) + التأجيل + المقابلة − (المدفوع + الخصم)</span>
           <span class="spacer"></span>
           <span class="badge ok" id="summaryOkBadge">0 منتظم</span>
         </div>
-        <div class="card-body p0"><div class="tbl-wrap"><table>
+        <div class="card-body p0"><div class="tbl-wrap"><table style="min-width:850px">
           <thead><tr>
             <th>م</th><th>اسم الطالب</th><th>الباقة</th><th>السعر الشهري</th>
-            <th>إجمالي المدفوع</th><th>إجمالي الخصم</th><th>رسوم التأجيل</th>
-            <th>عدد الدفعات</th><th>المستحق التقديري</th><th>المتبقي</th>
-            <th>نسبة السداد</th><th>الحالة</th>
+            <th>رصيد افتتاحي</th><th>إجمالي المدفوع</th><th>إجمالي الخصم</th>
+            <th>رسوم التأجيل</th><th>رسوم المقابلة</th><th>عدد الدفعات</th>
+            <th>المستحق</th><th>المتبقي</th><th>نسبة السداد</th><th>الحالة</th>
           </tr></thead>
           <tbody id="summaryBody"></tbody>
         </table></div></div>
@@ -602,7 +625,7 @@ td.num.blue{color:var(--blue)}
         <div class="rh-ic">🔔</div>
         <div class="rh-body">
           <div class="rh-title">تذكير بسداد الاشتراك الشهري</div>
-          <div class="rh-sub">يُرسل تلقائياً <b>يوم 25 من كل شهر</b> — يشمل الاشتراك + رسوم التأجيل + <b>طرق السداد (إنستا باي / فودافون كاش)</b></div>
+          <div class="rh-sub">يُرسل تلقائياً في أيام <b>25 و27 و29</b> من كل شهر (بحد أقصى <b>3 تذكيرات</b>) — يشمل الاشتراك الحالي + الشهر القادم + التأجيلات + <b>طرق السداد</b></div>
           <div id="reminderPeriodBadge" style="margin-top:10px"></div>
         </div>
         <div id="autoReminderStatus"></div>
@@ -618,11 +641,12 @@ td.num.blue{color:var(--blue)}
           </div>
           <div class="card-body p0">
             <div class="tbl-wrap">
-              <table>
+              <table style="min-width:820px">
                 <thead><tr>
                   <th>#</th><th>اسم الطالب</th><th>الباقة</th>
-                  <th>الاشتراك الحالي</th><th>🔔 الشهر القادم</th><th>تأجيلات</th>
-                  <th>المدفوع</th><th>المستحق</th><th>الحالة</th><th>تذكير</th>
+                  <th>افتتاحي</th><th>اشتراك حالي</th><th>🔔 الشهر القادم</th>
+                  <th>تأجيلات</th><th>مقابلة</th>
+                  <th>المدفوع</th><th>المتبقي</th><th>الحالة</th><th>تذكير</th>
                 </tr></thead>
                 <tbody id="reminderBody"></tbody>
               </table>
@@ -634,7 +658,7 @@ td.num.blue{color:var(--blue)}
           <div class="card-body">
             <div class="set-item" style="margin-bottom:14px">
               <div class="lbl">📅 موعد التذكير التلقائي</div>
-              <div class="val" style="color:var(--gold);font-size:16px">يوم 25 من كل شهر</div>
+              <div class="val" style="color:var(--gold);font-size:16px">أيام 25، 27، 29 (بحد 3/شهر)</div>
               <div class="hint">الساعة 9 صباحاً بتوقيت القاهرة</div>
             </div>
             <div id="autoReminderControls" style="display:flex;gap:10px;flex-wrap:wrap"></div>
@@ -862,11 +886,9 @@ td.num.blue{color:var(--blue)}
 
 <script>
 /* ══════════════════════════════════════════════════════════════════ */
-/* 🔐 v9.0: الإعدادات الأساسية + API آمن */
+/* 🔐 v9.2: الإعدادات الأساسية + API آمن */
 /* ══════════════════════════════════════════════════════════════════ */
 const API_URL = 'https://script.google.com/macros/s/AKfycbzp1Rdo34wFhzWrwl_7vhRUFbB2iaIm4R3dWYwnhoI2teucMyurfms97qrJ1vvUYQUz/exec';
-
-// ⚠️ يجب أن يطابق هذا التوكن نفس التوكن في الـ Backend
 const API_TOKEN = 'SABAQ_a8f3k9m2x7p5q1w4e6r8t0y2u4i6o8a0_2024';
 
 const ACADEMY = 'أكاديمية السَّبَّاق لتعليم القرآن الكريم';
@@ -874,6 +896,8 @@ const ACADEMY_SHORT = 'أكاديمية السَّبَّاق';
 const LOGO_URL = 'https://lh3.googleusercontent.com/d/1gfHo2u7D7uDZqGs-Ed2sGGJPxlvVvYVb';
 const POSTPONE_FEE = 80;
 const REMINDER_DAY = 25;
+const AUTO_REMINDER_DAYS = [25, 27, 29];
+const AUTO_REMINDER_MAX_PER_MONTH = 3;
 
 const INSTAPAY_URL = 'https://ipn.eg/S/muhamedabdelaty/instapay/93UaEa';
 const VODAFONE_CASH = '01025180350';
@@ -890,6 +914,7 @@ let STATE_REMINDER = { hasAuto: false };
 const fmt = n => (Number(n)||0).toLocaleString('en-US',{maximumFractionDigits:2});
 const money = n => `${fmt(n)} <small>ج.م</small>`;
 const AR_MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const AR_DAYS = ['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
 const DEFAULT_SURAHS = ['الفاتحة','البقرة','آل عمران','النساء','المائدة','الأنعام','الأعراف','الأنفال','التوبة','يونس','هود','يوسف','الرعد','إبراهيم','الحجر','النحل','الإسراء','الكهف','مريم','طه','الأنبياء','الحج','المؤمنون','النور','الفرقان','الشعراء','النمل','القصص','العنكبوت','الروم','لقمان','السجدة','الأحزاب','سبأ','فاطر','يس','الصافات','ص','الزمر','غافر','فصلت','الشورى','الزخرف','الدخان','الجاثية','الأحقاف','محمد','الفتح','الحجرات','ق','الذاريات','الطور','النجم','القمر','الرحمن','الواقعة','الحديد','المجادلة','الحشر','الممتحنة','الصف','الجمعة','المنافقون','التغابن','الطلاق','التحريم','الملك','القلم','الحاقة','المعارج','نوح','الجن','المزمل','المدثر','القيامة','الإنسان','المرسلات','النبأ','النازعات','عبس','التكوير','الانفطار','المطففين','الانشقاق','البروج','الطارق','الأعلى','الغاشية','الفجر','البلد','الشمس','الليل','الضحى','الشرح','التين','العلق','القدر','البينة','الزلزلة','العاديات','القارعة','التكاثر','العصر','الهمزة','الفيل','قريش','الماعون','الكوثر','الكافرون','النصر','المسد','الإخلاص','الفلق','الناس'];
 
 function fmtDate(d){ if(!d) return '—'; const dt = new Date(d); if(isNaN(dt)) return d;
@@ -899,7 +924,6 @@ function fmtDateShort(d){ if(!d) return '—'; const dt = new Date(d); if(isNaN(
   const mm = String(dt.getMonth()+1).padStart(2,'0');
   return `${dd}/${mm}/${dt.getFullYear()}`; }
 
-/* 🕐 v9.0: تواريخ بالتوقيت المحلي — تمنع خطأ UTC */
 function todayISO(){
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -950,6 +974,15 @@ function computeAge(birthdate){
   return age + ' سنة';
 }
 
+function getArabicDayName(iso){
+  if(!iso) return '';
+  const p = String(iso).split('-').map(Number);
+  if(!p[0] || !p[1] || !p[2]) return '';
+  const d = new Date(p[0], p[1]-1, p[2]);
+  if(isNaN(d)) return '';
+  return AR_DAYS[d.getDay()];
+}
+
 function surahOptions(selected){
   const list = (STATE.quranSurahs && STATE.quranSurahs.length) ? STATE.quranSurahs : DEFAULT_SURAHS;
   let html = `<option value="">— اختر السورة —</option>`;
@@ -960,30 +993,124 @@ function surahOptions(selected){
   return html;
 }
 
-function obligationRemaining(itemName, type){
-  const item = type === 'التزام' ? STATE.obligations.find(o => val(o,'البيان') === itemName)
-    : STATE.loans.find(l => (val(l,'اسم الشخص')||val(l,'البيان')) === itemName);
-  if(!item) return { original:0, before:0 };
-  const original = numField(item, 'المبلغ');
-  const storedRemaining = numField(item, 'المتبقي') || original;
-  const paidSum = STATE.payments.filter(p => val(p,'النوع') === type && val(p,'البيان') === itemName)
-    .reduce((a,p) => a + numField(p,'المبلغ المسدد'), 0);
-  return { original, before: Math.max(0, storedRemaining - paidSum) };
-}
-function investCalc(name){
-  const item = STATE.investments.find(x => val(x,'البيان') === name);
-  if(!item) return { initial:0, adds:0, profits:0, liquidations:0, totalCost:0, current:0, unrealized:0, pct:0 };
-  const initial = numField(item,'رأس المال الأساسي','المبلغ');
-  const adds = STATE.investTrans.filter(x => val(x,'البيان') === name && val(x,'نوع الحركة') === 'إضافة رأس مال').reduce((a,x) => a + numField(x,'المبلغ'), 0);
-  const profits = STATE.investTrans.filter(x => val(x,'البيان') === name && val(x,'نوع الحركة') === 'استلام أرباح').reduce((a,x) => a + numField(x,'المبلغ'), 0);
-  const liquidations = STATE.investTrans.filter(x => val(x,'البيان') === name && val(x,'نوع الحركة') === 'تصفية جزئية').reduce((a,x) => a + numField(x,'المبلغ'), 0);
-  const totalCost = initial + adds - liquidations;
-  const current = numField(item,'القيمة الحالية') || initial;
-  const unrealized = current - totalCost;
-  const pct = totalCost > 0 ? (unrealized / totalCost) * 100 : 0;
-  return { initial, adds, profits, liquidations, totalCost, current, unrealized, pct };
+/* ══════════════════════════════════════════════════════════════════ */
+/* 🆕 v9.2: دوال المستحق الموحدة (مطابقة للباك) */
+/* ══════════════════════════════════════════════════════════════════ */
+
+function monthLabelFromIdx(idx){
+  const y = Math.floor(idx / 12);
+  const m = (idx % 12) + 1;
+  return AR_MONTHS[m - 1] + ' ' + y;
 }
 
+function monthsRangeLabel(startIdx, endIdx){
+  if(startIdx < 0 || endIdx < 0 || endIdx < startIdx) return '—';
+  const sy = Math.floor(startIdx / 12), sm = (startIdx % 12) + 1;
+  const ey = Math.floor(endIdx / 12),   em = (endIdx % 12) + 1;
+  if(startIdx === endIdx) return AR_MONTHS[sm - 1] + ' ' + sy;
+  return AR_MONTHS[sm - 1] + ' ' + sy + ' → ' + AR_MONTHS[em - 1] + ' ' + ey;
+}
+
+/* 🆕 v9.2: حساب رصيد الافتتاح و تاريخ بداية الاشتراك لطالب جديد */
+function computeRegistrationOpening(regDateISO, price){
+  const p = String(regDateISO || '').split('-').map(Number);
+  const ry = p[0], rm = p[1], rd = p[2];
+  if(!ry || !rm || !rd) return { subStart: regDateISO || '', opening: 0 };
+  const dim = new Date(ry, rm, 0).getDate();
+  const rem = dim - rd + 1;
+
+  if(rd <= 10){
+    return { subStart: `${ry}-${String(rm).padStart(2,'0')}-01`, opening: 0 };
+  }
+
+  const nextM = rm === 12 ? 1 : rm + 1;
+  const nextY = rm === 12 ? ry + 1 : ry;
+  const nextStart = `${nextY}-${String(nextM).padStart(2,'0')}-01`;
+
+  if(rem <= 2){
+    return { subStart: nextStart, opening: 0 };
+  }
+  const opening = Math.round(Number(price || 0) * rem / dim);
+  return { subStart: nextStart, opening };
+}
+
+/* 🆕 v9.2: calcDue موحدة — نفس منطق الباك */
+function calcDue(opts){
+  const price     = Number(opts.price) || 0;
+  const opening   = Number(opts.openingBalance) || 0;
+  const interview = Number(opts.interviewFee) || 0;
+  const postpone  = Number(opts.postponeFees) || 0;
+  const paid      = Number(opts.paid) || 0;
+  const disc      = Number(opts.disc) || 0;
+
+  const regDate = String(opts.regDateISO || '').trim();
+  let subStart = String(opts.subStartISO || '').trim() || regDate;
+
+  const emptyResult = {
+    due: 0, remaining: 0, remainingCurrent: 0,
+    months: 0, monthsCurrent: 0,
+    totalSubDue: 0, currentSubDue: 0, nextSubDue: 0,
+    subStartISO: '', subStartIdx: -1,
+    isReminderPeriod: false, isLate: false,
+    targetMonthLabel: '', currentMonthLabel: '', nextMonthLabel: '',
+    currentSubLabel: '', nextSubLabel: '',
+    opening, interview, postpone, paid, disc
+  };
+
+  if(!subStart) return emptyResult;
+
+  const p = subStart.split('-').map(Number);
+  const sy = p[0], sm = p[1];
+  if(!sy || !sm || sm < 1 || sm > 12) return emptyResult;
+  const subStartIdx = sy * 12 + (sm - 1);
+
+  let nowY, nowM, nowD;
+  if(opts.todayISO){
+    const tp = String(opts.todayISO).split('-').map(Number);
+    nowY = tp[0]; nowM = tp[1]; nowD = tp[2];
+  } else {
+    const t = new Date();
+    nowY = t.getFullYear(); nowM = t.getMonth() + 1; nowD = t.getDate();
+  }
+  const nowIdx = nowY * 12 + (nowM - 1);
+  const isReminderPeriod = nowD >= REMINDER_DAY;
+
+  const targetIdx = isReminderPeriod ? nowIdx + 1 : nowIdx;
+  const lastIdx = Math.max(targetIdx, subStartIdx);
+  const months = Math.max(0, lastIdx - subStartIdx + 1);
+
+  const lastIdxCurrent = Math.max(nowIdx, subStartIdx);
+  const monthsCurrent = Math.max(0, lastIdxCurrent - subStartIdx + 1);
+
+  const totalSubDue   = months * price;
+  const currentSubDue = monthsCurrent * price;
+  const nextSubDue    = Math.max(0, totalSubDue - currentSubDue);
+
+  const due = opening + totalSubDue + postpone + interview;
+  const remaining = Math.max(0, due - paid - disc);
+
+  const dueCurrentSubOnly = opening + currentSubDue + interview;
+  const remainingCurrent = Math.max(0, dueCurrentSubOnly - paid - disc);
+  const isLate = remainingCurrent > 0;
+
+  return {
+    due, remaining, remainingCurrent,
+    months, monthsCurrent,
+    totalSubDue, currentSubDue, nextSubDue,
+    subStartISO: subStart, subStartIdx,
+    isReminderPeriod, isLate,
+    targetMonthLabel:  monthLabelFromIdx(targetIdx),
+    currentMonthLabel: monthLabelFromIdx(nowIdx),
+    nextMonthLabel:    monthLabelFromIdx(nowIdx + 1),
+    currentSubLabel:   monthsRangeLabel(subStartIdx, lastIdxCurrent),
+    nextSubLabel:      nextSubDue > 0 ? monthsRangeLabel(lastIdxCurrent + 1, lastIdx) : '',
+    opening, interview, postpone, paid, disc
+  };
+}
+
+/* ══════════════════════════════════════════════════════════════════ */
+/* 🔄 Hydrate — يستقبل بيانات الباك ويعيد بناء STATE */
+/* ══════════════════════════════════════════════════════════════════ */
 function hydrate(raw){
   const s = raw.settings || {};
   STATE.settings = {
@@ -1003,8 +1130,10 @@ function hydrate(raw){
     const pkg = Number(val(s,'نوع الباقة','pkg'))||0;
     const sheetPrice = Number(val(s,'سعر الباقة','price'))||0;
     const pkgPrice = STATE.packages.find(p=>p.type===pkg)?.price || 0;
+    const regDate = toISODate(val(s,'تاريخ التسجيل','reg')) || '';
+    const subStartRaw = toISODate(val(s,'تاريخ بداية الاشتراك','subStart')) || '';
     return {
-      sid: val(s,'معرّف فريد','studentId') || '', // 🆔 v9.0
+      sid: val(s,'معرّف فريد','studentId') || '',
       id: Number(val(s,'م','id'))||i+1,
       name: String(val(s,'اسم الطالب','name')).trim(),
       phone: val(s,'رقم الهاتف الأول','رقم الهاتف','phone'),
@@ -1012,13 +1141,19 @@ function hydrate(raw){
       email: val(s,'البريد الإلكتروني','email')||'',
       address: val(s,'العنوان','address')||'',
       sType: val(s,'نوع الحلقة','sType')||'حفظ',
-      schedule: val(s,'مواعيد الحلقات','schedule')||'',
+      schedule: val(s,'مواعيد الحلقات','مواعيد الحلقات','schedule')||'',
       pkg, price: sheetPrice || pkgPrice,
-      reg: toISODate(val(s,'تاريخ التسجيل','reg'))||'',
+      reg: regDate,
       dueDay: Number(val(s,'يوم الاستحقاق','dueDay'))||0,
       status: val(s,'الحالة','status')||'نشط',
       note: val(s,'ملاحظات','note')||'',
       birthdate: toISODate(val(s,'تاريخ الميلاد','birthdate'))||'',
+      // 🆕 v9.2
+      subStart: subStartRaw || regDate,
+      openingBalance: Number(val(s,'رصيد افتتاحي','openingBalance')) || 0,
+      prepaidMonths: Number(val(s,'شهور مدفوعة مقدماً','prepaidMonths')) || 0,
+      interviewFee: Number(val(s,'رسوم المقابلة','interviewFee')) || 0,
+      residence: val(s,'مكان الإقامة','residence') || 'داخل مصر',
       lastPay: ''
     };
   });
@@ -1098,50 +1233,62 @@ function hydrate(raw){
   STATE_REMINDER.hasAuto = !!raw.hasAutoReminder;
 }
 
+/* ══════════════════════════════════════════════════════════════════ */
+/* 🆕 v9.2: computeSummary — 3 حالات (منتظم / مستحق / متأخر) */
+/* ══════════════════════════════════════════════════════════════════ */
 function computeSummary(){
-  const now = new Date();
   return STATE.students.map((s, i) => {
     const payments = STATE.receipts.filter(r => r.student === s.name);
     const paid = payments.reduce((a,r) => a + r.paid, 0);
     const disc = payments.reduce((a,r) => a + (r.disc || 0), 0);
-    const settled = paid + disc;
-    const count = payments.length;
     const last = payments.length ? payments.map(p => p.date).filter(Boolean).sort().pop() || '' : '';
-    const postponeFees = STATE.reports.filter(r => r.student === s.name && r.status === 'مؤجل')
-      .reduce((a,r) => a + (r.postponeFee || POSTPONE_FEE), 0);
-    let due = 0;
-    if (s.reg && s.price) {
-      const regDate = new Date(s.reg);
-      if (!isNaN(regDate)) {
-        const months = Math.max(1,
-          (now.getFullYear() - regDate.getFullYear()) * 12 +
-          (now.getMonth() - regDate.getMonth()) + 1);
-        due = months * s.price;
-      }
-    }
-    due += postponeFees;
-    const remaining = Math.max(0, due - settled);
+    const postponed = STATE.reports.filter(r => r.student === s.name && r.status === 'مؤجل');
+    const postponeFees = postponed.reduce((a,r) => a + (r.postponeFee || POSTPONE_FEE), 0);
+
+    const calc = calcDue({
+      price: s.price,
+      subStartISO: s.subStart,
+      regDateISO: s.reg,
+      openingBalance: s.openingBalance,
+      interviewFee: s.interviewFee,
+      postponeFees, paid, disc
+    });
+
     let state = '—';
-    if (due > 0) {
-      if (remaining <= 0) state = 'منتظم';
-      else if (remaining <= s.price * .5) state = 'متأخر قليلاً';
-      else state = 'متأخر';
+    if (calc.due > 0) {
+      if (calc.remaining <= 0) state = 'منتظم';
+      else if (calc.isLate) state = 'متأخر';
+      else state = 'مستحق';
     }
-    return { id: i + 1, name: s.name, pkg: s.pkg, price: s.price, reg: s.reg,
-      paid, disc, settled, count, last, due, remaining, state, postponeFees };
+
+    return {
+      id: i + 1, name: s.name, pkg: s.pkg, price: s.price, reg: s.reg,
+      openingBalance: s.openingBalance || 0,
+      interviewFee: s.interviewFee || 0,
+      paid, disc, settled: paid + disc,
+      count: payments.length, last,
+      due: calc.due, remaining: calc.remaining, remainingCurrent: calc.remainingCurrent,
+      months: calc.months, monthsCurrent: calc.monthsCurrent,
+      currentSubDue: calc.currentSubDue, nextSubDue: calc.nextSubDue,
+      subStart: calc.subStartISO,
+      isReminderPeriod: calc.isReminderPeriod, isLate: calc.isLate,
+      postponeFees, postponedCount: postponed.length,
+      state
+    };
   });
 }
+
 function computeFollow(){
   return STATE.summary.map((s, i) => {
     let action = '—';
     if (s.state === 'منتظم') action = 'لا إجراء — منتظم';
-    else if (s.remaining <= 0) action = 'تسوية رصيد';
-    else if (s.state === 'متأخر قليلاً') action = 'إرسال تنبيه ودي';
+    else if (s.state === 'مستحق') action = 'إشعار ودّي — فترة 25→1';
     else if (s.state === 'متأخر') action = 'اتصال ومتابعة عاجلة';
     return { id: i + 1, name: s.name, pkg: s.pkg, price: s.price,
       reg: s.reg, last: s.last, remaining: s.remaining, state: s.state, action };
   });
 }
+
 function rebuildTotals(){
   const sum = (arr, ...keys) => arr.reduce((a,r) => a + numField(r, ...keys), 0);
   const t = {};
@@ -1152,6 +1299,7 @@ function rebuildTotals(){
   t.operations = STATE.receipts.length;
   t.students = STATE.students.length;
   t.late = STATE.summary.filter(s=>s.state==='متأخر').length;
+  t.entitled = STATE.summary.filter(s=>s.state==='مستحق').length;
   t.regular = STATE.summary.filter(s=>s.state==='منتظم').length;
   t.postponeFees = STATE.reports.reduce((a,r) => a + (r.postponeFee||0), 0);
   t.reportsCount = STATE.reports.length;
@@ -1160,6 +1308,13 @@ function rebuildTotals(){
   t.expenses = sum(STATE.expenses,'المبلغ');
   t.otherIncome = sum(STATE.otherIncome,'المبلغ');
   t.charity = sum(STATE.charity,'المبلغ');
+
+  // إجماليات الطلاب حسب calcDue
+  t.studentsOpening = STATE.summary.reduce((a,s)=>a+s.openingBalance,0);
+  t.studentsInterview = STATE.summary.reduce((a,s)=>a+s.interviewFee,0);
+  t.studentsTotalDue = STATE.summary.reduce((a,s)=>a+s.due,0);
+  t.studentsRemaining = STATE.summary.reduce((a,s)=>a+s.remaining,0);
+
   const investInitial = STATE.investments.reduce((a,r) => a + numField(r,'رأس المال الأساسي','المبلغ'), 0);
   const capAdds = STATE.investTrans.filter(x => val(x,'نوع الحركة') === 'إضافة رأس مال').reduce((a,x) => a + numField(x,'المبلغ'), 0);
   const profits = STATE.investTrans.filter(x => val(x,'نوع الحركة') === 'استلام أرباح').reduce((a,x) => a + numField(x,'المبلغ'), 0);
@@ -1172,17 +1327,20 @@ function rebuildTotals(){
   t.investUnrealPct = t.investTotalCost > 0 ? (t.investUnrealized / t.investTotalCost) * 100 : 0;
   t.investNetCash = -t.investTotalCost + profits;
   t.investments = t.investCurrent;
+
   t.loansGiven = STATE.loans.reduce((a,l) => a + numField(l,'المبلغ'), 0);
   t.loansCollected = STATE.payments.filter(p => val(p,'النوع') === 'قرض حسن').reduce((a,p) => a + numField(p,'المبلغ المسدد'), 0);
   t.loansOutstanding = Math.max(0, t.loansGiven - t.loansCollected);
   t.loanNetCash = -t.loansGiven + t.loansCollected;
   t.loans = t.loansOutstanding;
+
   t.obligationsTotal = STATE.obligations.reduce((a,o) => a + numField(o,'المبلغ'), 0);
   t.obligationsPaid = STATE.payments.filter(p => val(p,'النوع') === 'التزام').reduce((a,p) => a + numField(p,'المبلغ المسدد'), 0);
   t.obligations = Math.max(0, t.obligationsTotal - t.obligationsPaid);
   t.obligationNetCash = -t.obligationsPaid;
   t.paymentsCount = STATE.payments.length;
   t.paymentsAmount = STATE.payments.reduce((a,p)=>a+numField(p,'المبلغ المسدد'),0);
+
   t.operatingCashFlow = t.totalPaid + t.otherIncome - t.expenses - t.charity;
   t.investingCashFlow = t.loanNetCash + t.investNetCash;
   t.financingCashFlow = t.obligationNetCash;
@@ -1194,9 +1352,8 @@ function rebuildTotals(){
 }
 
 /* ══════════════════════════════════════════════════════════════════ */
-/* 🔐 v9.0: طبقة الاتصال بالـ API — Timeout + Token */
+/* 🔐 API — Timeout + Token */
 /* ══════════════════════════════════════════════════════════════════ */
-
 async function apiFetch(url, options = {}, timeoutMs = 20000) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
@@ -1240,9 +1397,7 @@ async function apiPost(action, data) {
   if (!json.ok) throw new Error(json.error || 'فشل الحفظ');
   return json;
 }
-</script>
 
-<script>
 /* ══════════════════════════════════════════════════════════════════ */
 /* 📋 القائمة المنسدلة لمواعيد الحلقات */
 /* ══════════════════════════════════════════════════════════════════ */
@@ -1275,7 +1430,6 @@ function buildScheduleString(days, time){
   return d || t || '';
 }
 
-/* 🧹 v9.0: initScheduleDropdown مع تنظيف المستمعات */
 function initScheduleDropdown(container){
   const trigger = container.querySelector('.sched-dd-trigger');
   const txt     = container.querySelector('.sdd-txt');
@@ -1309,13 +1463,11 @@ function initScheduleDropdown(container){
   trigger.onclick = (e) => { e.stopPropagation(); container.classList.toggle('open'); };
   panel.onclick = (e) => e.stopPropagation();
 
-  /* 🧹 استخدم pointerdown بدل click لتقليل التداخل */
   const outsideHandler = (e) => {
     if(!container.contains(e.target)) container.classList.remove('open');
   };
   document.addEventListener('pointerdown', outsideHandler);
 
-  /* 🔑 سجّل دالة التنظيف على container */
   const oldCleanup = container._cleanup;
   if (typeof oldCleanup === 'function') { try { oldCleanup(); } catch(e){} }
   container._cleanup = () => {
@@ -1375,34 +1527,39 @@ const FORMS = {
       { n:'طريقة الاستلام', l:'طريقة الاستلام', t:'select', opts:['نقدي','تحويل بنكي','محفظة إلكترونية','شيك','أخرى'], def:'نقدي' },
       { n:'ملاحظات', l:'ملاحظات', t:'textarea', full:true }
     ]},
-  student: { title:'تسجيل طالب جديد', sub:'أدخل البيانات الأساسية للطالب', ic:'👨‍🎓', action:'addStudent',
+  student: { title:'تسجيل طالب جديد', sub:'الباك يحسب رصيد الافتتاح وتاريخ بداية الاشتراك تلقائياً', ic:'👨‍🎓', action:'addStudent',
     fields: [
       { n:'اسم الطالب', l:'اسم الطالب', t:'text', req:true, full:true, ph:'الاسم الكامل' },
       { n:'رقم الهاتف الأول', l:'📱 رقم الهاتف الأول', t:'tel', ph:'01xxxxxxxxx', req:true },
       { n:'رقم الهاتف الثاني', l:'📱 رقم الهاتف الثاني', t:'tel', ph:'01xxxxxxxxx', req:true },
       { n:'البريد الإلكتروني', l:'✉️ البريد الإلكتروني', t:'email', req:true, ph:'student@example.com', hint:'لتلقي تقارير الحلقات' },
       { n:'تاريخ الميلاد', l:'🎂 تاريخ الميلاد', t:'date', req:true, hint:'لحساب العمر تلقائياً' },
-      { n:'العنوان', l:'🏠 العنوان', t:'text', req:true, ph:'المحافظة - المدينة - الشارع' },
+      { n:'العنوان', l:'🏠 العنوان', t:'text', req:true, full:true, ph:'المحافظة - المدينة - الشارع' },
       { n:'نوع الحلقة', l:'📖 نوع الحلقة', t:'select', opts:['حفظ','قراءة','تدبر','مراجعة','تجويد'], def:'حفظ', req:true },
       { n:'نوع الباقة', l:'📦 عدد الحلقات', t:'select-pkg', req:true },
       { n:'سعر الباقة', l:'💰 سعر الباقة', t:'number', req:true },
+      { n:'رسوم المقابلة الفنية', l:'🎯 رسوم المقابلة الفنية', t:'number', def:'0', hint:'تُضاف مرة واحدة فقط' },
+      { n:'مكان الإقامة', l:'🌍 مكان الإقامة', t:'select', opts:['داخل مصر','خارج مصر'], def:'داخل مصر', full:true },
       { n:'مواعيد الحلقات', l:'', t:'schedule-picker', full:true },
       { n:'تاريخ التسجيل', l:'📅 تاريخ التسجيل', t:'date', req:true, def:'today' },
       { n:'يوم الاستحقاق', l:'📆 يوم الاستحقاق', t:'number', ph:'1 - 31', def:'1', req:true },
+      { n:'student-preview', l:'', t:'student-preview', full:true },
       { n:'الحالة', l:'🔖 الحالة', t:'select', opts:['نشط','منتظم','متأخر','موقوف'], def:'نشط', req:true, full:true },
       { n:'ملاحظات', l:'📝 ملاحظات', t:'textarea', full:true, hint:'اختياري' }
     ]},
-  editStudentPrice: { title:'تعديل بيانات طالب', sub:'تعديل البيانات الأساسية', ic:'✏️', action:'updateStudent',
+  editStudentPrice: { title:'تعديل بيانات طالب', sub:'لا يُعاد حساب الرصيد الافتتاحي ولا تاريخ البدء', ic:'✏️', action:'updateStudent',
     fields: [
       { n:'اسم الطالب', l:'اسم الطالب', t:'readonly', full:true },
       { n:'رقم الهاتف الأول', l:'📱 رقم الهاتف الأول', t:'tel', req:true },
       { n:'رقم الهاتف الثاني', l:'📱 رقم الهاتف الثاني', t:'tel', req:true },
       { n:'البريد الإلكتروني', l:'✉️ البريد الإلكتروني', t:'email', req:true },
       { n:'تاريخ الميلاد', l:'🎂 تاريخ الميلاد', t:'date', req:true, hint:'لحساب العمر' },
-      { n:'العنوان', l:'🏠 العنوان', t:'text', req:true },
+      { n:'العنوان', l:'🏠 العنوان', t:'text', req:true, full:true },
       { n:'نوع الحلقة', l:'📖 نوع الحلقة', t:'select', opts:['حفظ','قراءة','تدبر','مراجعة','تجويد'], def:'حفظ', req:true },
       { n:'مواعيد الحلقات', l:'', t:'schedule-picker', full:true },
       { n:'سعر الباقة', l:'💰 سعر الباقة', t:'number', req:true },
+      { n:'رسوم المقابلة الفنية', l:'🎯 رسوم المقابلة الفنية', t:'number', hint:'تُعدَّل فقط للتصحيح' },
+      { n:'مكان الإقامة', l:'🌍 مكان الإقامة', t:'select', opts:['داخل مصر','خارج مصر'], def:'داخل مصر', full:true },
       { n:'الحالة', l:'🔖 الحالة', t:'select', opts:['نشط','منتظم','متأخر','موقوف'], def:'نشط', req:true, full:true },
       { n:'ملاحظات', l:'📝 ملاحظات', t:'textarea', full:true, hint:'اختياري' }
     ]},
@@ -1414,7 +1571,7 @@ const FORMS = {
       { n:'سعر الباقة', l:'السعر الجديد', t:'number', req:true },
       { n:'ملاحظات', l:'سبب التغيير', t:'textarea', full:true }
     ]},
-  receipt: { title:'سند استلام نقدي', sub:'المستحق = الاشتراك + التأجيلات · يُرسل بالبريد تلقائياً', ic:'🧾', action:'addReceipt',
+  receipt: { title:'سند استلام نقدي', sub:'المستحق = الافتتاحي + الشهور + التأجيل + المقابلة', ic:'🧾', action:'addReceipt',
     fields: [
       { n:'رقم الإيصال', l:'رقم الإيصال', t:'readonly-auto', def:'__auto__' },
       { n:'التاريخ', l:'تاريخ الاستلام', t:'date', req:true, def:'today' },
@@ -1454,7 +1611,7 @@ const FORMS = {
       { n:'اسم الطالب', l:'👨‍🎓 الطالب', t:'select-student', req:true, full:true },
       { n:'البريد الإلكتروني', l:'✉️ البريد الإلكتروني', t:'readonly', full:true, hint:'يُملأ تلقائياً' },
       { n:'اسم المعلم', l:'👨‍🏫 اسم المعلم', t:'select', opts:TEACHERS, def:TEACHERS[0], req:true },
-      { n:'العمر', l:'🎂 عمر الطالب', t:'readonly', hint:'يُحسب تلقائياً من تاريخ الميلاد' },
+      { n:'العمر', l:'🎂 عمر الطالب', t:'readonly', hint:'يُحسب تلقائياً' },
       { n:'الحالة', l:'🎯 حالة الحضور', t:'select', opts:['حاضر','غائب','مؤجل'], def:'حاضر', req:true },
       { n:'تاريخ التأجيل', l:'📅 تاريخ التأجيل الجديد', t:'postpone-date' },
       { n:'رسوم التأجيل', l:'💰 رسوم التأجيل', t:'readonly-num', hint:'80 ج.م' },
@@ -1607,7 +1764,7 @@ function buildField(f){
     input = `<input type="text" id="${id}" data-name="${escapeHtml(f.n)}" readonly style="opacity:.75;cursor:not-allowed">`;
   }
   else if(f.t === 'readonly-auto'){
-    input = `<input type="text" id="${id}" data-name="${escapeHtml(f.n)}" readonly placeholder="سيُعيَّن تلقائياً من السيرفر" style="opacity:.7;cursor:not-allowed;font-weight:700;color:var(--text3);background:rgba(107,125,146,.06)">`;
+    input = `<input type="text" id="${id}" data-name="${escapeHtml(f.n)}" readonly placeholder="سيُعيَّن تلقائياً" style="opacity:.7;cursor:not-allowed;font-weight:700;color:var(--text3);background:rgba(107,125,146,.06)">`;
   }
   else if(f.t === 'readonly' || f.t === 'readonly-num'){
     input = `<input type="text" id="${id}" data-name="${escapeHtml(f.n)}" readonly style="opacity:.9;cursor:not-allowed;font-weight:800;color:var(--brand);background:rgba(45,212,167,.06);border-color:rgba(45,212,167,.25)">`;
@@ -1632,8 +1789,16 @@ function buildField(f){
   }
   else if(f.t === 'due-preview'){
     input = `<div class="due-summary" id="${id}" data-name="${escapeHtml(f.n)}" data-due-preview>
-      <div class="ds-title">💰 تفاصيل المستحق — الاشتراك + التأجيلات</div>
+      <div class="ds-title">💰 تفاصيل المستحق — افتتاحي + شهور + تأجيل + مقابلة</div>
       <div id="dsContent" style="color:var(--text3);font-size:13px;text-align:center;padding:10px">اختر الطالب لعرض التفاصيل</div>
+    </div>`;
+  }
+  else if(f.t === 'student-preview'){
+    input = `<div class="student-preview" id="${id}" data-name="${escapeHtml(f.n)}" data-student-preview>
+      <div class="sp-title">💰 معاينة المبلغ المطلوب عند التسجيل</div>
+      <div data-sp-content>
+        <div style="color:var(--text3);font-size:12px;text-align:center;padding:8px">أكمل تاريخ التسجيل والسعر لعرض التفاصيل</div>
+      </div>
     </div>`;
   }
   else if(f.t === 'schedule-picker'){
@@ -1674,29 +1839,85 @@ function buildField(f){
   return `<div class="${wrapCls}">${lbl}${input}</div>`;
 }
 
+/* 🆕 v9.2: معاينة المبلغ عند تسجيل طالب جديد */
+function renderStudentRegistrationPreview(form){
+  const regInp = form.querySelector('[data-name="تاريخ التسجيل"]');
+  const priceInp = form.querySelector('[data-name="سعر الباقة"]');
+  const interviewInp = form.querySelector('[data-name="رسوم المقابلة الفنية"]');
+  const box = form.querySelector('[data-sp-content]');
+  if(!regInp || !priceInp || !box) return;
+
+  const regDate = regInp.value;
+  const price = Number(priceInp.value) || 0;
+  const interview = interviewInp ? Number(interviewInp.value) || 0 : 0;
+
+  if(!regDate || !price){
+    box.innerHTML = '<div style="color:var(--text3);font-size:12px;text-align:center;padding:8px">أكمل تاريخ التسجيل والسعر لعرض التفاصيل</div>';
+    return;
+  }
+
+  const { subStart, opening } = computeRegistrationOpening(regDate, price);
+
+  const regP = regDate.split('-').map(Number);
+  const regY = regP[0], regM = regP[1], regD = regP[2];
+  const dim = new Date(regY, regM, 0).getDate();
+  const remDays = dim - regD + 1;
+
+  const regMonthLabel = AR_MONTHS[regM-1] + ' ' + regY;
+  const ssP = subStart.split('-').map(Number);
+  const ssY = ssP[0], ssM = ssP[1];
+  const ssMonthLabel = AR_MONTHS[ssM-1] + ' ' + ssY;
+  const ssSameMonth = (ssY === regY && ssM === regM);
+
+  const total = opening + price + interview;
+
+  const rows = [];
+  if(opening > 0){
+    rows.push(`<div class="sp-row"><span class="k">📅 الجزء المتبقي من ${regMonthLabel} (${remDays} يوم)</span><span class="v">${fmt(opening)} ج.م</span></div>`);
+  }
+  const subLabel = ssSameMonth ? `اشتراك ${regMonthLabel} (شهر كامل)` : `اشتراك ${ssMonthLabel} (شهر كامل)`;
+  rows.push(`<div class="sp-row"><span class="k">📦 ${subLabel}</span><span class="v">${fmt(price)} ج.م</span></div>`);
+  if(interview > 0){
+    rows.push(`<div class="sp-row"><span class="k">🎯 رسوم المقابلة الفنية (مرة واحدة)</span><span class="v">${fmt(interview)} ج.م</span></div>`);
+  }
+  rows.push(`<div class="sp-row sp-total"><span class="k">💵 الإجمالي المطلوب</span><span class="v">${fmt(total)} ج.م</span></div>`);
+
+  const firstReminder = `25 ${AR_MONTHS[ssM-1]} ${ssY}`;
+
+  let scenarioLabel = '';
+  if(regD <= 10) scenarioLabel = '📋 القاعدة: يوم التسجيل ≤ 10 → الشهر الحالي كامل';
+  else if(remDays <= 2) scenarioLabel = '📋 القاعدة: آخر يوم أو يومين → بدون رصيد افتتاحي';
+  else scenarioLabel = '📋 القاعدة: رصيد افتتاحي (نسبة الأيام) + الشهر القادم';
+
+  box.innerHTML = rows.join('') + `
+    <div class="sp-meta">
+      📅 <b>بداية الاشتراك:</b> ${ssMonthLabel}<br>
+      🔔 <b>أول تذكير تلقائي متوقع:</b> ${firstReminder}<br>
+      ${scenarioLabel}<br>
+      <span style="font-size:11px;color:var(--text3);font-weight:600">الباك يحسب القيم النهائية ويخزّنها تلقائياً</span>
+    </div>`;
+}
+
+/* 🆕 v9.2: computeDueDetails — يستخدم calcDue */
 function computeDueDetails(name){
   const s = STATE.students.find(x => x.name === name);
   if(!s) return null;
-  const now = new Date();
-  let months = 1;
-  if (s.reg) {
-    const r = new Date(s.reg);
-    if (!isNaN(r)) {
-      months = Math.max(1,
-        (now.getFullYear() - r.getFullYear()) * 12 +
-        (now.getMonth() - r.getMonth()) + 1);
-    }
-  }
-  const subscriptionDue = months * s.price;
-  const postponeFees = STATE.reports.filter(r => r.student === s.name && r.status === 'مؤجل')
-    .reduce((a,r) => a + (r.postponeFee || POSTPONE_FEE), 0);
-  const postponeCount = STATE.reports.filter(r => r.student === s.name && r.status === 'مؤجل').length;
-  const totalDue = subscriptionDue + postponeFees;
-  const payments = STATE.receipts.filter(r => r.student === s.name);
+  const payments = STATE.receipts.filter(r => r.student === name);
   const paid = payments.reduce((a,r) => a + r.paid, 0);
   const disc = payments.reduce((a,r) => a + (r.disc || 0), 0);
-  const remaining = Math.max(0, totalDue - paid - disc);
-  return { months, subscriptionDue, postponeFees, postponeCount, totalDue, paid, disc, remaining, price: s.price };
+  const postponed = STATE.reports.filter(r => r.student === name && r.status === 'مؤجل');
+  const postponeFees = postponed.reduce((a,r) => a + (r.postponeFee || POSTPONE_FEE), 0);
+
+  const calc = calcDue({
+    price: s.price,
+    subStartISO: s.subStart,
+    regDateISO: s.reg,
+    openingBalance: s.openingBalance,
+    interviewFee: s.interviewFee,
+    postponeFees, paid, disc
+  });
+
+  return { ...calc, postponeCount: postponed.length, postponeFees, price: s.price, paid, disc };
 }
 
 function renderDuePreview(form, name){
@@ -1710,12 +1931,18 @@ function renderDuePreview(form, name){
   }
   const d = computeDueDetails(name);
   if(!d){ content.innerHTML = '<div style="color:var(--red);font-size:13px;text-align:center;padding:10px">⚠️ الطالب غير موجود</div>'; return; }
-  content.innerHTML = `
-    <div class="ds-row"><span class="k">📅 الاشتراك (${d.months} شهر × ${fmt(d.price)})</span><span class="v">${fmt(d.subscriptionDue)} ج.م</span></div>
-    ${d.postponeFees > 0 ? `<div class="ds-row"><span class="k">⏸️ رسوم التأجيل (${d.postponeCount} مرة)</span><span class="v" style="color:var(--gold)">${fmt(d.postponeFees)} ج.م</span></div>` : ''}
-    ${d.disc > 0 ? `<div class="ds-row"><span class="k">🎁 إجمالي الخصومات</span><span class="v" style="color:var(--gold)">− ${fmt(d.disc)} ج.م</span></div>` : ''}
-    <div class="ds-row"><span class="k">✅ إجمالي المدفوع</span><span class="v" style="color:var(--brand)">${fmt(d.paid)} ج.م</span></div>
-    <div class="ds-row ds-total"><span class="k">⏳ المتبقي على الطالب</span><span class="v">${fmt(d.remaining)} ج.م</span></div>`;
+
+  const rows = [];
+  if(d.opening > 0) rows.push(`<div class="ds-row"><span class="k">🏁 رصيد افتتاحي</span><span class="v">${fmt(d.opening)} ج.م</span></div>`);
+  if(d.monthsCurrent > 0) rows.push(`<div class="ds-row"><span class="k">📅 اشتراك ${escapeHtml(d.currentSubLabel)}</span><span class="v">${fmt(d.currentSubDue)} ج.م</span></div>`);
+  if(d.isReminderPeriod && d.nextSubDue > 0) rows.push(`<div class="ds-row"><span class="k">🔔 اشتراك ${escapeHtml(d.nextSubLabel)} (قادم)</span><span class="v" style="color:var(--purple)">+ ${fmt(d.nextSubDue)} ج.م</span></div>`);
+  if(d.postponeFees > 0) rows.push(`<div class="ds-row"><span class="k">⏸️ رسوم التأجيل (${d.postponeCount} مرة)</span><span class="v" style="color:var(--gold)">${fmt(d.postponeFees)} ج.م</span></div>`);
+  if(d.interview > 0) rows.push(`<div class="ds-row"><span class="k">🎯 رسوم المقابلة الفنية</span><span class="v">${fmt(d.interview)} ج.م</span></div>`);
+  if(d.disc > 0) rows.push(`<div class="ds-row"><span class="k">🎁 إجمالي الخصومات</span><span class="v" style="color:var(--gold)">− ${fmt(d.disc)} ج.م</span></div>`);
+  rows.push(`<div class="ds-row"><span class="k">✅ إجمالي المدفوع</span><span class="v" style="color:var(--brand)">${fmt(d.paid)} ج.م</span></div>`);
+  rows.push(`<div class="ds-row ds-total"><span class="k">⏳ المتبقي على الطالب</span><span class="v">${fmt(d.remaining)} ج.م</span></div>`);
+
+  content.innerHTML = rows.join('');
 }
 
 function openForm(key){
@@ -1723,23 +1950,32 @@ function openForm(key){
   if(!cfg) return;
   CURRENT_FORM = key;
   CURRENT_KEY_VALUE = null;
+
+  // Reset modal to normal state
+  const formEl = document.getElementById('modalForm');
+  formEl.className = 'form-grid';
+  formEl.style.display = '';
+  formEl.innerHTML = '';
+  document.getElementById('modalSave').style.display = '';
+  document.getElementById('modalSave').textContent = '💾 حفظ البيانات';
+  document.getElementById('modalCancel').textContent = 'إلغاء';
+
   document.getElementById('modalTitle').textContent = cfg.title;
   document.getElementById('modalSub').textContent = cfg.sub;
   document.getElementById('modalIc').textContent = cfg.ic;
 
-  const form = document.getElementById('modalForm');
-  form.innerHTML = cfg.fields.map(buildField).join('');
+  formEl.innerHTML = cfg.fields.map(buildField).join('');
 
   setTimeout(() => {
-    const pkgSel = form.querySelector('[data-pkg-select]');
-    const stuSel = form.querySelector('[data-student-select]');
-    const dueInput = form.querySelector('[data-name="المبلغ المستحق"]');
-    const pkgReadonly = form.querySelector('[data-name="نوع الباقة"]');
-    const amountInput = form.querySelector('[data-name="المبلغ"]');
-    const remainingInput = form.querySelector('[data-name="المتبقي"]');
-    const currentValInput = form.querySelector('[data-name="القيمة الحالية"]');
+    const pkgSel = formEl.querySelector('[data-pkg-select]');
+    const stuSel = formEl.querySelector('[data-student-select]');
+    const dueInput = formEl.querySelector('[data-name="المبلغ المستحق"]');
+    const pkgReadonly = formEl.querySelector('[data-name="نوع الباقة"]');
+    const amountInput = formEl.querySelector('[data-name="المبلغ"]');
+    const remainingInput = formEl.querySelector('[data-name="المتبقي"]');
+    const currentValInput = formEl.querySelector('[data-name="القيمة الحالية"]');
 
-    const schPicker = form.querySelector('[data-schedule-picker]');
+    const schPicker = formEl.querySelector('[data-schedule-picker]');
     if(schPicker) initScheduleDropdown(schPicker);
 
     if(amountInput){
@@ -1757,7 +1993,7 @@ function openForm(key){
         if(!opt || !opt.value) return;
         const pkg = opt.dataset.pkg, price = opt.dataset.price;
         if(pkgReadonly) pkgReadonly.value = pkg ? pkg + ' حلقات' : '';
-        if(CURRENT_FORM === 'receipt') renderDuePreview(form, opt.value);
+        if(CURRENT_FORM === 'receipt') renderDuePreview(formEl, opt.value);
         if(dueInput && !dueInput.dataset.touched){
           const d = computeDueDetails(opt.value);
           if(d && d.remaining > 0) dueInput.value = d.remaining;
@@ -1768,7 +2004,7 @@ function openForm(key){
     }
 
     if(pkgSel){
-      const priceInput = form.querySelector('[data-name="سعر الباقة"]');
+      const priceInput = formEl.querySelector('[data-name="سعر الباقة"]');
       pkgSel.addEventListener('change', () => {
         if(!priceInput || priceInput.value) return;
         const p = STATE.packages.find(x => String(x.type) === pkgSel.value);
@@ -1776,15 +2012,29 @@ function openForm(key){
       });
     }
 
+    /* 🆕 v9.2: معاينة حية في فورم تسجيل طالب */
+    if(CURRENT_FORM === 'student'){
+      const regInp = formEl.querySelector('[data-name="تاريخ التسجيل"]');
+      const priceInp = formEl.querySelector('[data-name="سعر الباقة"]');
+      const interviewInp = formEl.querySelector('[data-name="رسوم المقابلة الفنية"]');
+      const refreshPreview = () => renderStudentRegistrationPreview(formEl);
+      [regInp, priceInp, interviewInp].forEach(inp => {
+        if(!inp) return;
+        inp.addEventListener('input', refreshPreview);
+        inp.addEventListener('change', refreshPreview);
+      });
+      refreshPreview();
+    }
+
     if(CURRENT_FORM === 'studentReport'){
-      const statusSel = form.querySelector('[data-name="الحالة"]');
-      const postponeInp = form.querySelector('[data-name="تاريخ التأجيل"]');
-      const feeInp = form.querySelector('[data-name="رسوم التأجيل"]');
-      const stuSel3 = form.querySelector('[data-name="اسم الطالب"]');
-      const emailRo = form.querySelector('[data-name="البريد الإلكتروني"]');
-      const typeSel = form.querySelector('[data-name="نوع الحلقة"]');
-      const container = form.querySelector('[data-session-container]');
-      const ageRo = form.querySelector('[data-name="العمر"]');
+      const statusSel = formEl.querySelector('[data-name="الحالة"]');
+      const postponeInp = formEl.querySelector('[data-name="تاريخ التأجيل"]');
+      const feeInp = formEl.querySelector('[data-name="رسوم التأجيل"]');
+      const stuSel3 = formEl.querySelector('[data-name="اسم الطالب"]');
+      const emailRo = formEl.querySelector('[data-name="البريد الإلكتروني"]');
+      const typeSel = formEl.querySelector('[data-name="نوع الحلقة"]');
+      const container = formEl.querySelector('[data-session-container]');
+      const ageRo = formEl.querySelector('[data-name="العمر"]');
 
       if(feeInp) feeInp.value = '0 ج.م';
 
@@ -1949,12 +2199,12 @@ function openForm(key){
     }
 
     if(CURRENT_FORM === 'obligationPayment'){
-      const typeSel = form.querySelector('[data-name="النوع"]');
-      const oblSel = form.querySelector('[data-oblig-select]');
-      const origInp = form.querySelector('[data-name="المبلغ الأصلي"]');
-      const befInp = form.querySelector('[data-name="المتبقي قبل السداد"]');
-      const payInp = form.querySelector('[data-name="المبلغ المسدد"]');
-      const aftInp = form.querySelector('[data-name="المتبقي بعد السداد"]');
+      const typeSel = formEl.querySelector('[data-name="النوع"]');
+      const oblSel = formEl.querySelector('[data-oblig-select]');
+      const origInp = formEl.querySelector('[data-name="المبلغ الأصلي"]');
+      const befInp = formEl.querySelector('[data-name="المتبقي قبل السداد"]');
+      const payInp = formEl.querySelector('[data-name="المبلغ المسدد"]');
+      const aftInp = formEl.querySelector('[data-name="المتبقي بعد السداد"]');
       const refresh = () => {
         const t = typeSel.value, name = oblSel.value;
         if(!name){ origInp.value=''; befInp.value=''; aftInp.value=''; return; }
@@ -1970,11 +2220,11 @@ function openForm(key){
     }
 
     if(CURRENT_FORM === 'investTrans'){
-      const typeSel = form.querySelector('[data-name="نوع الحركة"]');
-      const amountInput2 = form.querySelector('[data-name="المبلغ"]');
+      const typeSel = formEl.querySelector('[data-name="نوع الحركة"]');
+      const amountInput2 = formEl.querySelector('[data-name="المبلغ"]');
       const infoBox = document.createElement('div');
       infoBox.style.cssText = 'grid-column:1/-1;padding:11px 14px;border-radius:10px;font-size:12.5px;font-weight:700;text-align:center;transition:.2s';
-      form.appendChild(infoBox);
+      formEl.appendChild(infoBox);
       const updateInfo = () => {
         const t = typeSel.value;
         const amt = Number(amountInput2?.value) || 0;
@@ -1989,23 +2239,23 @@ function openForm(key){
     }
 
     if(CURRENT_FORM === 'prepaidReceipt'){
-      const stuSel2 = form.querySelector('[data-name="اسم الطالب"]');
-      const priceInp = form.querySelector('[data-name="سعر الشهر"]');
-      const monthsInp = form.querySelector('[data-name="عدد الأشهر"]');
-      const totalInp = form.querySelector('[data-name="الإجمالي"]');
-      const discType = form.querySelector('[data-name="نوع الخصم"]');
-      const discVal = form.querySelector('[data-name="قيمة الخصم"]');
-      const netInp = form.querySelector('[data-name="المبلغ الصافي"]');
-      const dueInp = form.querySelector('[data-name="المبلغ المستحق"]');
-      const paidInp = form.querySelector('[data-name="المبلغ المدفوع"]');
-      const discInp = form.querySelector('[data-name="خصم"]');
-      const remInp = form.querySelector('[data-name="المتبقي"]');
-      const pkgRo = form.querySelector('[data-name="نوع الباقة"]');
+      const stuSel2 = formEl.querySelector('[data-name="اسم الطالب"]');
+      const priceInp = formEl.querySelector('[data-name="سعر الشهر"]');
+      const monthsInp = formEl.querySelector('[data-name="عدد الأشهر"]');
+      const totalInp = formEl.querySelector('[data-name="الإجمالي"]');
+      const discType = formEl.querySelector('[data-name="نوع الخصم"]');
+      const discVal = formEl.querySelector('[data-name="قيمة الخصم"]');
+      const netInp = formEl.querySelector('[data-name="المبلغ الصافي"]');
+      const dueInp = formEl.querySelector('[data-name="المبلغ المستحق"]');
+      const paidInp = formEl.querySelector('[data-name="المبلغ المدفوع"]');
+      const discInp = formEl.querySelector('[data-name="خصم"]');
+      const remInp = formEl.querySelector('[data-name="المتبقي"]');
+      const pkgRo = formEl.querySelector('[data-name="نوع الباقة"]');
 
       const summary = document.createElement('div');
       summary.className = 'prepaid-summary';
       summary.innerHTML = `<div class="ps-title">💡 ملخص الدفعة المقدمة</div><div id="psContent"></div>`;
-      form.appendChild(summary);
+      formEl.appendChild(summary);
       const recalc = () => {
         const price = Number(priceInp.value) || 0;
         const months = Number(monthsInp.value) || 0;
@@ -2019,7 +2269,7 @@ function openForm(key){
         totalInp.value = fmt(total) + ' ج.م';
         netInp.value = fmt(net) + ' ج.م';
         dueInp.value = total; paidInp.value = net; discInp.value = discount; remInp.value = 0;
-        const psContent = form.querySelector('#psContent');
+        const psContent = formEl.querySelector('#psContent');
         if(psContent){
           const discPct = total > 0 ? ((discount / total) * 100).toFixed(1) : '0';
           psContent.innerHTML = `
@@ -2048,7 +2298,7 @@ function openForm(key){
 
   document.getElementById('modalBack').classList.add('show');
   setTimeout(() => {
-    const first = form.querySelector('input:not([readonly]):not([disabled]),select:not([disabled]),textarea');
+    const first = formEl.querySelector('input:not([readonly]):not([disabled]),select:not([disabled]),textarea');
     if(first) first.focus();
   }, 120);
 }
@@ -2069,16 +2319,31 @@ function openFormWithValues(key, values, keyValue){
     if(schPicker && values['مواعيد الحلقات'] !== undefined){
       setScheduleDropdownValue(schPicker, values['مواعيد الحلقات']);
     }
+    if(CURRENT_FORM === 'student'){
+      renderStudentRegistrationPreview(form);
+    }
   }, 60);
 }
 
-/* 🧹 v9.0: closeForm مع تنظيف مستمعات dropdown */
 function closeForm(){
   document.querySelectorAll('[data-schedule-picker]').forEach(el => {
     if (typeof el._cleanup === 'function') {
       try { el._cleanup(); } catch(e){}
     }
   });
+  // Reset modal
+  const form = document.getElementById('modalForm');
+  form.className = 'form-grid';
+  form.style.display = '';
+  form.innerHTML = '';
+  const saveBtn = document.getElementById('modalSave');
+  saveBtn.style.display = '';
+  saveBtn.textContent = '💾 حفظ البيانات';
+  saveBtn.disabled = false;
+  const cancelBtn = document.getElementById('modalCancel');
+  cancelBtn.textContent = 'إلغاء';
+  cancelBtn.style.display = '';
+
   document.getElementById('modalBack').classList.remove('show');
   CURRENT_FORM = null; CURRENT_KEY_VALUE = null;
 }
@@ -2091,7 +2356,7 @@ async function submitForm(){
 
   try{
     cfg.fields.forEach(f => {
-      if(f.t === 'session-details' || f.t === 'due-preview' || f.t === 'readonly-auto') return;
+      if(f.t === 'session-details' || f.t === 'due-preview' || f.t === 'readonly-auto' || f.t === 'student-preview') return;
       const el = form.querySelector(`[data-name="${cssEscape(f.n)}"]`);
       if(!el) return;
       let v = el.value.trim ? el.value.trim() : el.value;
@@ -2115,7 +2380,6 @@ async function submitForm(){
       if(!data['المبلغ المستحق']) data['المبلغ المستحق'] = stu.price;
     }
     if(data['الفترة المستحقة'] && data['الفترة المستحقة'].length === 7) data['الفترة المستحقة'] += '-01';
-    // 🔢 رقم الإيصال: الباكند سيتولّد تلقائياً
   }
 
   if(CURRENT_FORM === 'prepaidReceipt'){
@@ -2166,6 +2430,12 @@ async function submitForm(){
     data['تفاصيل الحلقة'] = JSON.stringify({ type, items });
   }
 
+  // 🆕 v9.2: student form — الباك يحسب subStart + opening
+  if(CURRENT_FORM === 'student'){
+    if(data['رسوم المقابلة الفنية'] === undefined) data['رسوم المقابلة الفنية'] = 0;
+    if(!data['مكان الإقامة']) data['مكان الإقامة'] = 'داخل مصر';
+  }
+
   const btn = document.getElementById('modalSave');
   const oldTxt = btn.textContent;
   btn.textContent = '⏳ جاري الحفظ...'; btn.disabled = true;
@@ -2198,6 +2468,8 @@ function editStudentPrice(name){
     'مواعيد الحلقات': s.schedule || '',
     'تاريخ الميلاد': s.birthdate || '',
     'سعر الباقة': s.price,
+    'رسوم المقابلة الفنية': s.interviewFee || 0,
+    'مكان الإقامة': s.residence || 'داخل مصر',
     'الحالة': s.status, 'ملاحظات': s.note
   }, s.name);
 }
@@ -2231,25 +2503,46 @@ async function resendReceiptEmail(no){
     setTimeout(() => loadFromSheets(), 700);
   } catch(err){ showToast('⚠️ ' + err.message); }
 }
+
+function obligationRemaining(itemName, type){
+  const item = type === 'التزام' ? STATE.obligations.find(o => val(o,'البيان') === itemName)
+    : STATE.loans.find(l => (val(l,'اسم الشخص')||val(l,'البيان')) === itemName);
+  if(!item) return { original:0, before:0 };
+  const original = numField(item, 'المبلغ');
+  const storedRemaining = numField(item, 'المتبقي') || original;
+  const paidSum = STATE.payments.filter(p => val(p,'النوع') === type && val(p,'البيان') === itemName)
+    .reduce((a,p) => a + numField(p,'المبلغ المسدد'), 0);
+  return { original, before: Math.max(0, storedRemaining - paidSum) };
+}
+function investCalc(name){
+  const item = STATE.investments.find(x => val(x,'البيان') === name);
+  if(!item) return { initial:0, adds:0, profits:0, liquidations:0, totalCost:0, current:0, unrealized:0, pct:0 };
+  const initial = numField(item,'رأس المال الأساسي','المبلغ');
+  const adds = STATE.investTrans.filter(x => val(x,'البيان') === name && val(x,'نوع الحركة') === 'إضافة رأس مال').reduce((a,x) => a + numField(x,'المبلغ'), 0);
+  const profits = STATE.investTrans.filter(x => val(x,'البيان') === name && val(x,'نوع الحركة') === 'استلام أرباح').reduce((a,x) => a + numField(x,'المبلغ'), 0);
+  const liquidations = STATE.investTrans.filter(x => val(x,'البيان') === name && val(x,'نوع الحركة') === 'تصفية جزئية').reduce((a,x) => a + numField(x,'المبلغ'), 0);
+  const totalCost = initial + adds - liquidations;
+  const current = numField(item,'القيمة الحالية') || initial;
+  const unrealized = current - totalCost;
+  const pct = totalCost > 0 ? (unrealized / totalCost) * 100 : 0;
+  return { initial, adds, profits, liquidations, totalCost, current, unrealized, pct };
+}
 </script>
 
 <script>
 /* ══════════════════════════════════════════════════════════════════ */
-/* 🆕 نظام التذكير الشهري — v9.1 (يشمل الشهر القادم من يوم 25) */
+/* 🆕 v9.2: نظام التذكير الشهري — يشمل الشهر القادم من يوم 25 */
 /* ══════════════════════════════════════════════════════════════════ */
 
-/**
- * حساب بيانات التذكير لكل طالب.
- * 🔔 المهم: من يوم 25 من الشهر → نعتبر اشتراك الشهر القادم مستحقاً
- *     فيظهر كل الطلاب (حتى المسددين) في قائمة التذكير للشهر القادم.
- */
 function computeReminderData(){
   const now = new Date();
-  const dayOfMonth = now.getDate();
-  const isReminderPeriod = dayOfMonth >= REMINDER_DAY;
+  const nowY = now.getFullYear();
+  const nowM = now.getMonth() + 1;
+  const nowD = now.getDate();
+  const nowIdx = nowY * 12 + (nowM - 1);
+  const isReminderPeriod = nowD >= REMINDER_DAY;
 
-  // اسم الشهر القادم لعرضه
-  const nextMonthDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const nextMonthDate = new Date(nowY, nowM, 1);
   const nextMonthLabel = `${AR_MONTHS[nextMonthDate.getMonth()]} ${nextMonthDate.getFullYear()}`;
 
   const data = STATE.students
@@ -2261,41 +2554,47 @@ function computeReminderData(){
       const postponed = STATE.reports.filter(r => r.student === s.name && r.status === 'مؤجل');
       const postponeFees = postponed.reduce((a,r) => a + (r.postponeFee || POSTPONE_FEE), 0);
 
-      let months = 1;
-      if (s.reg) {
-        const r = new Date(s.reg);
-        if (!isNaN(r)) {
-          months = Math.max(1,
-            (now.getFullYear() - r.getFullYear()) * 12 +
-            (now.getMonth() - r.getMonth()) + 1);
-        }
-      }
+      const calc = calcDue({
+        price: s.price,
+        subStartISO: s.subStart,
+        regDateISO: s.reg,
+        openingBalance: s.openingBalance,
+        interviewFee: s.interviewFee,
+        postponeFees, paid, disc
+      });
 
-      // اشتراك الشهور الحالية (حتى الشهر الجاري)
-      const currentSubDue = months * s.price;
-      // 🔔 اشتراك الشهر القادم — يُحتسب فقط من يوم 25
-      const nextMonthDue = isReminderPeriod ? s.price : 0;
-
-      const subscriptionDue = currentSubDue + nextMonthDue;
-      const totalDue = subscriptionDue + postponeFees;
-
-      const remaining = Math.max(0, totalDue - paid - disc);
-      // المتبقي قبل احتساب الشهر القادم — لتمييز "عليه فقط شهر قادم"
-      const remainingCurrent = Math.max(0, currentSubDue + postponeFees - paid - disc);
+      // فحص التخطي في auto reminder: subStart > current month
+      const skipAutoBecauseFutureStart = calc.subStartIdx > nowIdx;
 
       return {
-        name: s.name, pkg: s.pkg, email: s.email, price: s.price, months,
-        currentSubDue,
-        nextMonthDue,
-        subscriptionDue,
-        postponeFees,
-        postponedCount: postponed.length,
-        paid, disc, totalDue, remaining,
-        remainingCurrent,
-        isPaid: remaining <= 0,
-        onlyNextMonthDue: (remaining > 0 && remainingCurrent <= 0),
-        isReminderPeriod,
-        nextMonthLabel
+        name: s.name, pkg: s.pkg, email: s.email, price: s.price,
+        opening: s.openingBalance || 0,
+        interview: s.interviewFee || 0,
+        months: calc.months, monthsCurrent: calc.monthsCurrent,
+        currentSubDue: calc.currentSubDue,
+        nextSubDue: calc.nextSubDue,
+        totalSubDue: calc.totalSubDue,
+        currentSubLabel: calc.currentSubLabel,
+        nextSubLabel: calc.nextSubLabel,
+        postponeFees, postponedCount: postponed.length,
+        postponedDetails: postponed.map(r => ({
+          dayName: getArabicDayName(r.date),
+          originalDate: r.date,
+          postponeDate: r.postponeDate,
+          fee: r.postponeFee || POSTPONE_FEE
+        })),
+        paid, disc,
+        due: calc.due, remaining: calc.remaining,
+        remainingCurrent: calc.remainingCurrent,
+        isReminderPeriod: calc.isReminderPeriod,
+        isLate: calc.isLate,
+        isPaid: calc.remaining <= 0,
+        onlyNextMonthDue: (calc.remaining > 0 && calc.remainingCurrent <= 0),
+        subStartISO: calc.subStartISO,
+        skipAutoBecauseFutureStart,
+        currentMonthLabel: calc.currentMonthLabel,
+        nextMonthLabel,
+        targetMonthLabel: calc.targetMonthLabel
       };
     });
 
@@ -2312,20 +2611,23 @@ function renderReminder(){
 
   const due = data.filter(d => !d.isPaid);
   const totalDue = due.reduce((a,d) => a + d.remaining, 0);
-  const totalSubscription = due.reduce((a,d) => a + d.subscriptionDue, 0);
+  const totalCurrentSub = due.reduce((a,d) => a + d.currentSubDue, 0);
+  const totalNextSub = due.reduce((a,d) => a + d.nextSubDue, 0);
   const totalPostpone = due.reduce((a,d) => a + d.postponeFees, 0);
-  const totalNextMonth = due.reduce((a,d) => a + d.nextMonthDue, 0);
+  const totalOpening = due.reduce((a,d) => a + d.opening, 0);
+  const totalInterview = due.reduce((a,d) => a + d.interview, 0);
   const auto = STATE_REMINDER.hasAuto;
 
-  // ─── KPIs ───
   const kpis = [
     { ic:'👥', lbl:'إجمالي الطلاب', val: fmt(data.length), c:'var(--blue)', bg:'rgba(77,157,255,.12)', tr:'طالب' },
     { ic:'⏳', lbl: isReminderPeriod ? 'مستحق عليهم (شامل القادم)' : 'مستحق عليهم', val: fmt(due.length), c:'var(--gold)', bg:'rgba(245,181,68,.12)', tr:'طالب' },
     { ic:'✅', lbl:'مسددون', val: fmt(data.length - due.length), c:'var(--brand)', bg:'rgba(45,212,167,.12)', tr:'طالب' },
     { ic:'💵', lbl:'إجمالي المستحق', val: money(totalDue), c:'var(--red)', bg:'rgba(255,107,107,.12)', tr:'مستحق' },
-    { ic:'📅', lbl:'مستحقات الاشتراك', val: money(totalSubscription), c:'var(--blue)', bg:'rgba(77,157,255,.12)', tr:'اشتراك' },
-    { ic:'🔔', lbl:`اشتراك ${nextMonthLabel}`, val: money(totalNextMonth), c:'var(--purple)', bg:'rgba(167,139,250,.12)', tr:'قادم' },
-    { ic:'⏸️', lbl:'رسوم التأجيل', val: money(totalPostpone), c:'var(--gold)', bg:'rgba(245,181,68,.12)', tr:'تأجيل' }
+    { ic:'📅', lbl:'مستحقات الاشتراك', val: money(totalCurrentSub), c:'var(--blue)', bg:'rgba(77,157,255,.12)', tr:'اشتراك' },
+    { ic:'🔔', lbl:`اشتراك ${nextMonthLabel}`, val: money(totalNextSub), c:'var(--purple)', bg:'rgba(167,139,250,.12)', tr:'قادم' },
+    { ic:'⏸️', lbl:'رسوم التأجيل', val: money(totalPostpone), c:'var(--gold)', bg:'rgba(245,181,68,.12)', tr:'تأجيل' },
+    { ic:'🏁', lbl:'رصيد افتتاحي', val: money(totalOpening), c:'var(--blue)', bg:'rgba(77,157,255,.12)', tr:'افتتاحي' },
+    { ic:'🎯', lbl:'رسوم المقابلة', val: money(totalInterview), c:'var(--purple)', bg:'rgba(167,139,250,.12)', tr:'مقابلة' }
   ];
   const kpiGridEl = document.getElementById('reminderKpiGrid');
   if (kpiGridEl) {
@@ -2337,12 +2639,11 @@ function renderReminder(){
       </div>`).join('');
   }
 
-  // ─── badge فوق الهيرو ───
   const periodBadge = document.getElementById('reminderPeriodBadge');
   if (periodBadge) {
     if (isReminderPeriod) {
       periodBadge.innerHTML = `<span class="badge purple" style="font-size:12.5px;padding:7px 14px">
-        🔔 التذكير المبكر نشط الآن — يُحتسب اشتراك <b>${escapeHtml(nextMonthLabel)}</b> على جميع الطلاب
+        🔔 التذكير المبكر نشط الآن — يُحتسب اشتراك <b>${escapeHtml(nextMonthLabel)}</b> على الطلاب المستحقين
       </span>`;
     } else {
       const daysLeft = REMINDER_DAY - new Date().getDate();
@@ -2352,7 +2653,6 @@ function renderReminder(){
     }
   }
 
-  // ─── مؤشر حالة التذكير التلقائي ───
   const statusEl = document.getElementById('autoReminderStatus');
   if (statusEl){
     let html = auto
@@ -2364,7 +2664,6 @@ function renderReminder(){
     statusEl.innerHTML = html;
   }
 
-  // ─── أزرار التحكم ───
   const controls = document.getElementById('autoReminderControls');
   if (controls){
     controls.innerHTML = auto
@@ -2374,10 +2673,9 @@ function renderReminder(){
          <button class="btn btn-reminder" data-act="sendAllReminders" style="flex:1;justify-content:center">📤 إرسال الآن</button>`;
   }
 
-  // ─── الجدول ───
   const body = document.getElementById('reminderBody');
   if (!body) return;
-  if (!data.length){ body.innerHTML = emptyRow(10); return; }
+  if (!data.length){ body.innerHTML = emptyRow(12); return; }
 
   body.innerHTML = data
     .sort((a,b) => b.remaining - a.remaining)
@@ -2385,18 +2683,32 @@ function renderReminder(){
       let statusBadge;
       if (d.isPaid) {
         statusBadge = '<span class="badge ok">مسدد</span>';
+      } else if (d.isLate) {
+        statusBadge = '<span class="badge late">متأخر</span>';
       } else if (d.onlyNextMonthDue) {
-        statusBadge = `<span class="badge purple" title="مستحق بسبب اشتراك ${escapeHtml(d.nextMonthLabel)}">🔔 شهر قادم</span>`;
+        statusBadge = `<span class="badge gold" title="مستحق بسبب اشتراك ${escapeHtml(d.nextMonthLabel)}">🔔 شهر قادم</span>`;
       } else {
-        statusBadge = '<span class="badge late">مستحق</span>';
+        statusBadge = '<span class="badge gold">مستحق</span>';
       }
 
-      const postCell = d.postponeFees > 0
-        ? `<span class="num gold">${fmt(d.postponeFees)} <small style="color:var(--text3)">(${d.postponedCount})</small></span>`
+      const openingCell = d.opening > 0
+        ? `<span class="num blue">${fmt(d.opening)}</span>`
         : '<span style="color:var(--text3)">—</span>';
 
-      const nextCell = d.nextMonthDue > 0
-        ? `<span class="num" style="color:var(--purple);font-weight:800">+${fmt(d.nextMonthDue)}</span>`
+      const currentCell = d.currentSubDue > 0
+        ? `<span class="num blue" title="${escapeHtml(d.currentSubLabel)}">${fmt(d.currentSubDue)}</span>`
+        : '<span style="color:var(--text3)">—</span>';
+
+      const nextCell = d.nextSubDue > 0
+        ? `<span class="num" style="color:var(--purple);font-weight:800" title="${escapeHtml(d.nextSubLabel || d.nextMonthLabel)}">+${fmt(d.nextSubDue)}</span>`
+        : '<span style="color:var(--text3)">—</span>';
+
+      const postCell = d.postponeFees > 0
+        ? `<button class="btn btn-edit" data-act="showPostponeDetails" data-name="${escapeHtml(d.name)}" style="padding:3px 8px;font-size:11px" title="عرض التفاصيل">📋 ${fmt(d.postponeFees)} <span style="opacity:.7">(${d.postponedCount})</span></button>`
+        : '<span style="color:var(--text3)">—</span>';
+
+      const interviewCell = d.interview > 0
+        ? `<span class="num purple" style="color:var(--purple)">${fmt(d.interview)}</span>`
         : '<span style="color:var(--text3)">—</span>';
 
       const btn = d.isPaid
@@ -2407,9 +2719,11 @@ function renderReminder(){
         <td><span class="idx">${i+1}</span></td>
         <td class="name">${escapeHtml(d.name)}</td>
         <td><span class="pkg-pill">${d.pkg} حلقات</span></td>
-        <td class="num blue">${fmt(d.currentSubDue)}</td>
+        <td>${openingCell}</td>
+        <td>${currentCell}</td>
         <td style="text-align:center">${nextCell}</td>
-        <td class="num gold">${postCell}</td>
+        <td>${postCell}</td>
+        <td>${interviewCell}</td>
         <td class="num green">${fmt(d.paid)}</td>
         <td class="num ${d.isPaid ? 'green' : 'red'}">${fmt(d.remaining)}</td>
         <td>${statusBadge}</td>
@@ -2450,11 +2764,11 @@ async function sendAllReminders(){
 }
 
 async function installAutoReminder(){
-  if (!confirm('تفعيل التذكير التلقائي يوم 25 من كل شهر؟')) return;
+  if (!confirm('تفعيل التذكير التلقائي اليومي (25/27/29 من كل شهر)؟')) return;
   try {
     await apiPost('installAutoReminder', {});
     STATE_REMINDER.hasAuto = true;
-    showToast('✅ تم تفعيل التذكير التلقائي');
+    showToast('✅ تم تفعيل التذكير التلقائي اليومي');
     renderReminder();
   } catch(err){ showToast('⚠️ ' + err.message); }
 }
@@ -2469,10 +2783,59 @@ async function removeAutoReminder(){
   } catch(err){ showToast('⚠️ ' + err.message); }
 }
 
+/* 🆕 v9.2: مودال تفاصيل التأجيلات */
+function showPostponeDetailsModal(studentName){
+  const reports = STATE.reports.filter(r => r.student === studentName && r.status === 'مؤجل');
+  if(!reports.length){ showToast('لا توجد تأجيلات لهذا الطالب'); return; }
+
+  document.getElementById('modalTitle').textContent = '📅 تفاصيل التأجيلات';
+  document.getElementById('modalSub').textContent = studentName;
+  document.getElementById('modalIc').textContent = '📅';
+
+  const form = document.getElementById('modalForm');
+  form.className = '';
+  form.style.display = 'block';
+
+  const totalFee = reports.reduce((a,r)=>a+(r.postponeFee||POSTPONE_FEE), 0);
+
+  form.innerHTML = `
+    <table class="postpone-detail-tbl">
+      <thead><tr>
+        <th style="width:36px">#</th>
+        <th>اليوم</th>
+        <th>التاريخ الأصلي</th>
+        <th>التاريخ الجديد</th>
+        <th style="width:80px">الرسم</th>
+      </tr></thead>
+      <tbody>
+        ${reports.map((r, i) => `
+          <tr>
+            <td>${i+1}</td>
+            <td>${getArabicDayName(r.date)}</td>
+            <td>${fmtDateShort(r.date)}</td>
+            <td style="color:var(--brand);font-weight:800">${r.postponeDate ? fmtDateShort(r.postponeDate) : '—'}</td>
+            <td class="fee">${fmt(r.postponeFee||POSTPONE_FEE)} ج.م</td>
+          </tr>`).join('')}
+        <tr style="background:rgba(245,181,68,.18);font-weight:800">
+          <td colspan="4" style="text-align:right;padding:10px 12px;color:var(--gold)">💰 إجمالي رسوم التأجيل</td>
+          <td class="fee" style="font-size:13px">${fmt(totalFee)} ج.م</td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="margin-top:14px;padding:12px;background:rgba(245,181,68,.1);border:1px dashed rgba(245,181,68,.35);border-radius:8px;font-size:12px;color:var(--gold);text-align:center;font-weight:700;line-height:1.7">
+      📌 كل تأجيل = رسم ثابت 80 ج.م<br>
+      <span style="color:var(--text2);font-weight:600">رسوم التأجيل تُضاف للمستحق ولا تُعدّ سبباً للتأخر وحدها</span>
+    </div>`;
+
+  document.getElementById('modalSave').style.display = 'none';
+  document.getElementById('modalCancel').textContent = 'إغلاق';
+
+  document.getElementById('modalBack').classList.add('show');
+}
+
 /* ══════════════════════════════════════════════════════════════════ */
 /* 📧 سجل البريد */
 /* ══════════════════════════════════════════════════════════════════ */
-
 function renderEmailLog(){
   const log = STATE.emailLog || [];
   const kpi = document.getElementById('emailLogKpiGrid');
@@ -2480,11 +2843,13 @@ function renderEmailLog(){
     const sent = log.filter(l => String(val(l,'حالة الإرسال') || '').indexOf('✅') === 0).length;
     const failed = log.filter(l => String(val(l,'حالة الإرسال') || '').indexOf('❌') === 0).length;
     const reminders = log.filter(l => String(val(l,'نوع الرسالة') || '').includes('تذكير')).length;
+    const autoReminders = log.filter(l => String(val(l,'نوع الرسالة') || '') === 'تذكير تلقائي').length;
     const items = [
       { ic:'📧', lbl:'إجمالي الرسائل', val: fmt(log.length), c:'var(--purple)', bg:'rgba(167,139,250,.12)', tr:'رسالة' },
       { ic:'✅', lbl:'نجح الإرسال', val: fmt(sent), c:'var(--brand)', bg:'rgba(45,212,167,.12)', tr:'رسالة' },
       { ic:'❌', lbl:'فشل الإرسال', val: fmt(failed), c:'var(--red)', bg:'rgba(255,107,107,.12)', tr:'رسالة' },
-      { ic:'🔔', lbl:'تذكيرات', val: fmt(reminders), c:'var(--gold)', bg:'rgba(245,181,68,.12)', tr:'تذكير' }
+      { ic:'🔔', lbl:'تذكيرات (يدوي)', val: fmt(reminders - autoReminders), c:'var(--gold)', bg:'rgba(245,181,68,.12)', tr:'تذكير' },
+      { ic:'🤖', lbl:'تذكيرات تلقائية', val: fmt(autoReminders), c:'var(--blue)', bg:'rgba(77,157,255,.12)', tr:'تلقائي' }
     ];
     kpi.innerHTML = items.map(k => `
       <div class="kpi" style="--accent:${k.c};--accent-bg:${k.bg}">
@@ -2507,11 +2872,13 @@ function renderEmailLog(){
     const status = String(val(l,'حالة الإرسال') || '—');
     const isOk = status.indexOf('✅') === 0;
     const isFail = status.indexOf('❌') === 0;
+    const type = String(val(l,'نوع الرسالة') || '—');
+    const typeBadgeCls = type === 'تذكير تلقائي' ? 'blue' : type.includes('تذكير') ? 'gold' : 'purple';
     return `<tr>
       <td><span class="idx">${log.length - i}</span></td>
       <td style="font-size:12px;color:var(--text3)">${escapeHtml(val(l,'التاريخ والوقت') || '—')}</td>
       <td style="color:var(--blue);font-size:12.5px">${escapeHtml(val(l,'المستلم') || '—')}</td>
-      <td><span class="badge purple">${escapeHtml(val(l,'نوع الرسالة') || '—')}</span></td>
+      <td><span class="badge ${typeBadgeCls}">${escapeHtml(type)}</span></td>
       <td style="font-size:12.5px">${escapeHtml(val(l,'الموضوع') || '—')}</td>
       <td><span class="badge ${isOk ? 'ok' : isFail ? 'late' : 'off'}">${escapeHtml(status)}</span></td>
       <td style="font-size:12px;color:var(--text3)">${escapeHtml(val(l,'ملاحظات') || '—')}</td>
@@ -2611,6 +2978,7 @@ function renderProfile(name){
           <span>📦 <b>${stu.pkg} حلقات</b></span>
           <span>🕐 <b>${escapeHtml(stu.schedule || '—')}</b></span>
           ${ageTxt !== '—' ? `<span>🎂 <b>${escapeHtml(ageTxt)}</b></span>` : ''}
+          <span>🌍 <b>${escapeHtml(stu.residence || '—')}</b></span>
         </div>
       </div>
       <div class="profile-actions">
@@ -2647,7 +3015,11 @@ function renderProfile(name){
         <div class="sb-lbl">نسبة الحضور</div></div>
       <div class="stat-box" style="--accent:var(--red)"><div class="sb-ic">📋</div>
         <div class="sb-val">${stats.totalReports}</div><div class="sb-lbl">إجمالي التقارير</div></div>
-      <div class="stat-box" style="--accent:var(--red)"><div class="sb-ic">💰</div>
+      <div class="stat-box" style="--accent:var(--gold)"><div class="sb-ic">🏁</div>
+        <div class="sb-val">${fmt(sm.openingBalance || 0)}</div><div class="sb-lbl">رصيد افتتاحي</div></div>
+      <div class="stat-box" style="--accent:var(--purple)"><div class="sb-ic">🎯</div>
+        <div class="sb-val">${fmt(sm.interviewFee || 0)}</div><div class="sb-lbl">رسوم المقابلة</div></div>
+      <div class="stat-box" style="--accent:var(--red)"><div class="sb-ic">⏸️</div>
         <div class="sb-val">${fmt(sm.postponeFees || 0)}</div><div class="sb-lbl">رسوم التأجيل</div></div>
       <div class="stat-box" style="--accent:${(sm.remaining||0) > 0 ? 'var(--red)' : 'var(--brand)'}">
         <div class="sb-ic">💵</div><div class="sb-val">${fmt(sm.remaining || 0)}</div><div class="sb-lbl">المتبقي</div></div>
@@ -2770,6 +3142,10 @@ tbody tr:nth-child(even) td{background:#fbfdfc}
       <span>🕐 المواعيد: <b>${escapeHtml(stu.schedule || '—')}</b></span>
       <span>📅 التسجيل: <b>${fmtDateShort(stu.reg)}</b></span>
       <span>🎂 العمر: <b>${escapeHtml(ageTxt)}</b></span>
+      <span>🌍 الإقامة: <b>${escapeHtml(stu.residence || '—')}</b></span>
+      <span>🏁 افتتاحي: <b>${fmt(sm.openingBalance || 0)} ج.م</b></span>
+      <span>🎯 مقابلة: <b>${fmt(sm.interviewFee || 0)} ج.م</b></span>
+      <span>💵 المتبقي: <b style="color:${(sm.remaining||0)>0?'#a01010':'#0a6b4d'}">${fmt(sm.remaining || 0)} ج.م</b></span>
     </div>
   </div>
   <div class="stats">
@@ -2836,6 +3212,7 @@ function computeMonthlyReport(monthStr){
   const beforeStart = (d) => d && String(d) < startStr;
   const inRange = (d) => d && String(d) >= startStr && String(d) <= endStr;
   const beforeOrIn = (d) => d && String(d) <= endStr;
+
   const openingBefore = STATE.opening.filter(r => beforeStart(val(r,'التاريخ'))).reduce((a,r) => a + numField(r,'المبلغ'), 0);
   const receiptsBefore = STATE.receipts.filter(r => beforeStart(r.date)).reduce((a,r) => a + r.paid, 0);
   const otherIncomeBefore = STATE.otherIncome.filter(r => beforeStart(val(r,'التاريخ'))).reduce((a,r) => a + numField(r,'المبلغ'), 0);
@@ -2849,6 +3226,7 @@ function computeMonthlyReport(monthStr){
   const invAddsBefore = STATE.investTrans.filter(t => val(t,'نوع الحركة') === 'إضافة رأس مال' && beforeStart(val(t,'التاريخ'))).reduce((a,t) => a + numField(t,'المبلغ'), 0);
   const obligPayBefore = STATE.payments.filter(p => val(p,'النوع') === 'التزام' && beforeStart(val(p,'التاريخ'))).reduce((a,p) => a + numField(p,'المبلغ المسدد'), 0);
   const openingCash = openingBefore + receiptsBefore + otherIncomeBefore + loanCollBefore + invProfitBefore + invLiquidBefore - expensesBefore - charityBefore - loansBefore - invGivenBefore - invAddsBefore - obligPayBefore;
+
   const receiptsPaid = STATE.receipts.filter(r => inRange(r.date)).reduce((a,r) => a + r.paid, 0);
   const otherIncome = STATE.otherIncome.filter(r => inRange(val(r,'التاريخ'))).reduce((a,r) => a + numField(r,'المبلغ'), 0);
   const loanCollections = STATE.payments.filter(p => val(p,'النوع') === 'قرض حسن' && inRange(val(p,'التاريخ'))).reduce((a,p) => a + numField(p,'المبلغ المسدد'), 0);
@@ -2860,15 +3238,19 @@ function computeMonthlyReport(monthStr){
   const investGiven = STATE.investments.filter(r => inRange(val(r,'التاريخ'))).reduce((a,r) => a + numField(r,'رأس المال الأساسي','المبلغ'), 0);
   const investAdds = STATE.investTrans.filter(t => val(t,'نوع الحركة') === 'إضافة رأس مال' && inRange(val(t,'التاريخ'))).reduce((a,t) => a + numField(t,'المبلغ'), 0);
   const obligationPay = STATE.payments.filter(p => val(p,'النوع') === 'التزام' && inRange(val(p,'التاريخ'))).reduce((a,p) => a + numField(p,'المبلغ المسدد'), 0);
+
   const totalIn = receiptsPaid + otherIncome + loanCollections + investProfit + investLiquid;
   const totalOut = expenses + charity + loansGiven + investGiven + investAdds + obligationPay;
   const netFlow = totalIn - totalOut;
   const closingCash = openingCash + netFlow;
+
   const investmentsAtEnd = STATE.investments.filter(r => beforeOrIn(val(r,'التاريخ'))).reduce((a,r) => a + numField(r,'رأس المال الأساسي','المبلغ'), 0) + STATE.investTrans.filter(t => val(t,'نوع الحركة') === 'إضافة رأس مال' && beforeOrIn(val(t,'التاريخ'))).reduce((a,t) => a + numField(t,'المبلغ'), 0) - STATE.investTrans.filter(t => val(t,'نوع الحركة') === 'تصفية جزئية' && beforeOrIn(val(t,'التاريخ'))).reduce((a,t) => a + numField(t,'المبلغ'), 0);
   const loansOutAtEnd = STATE.loans.filter(r => beforeOrIn(val(r,'التاريخ'))).reduce((a,r) => a + numField(r,'المبلغ'), 0) - STATE.payments.filter(p => val(p,'النوع') === 'قرض حسن' && beforeOrIn(val(p,'التاريخ'))).reduce((a,p) => a + numField(p,'المبلغ المسدد'), 0);
   const obligationsAtEnd = STATE.obligations.filter(r => beforeOrIn(val(r,'التاريخ'))).reduce((a,r) => a + numField(r,'المبلغ'), 0) - STATE.payments.filter(p => val(p,'النوع') === 'التزام' && beforeOrIn(val(p,'التاريخ'))).reduce((a,p) => a + numField(p,'المبلغ المسدد'), 0);
+
   const totalAssets = Math.max(0, closingCash) + investmentsAtEnd + loansOutAtEnd;
   const netWorth = totalAssets - obligationsAtEnd;
+
   return { month: monthStr, openingCash, closingCash, receiptsPaid, otherIncome, loanCollections, investProfit, investLiquid, totalIn, expenses, charity, loansGiven, investGiven, investAdds, obligationPay, totalOut, netFlow, investmentsAtEnd, loansOutAtEnd, obligationsAtEnd, totalAssets, netWorth };
 }
 function fillReportMonths(){
@@ -3341,10 +3723,11 @@ function renderKPIs(){
     { ic:'📌', lbl:'إجمالي المستحق', val:money(t.totalDue), c:'var(--blue)', bg:'rgba(77,157,255,.12)', tr:'مستحق', go:'cash' },
     { ic:'💵', lbl:'إجمالي المدفوع', val:money(t.totalPaid), c:'var(--brand)', bg:'rgba(45,212,167,.12)', tr:'محصّل', go:'cash' },
     { ic:'🎁', lbl:'إجمالي الخصومات', val:money(t.totalDisc), c:'var(--gold)', bg:'rgba(245,181,68,.12)', tr:'خصم', go:'cash' },
-    { ic:'⏳', lbl:'المتبقي على الطلاب', val:money(t.totalRemaining), c:'var(--gold)', bg:'rgba(245,181,68,.12)', tr:'غير محصّل', go:'follow' },
+    { ic:'⏳', lbl:'المتبقي على الطلاب', val:money(t.studentsRemaining), c:'var(--gold)', bg:'rgba(245,181,68,.12)', tr:'غير محصّل', go:'follow' },
     { ic:'🎯', lbl:'نسبة التحصيل', val:`${(t.collectRate*100).toFixed(1)}<small>%</small>`, c:'var(--brand)', bg:'rgba(45,212,167,.12)', tr:'كفاءة' },
     { ic:'👨‍🎓', lbl:'عدد الطلاب', val:fmt(t.students), c:'var(--brand)', bg:'rgba(45,212,167,.12)', tr:'طالب', go:'students' },
     { ic:'⚠️', lbl:'الطلاب المتأخرين', val:fmt(t.late), c: t.late?'var(--red)':'var(--text3)', bg: t.late?'rgba(255,107,107,.12)':'rgba(107,125,146,.12)', tr:'طالب', go:'follow' },
+    { ic:'📅', lbl:'مستحق (25→1)', val:fmt(t.entitled), c:'var(--gold)', bg:'rgba(245,181,68,.12)', tr:'طالب', go:'follow' },
     { ic:'📈', lbl:'رأس مال الاستثمارات', val:money(t.investTotalCost), c:'var(--blue)', bg:'rgba(77,157,255,.12)', tr:'مستثمر', go:'invest' },
     { ic:'💹', lbl:'أرباح محصَّلة', val:money(t.investProfits), c:'var(--brand)', bg:'rgba(45,212,167,.12)', tr:'نقدي', go:'invest' },
     { ic:'📊', lbl:'ربح/خسارة غير محقق', val:money(t.investUnrealized), c: t.investUnrealized>=0?'var(--brand)':'var(--red)', bg: t.investUnrealized>=0?'rgba(45,212,167,.12)':'rgba(255,107,107,.12)', tr: `${t.investUnrealPct.toFixed(1)}%`, go:'invest' },
@@ -3401,6 +3784,7 @@ function renderReportsKPI(){
 function statusBadge(state){
   if(state === 'منتظم') return `<span class="badge ok">منتظم</span>`;
   if(state === 'متأخر') return `<span class="badge late">متأخر</span>`;
+  if(state === 'مستحق') return `<span class="badge gold">مستحق</span>`;
   return `<span class="badge off">${escapeHtml(state||'—')}</span>`;
 }
 function emptyRow(cols){
@@ -3444,7 +3828,7 @@ function renderSummary(filter=''){
   const q = filter.trim().toLowerCase();
   const rows = STATE.summary.filter(s => !q || s.name.toLowerCase().includes(q));
   const body = document.getElementById('summaryBody');
-  if(!rows.length){ body.innerHTML = emptyRow(12); return; }
+  if(!rows.length){ body.innerHTML = emptyRow(14); return; }
   body.innerHTML = rows.map((s,i) => {
     const rate = s.due > 0 ? Math.min((s.paid + (s.disc||0)) / s.due, 1) : 0;
     return `<tr>
@@ -3452,9 +3836,11 @@ function renderSummary(filter=''){
       <td class="name">${escapeHtml(s.name)}</td>
       <td><span class="pkg-pill">${s.pkg} حلقات</span></td>
       <td class="num">${fmt(s.price)}</td>
+      <td class="num ${s.openingBalance>0?'blue':''}">${s.openingBalance>0?fmt(s.openingBalance):'—'}</td>
       <td class="num green">${fmt(s.paid)}</td>
       <td class="num gold">${s.disc ? fmt(s.disc) : '—'}</td>
-      <td class="num red">${s.postponeFees > 0 ? fmt(s.postponeFees) + ' ج.م' : '—'}</td>
+      <td class="num gold">${s.postponeFees > 0 ? fmt(s.postponeFees) : '—'}</td>
+      <td class="num" style="color:var(--purple)">${s.interviewFee > 0 ? fmt(s.interviewFee) : '—'}</td>
       <td class="num">${s.count}</td>
       <td class="num">${fmt(s.due)}</td>
       <td class="num ${s.remaining>0?'red':'green'}">${fmt(s.remaining)}</td>
@@ -3550,7 +3936,7 @@ function renderFollow(filter=''){
       <td>${s.last?fmtDateShort(s.last):'—'}</td>
       <td class="num ${s.remaining>0?'red':'green'}">${fmt(s.remaining)}</td>
       <td>${statusBadge(s.state)}</td>
-      <td style="color:${s.state==='متأخر'?'var(--red)':'var(--text2)'};font-weight:700">${escapeHtml(s.action||'—')}</td>
+      <td style="color:${s.state==='متأخر'?'var(--red)':s.state==='مستحق'?'var(--gold)':'var(--text2)'};font-weight:700">${escapeHtml(s.action||'—')}</td>
     </tr>`).join('');
 }
 function renderGenericTable(id, data, cols, mapper, filter=''){
@@ -3698,7 +4084,7 @@ function renderSettings(){
     { ic:'⏱️', lbl:'حد التأخر بالأيام', val:`${s.lateDays||1} يوم`, hint:'بعد هذا الحد يظهر الطالب متأخراً.' },
     { ic:'💱', lbl:'العملة', val:escapeHtml(s.currency||'ج.م'), hint:'عملة عرض المبالغ.' },
     { ic:'📋', lbl:'رسوم التأجيل', val:'80 ج.م', hint:'تُضاف تلقائياً لكل تأجيل.' },
-    { ic:'🔔', lbl:'يوم التذكير التلقائي', val:`يوم ${REMINDER_DAY} من كل شهر`, hint:'يُرسل بريد تذكير لكل الطلاب.' },
+    { ic:'🔔', lbl:'أيام التذكير التلقائي', val:`${AUTO_REMINDER_DAYS.join('، ')} (بحد ${AUTO_REMINDER_MAX_PER_MONTH}/شهر)`, hint:'الساعة 9 ص بتوقيت القاهرة.' },
     { ic:'💳', lbl:'إنستا باي', val:'رابط مباشر', hint:'يظهر في بريد التذكير كزر قابل للضغط.' },
     { ic:'📞', lbl:'فودافون كاش', val:`<b style="color:var(--red);direction:ltr;display:inline-block">${VODAFONE_CASH}</b>`, hint:'يظهر في بريد التذكير.' },
     { ic:'👨‍🏫', lbl:'المعلمون المتاحون', val:`${TEACHERS.length} معلم`, hint:TEACHERS.join(' · ') }
@@ -3892,10 +4278,9 @@ table.surah-tbl{width:100%;border-collapse:collapse;margin-bottom:8px;border-rad
 
 <script>
 /* ══════════════════════════════════════════════════════════════════ */
-/* 📅 التقويم المرئي — v9.0 مع postponed-from */
+/* 📅 التقويم المرئي */
 /* ══════════════════════════════════════════════════════════════════ */
 let CAL_STATE = { current: new Date(), selected: null };
-const AR_DAYS = ['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
 
 function getSessionsForDate(date){
   const dayName = AR_DAYS[date.getDay()];
@@ -3942,7 +4327,6 @@ function getSessionsForDate(date){
     }
   });
 
-  /* ✅ v9.0: عرض التأجيل في تاريخه الأصلي (postponed-from) */
   STATE.reports.forEach(r => {
     if(r.status === 'مؤجل' && String(r.date) === iso){
       const stu = studentByName[r.student] || {};
@@ -3965,7 +4349,6 @@ function getSessionsForDate(date){
     }
   });
 
-  /* ✅ v9.0: عرض الحلقة المؤجلة في تاريخها الجديد */
   STATE.reports.forEach(r => {
     if(r.status === 'مؤجل' && String(r.postponeDate) === iso){
       const stu = studentByName[r.student] || {};
@@ -4192,8 +4575,9 @@ td{height:110px}
 </body></html>`);
   w.document.close();
 }
+</script>
 
-
+<script>
 /* ══════════════════════════════════════════════════════════════════ */
 /* 📊 تقارير أولياء الأمور الشهرية */
 /* ══════════════════════════════════════════════════════════════════ */
@@ -4700,13 +5084,13 @@ const PAGE_META = {
   opening:    { t:'الرصيد الافتتاحي',    s:'الأرصدة الموجودة قبل بدء تشغيل النظام' },
   students:   { t:'سجل الطلاب',          s:'🔄 تغيير باقة · ✏️ تعديل · 👤 ملف · 🔔 تذكير' },
   profile:    { t:'ملف الطالب',          s:'📊 إحصائيات مجمّعة · 🎯 اقتراح السورة القادمة' },
-  summary:    { t:'ملخص الطلاب',         s:'المستحق = الاشتراك + رسوم التأجيل' },
+  summary:    { t:'ملخص الطلاب',         s:'المستحق = افتتاحي + (شهور × سعر) + تأجيل + مقابلة' },
   reports:    { t:'تقارير الطلاب',       s:'📋 الحضور + ما تم + التأجيل · يُرسل بالبريد' },
   report:     { t:'التقرير الشهري',      s:'ملخص شامل للحركة المالية في شهر محدد' },
   calendar:   { t:'التقويم المرئي',      s:'📅 عرض شهري لكل الحلقات المتوقعة + التأجيلات' },
   parentreports: { t:'تقارير أولياء الأمور', s:'📊 تقرير PDF شهري شامل لكل طالب' },
   cash:       { t:'استلام نقدي',         s:'🖨️ للطباعة · 📧 لإرسال البريد' },
-  reminder:   { t:'تذكير السداد',        s:'🔔 إرسال تلقائي يوم 25 من كل شهر' },
+  reminder:   { t:'تذكير السداد',        s:'🔔 إرسال تلقائي أيام 25/27/29 (بحد 3/شهر)' },
   follow:     { t:'متابعة الاستحقاقات',  s:'التنبيهات والإجراءات المقترحة' },
   income:     { t:'مصادر دخل أخرى',      s:'الدخل الإضافي بخلاف الاشتراكات' },
   expenses:   { t:'المصروفات',           s:'سجل المصروفات التشغيلية' },
@@ -4742,9 +5126,6 @@ function goTo(sec){
   document.getElementById('overlay').classList.remove('show');
 }
 
-/* ══════════════════════════════════════════════════════════════════ */
-/* 🛡️ v9.0: Event Delegation — بديل آمن لـ inline onclick */
-/* ══════════════════════════════════════════════════════════════════ */
 document.addEventListener('click', (e) => {
   const t = e.target.closest('[data-act]');
   if (!t) return;
@@ -4786,6 +5167,7 @@ document.addEventListener('click', (e) => {
     case 'installAutoReminder':installAutoReminder(); break;
     case 'removeAutoReminder': removeAutoReminder(); break;
     case 'sendAllReminders':   sendAllReminders(); break;
+    case 'showPostponeDetails':showPostponeDetailsModal(name); break;
   }
 });
 
@@ -4793,7 +5175,6 @@ document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('click', () => goTo(item.dataset.sec));
 });
 
-/* 🔍 Debounce للبحث */
 let _searchTimer;
 document.getElementById('globalSearch').addEventListener('input', e => {
   clearTimeout(_searchTimer);
@@ -4839,7 +5220,7 @@ document.addEventListener('keydown', e => {
   if(e.key === 'Escape') closeForm();
   if(e.key === 'Enter' && e.target.closest('#modalForm') && e.target.tagName !== 'TEXTAREA'){
     e.preventDefault();
-    submitForm();
+    if(document.getElementById('modalSave').style.display !== 'none') submitForm();
   }
 });
 document.addEventListener('change', e => {
@@ -4873,15 +5254,22 @@ function renderAll(){
   renderProfileSelect();
   fillReportMonths();
   renderReport();
+
   const t = STATE.totals;
   document.getElementById('nb-students').textContent = t.students || 0;
   document.getElementById('nb-cash').textContent = t.operations || 0;
   document.getElementById('nb-payments').textContent = t.paymentsCount || 0;
   const nbRep = document.getElementById('nb-reports');
   if(nbRep) nbRep.textContent = STATE.reports.length;
+
+  const remData = computeReminderData();
+  const dueCount = remData.filter(d => !d.isPaid).length;
+  const nbRem = document.getElementById('nb-reminder');
+  if(nbRem) nbRem.textContent = dueCount || '—';
+
   document.getElementById('studentsCountBadge').textContent = `${t.students||0} طالب`;
   document.getElementById('cashCountBadge').textContent = `${t.operations||0} عملية`;
-  document.getElementById('summaryOkBadge').textContent = `${t.regular||0} منتظم`;
+  document.getElementById('summaryOkBadge').textContent = `${t.regular||0} منتظم · ${t.entitled||0} مستحق · ${t.late||0} متأخر`;
   document.getElementById('paymentsCountBadge').textContent = `${t.paymentsCount||0} سند`;
   const openingBadge = document.getElementById('openingTotalBadge');
   if(openingBadge) openingBadge.textContent = `${fmt(t.openingBalance)} ج.م`;
@@ -4902,7 +5290,6 @@ function renderAll(){
   }
 }
 
-/* 🖼️ v9.0: معالج فشل تحميل الصور (بدل HTML injection) */
 document.addEventListener('error', (e) => {
   const img = e.target;
   if (!img || img.tagName !== 'IMG') return;

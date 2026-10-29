@@ -707,93 +707,77 @@ html[dir="rtl"] .drawer{transform:translateX(-100%)}
       </div>
     </section>
 
-    <!-- ═══════ التحصيل ═══════ -->
-    <section class="section" id="sec-collect">
-      <div class="sub-tabs">
-        <div class="sub-tab active" data-sub="cash">🧾 سندات الاستلام</div>
-        <div class="sub-tab" data-sub="reminder">🔔 التذكيرات</div>
-      </div>
+<!-- ═══════ التحصيل ═══════ -->
+<section class="section" id="sec-collect">
+  <div class="sub-tabs">
+    <div class="sub-tab active" data-sub="cash">🧾 سندات الاستلام</div>
+    <div class="sub-tab" data-sub="reminder">🔔 التذكيرات</div>
+  </div>
 
-      <div class="sub-section active" id="sub-cash">
-        <div class="kpi-grid" id="cashKpiGrid"></div>
-        <div class="card">
-          <div class="card-head">
-            <h3>💰 شاشة استلام نقدي</h3>
-            <span class="spacer"></span>
-            <span class="badge ok" id="cashCountBadge">0 عملية</span>
-            <button class="btn" data-act="exportTable" data-table="receipts">📥 تصدير CSV</button>
-            <button class="btn btn-primary" data-voucher="in:subscription" style="font-weight:800">🧾 سند استلام</button>
-            <button class="btn btn-print" data-voucher="out:expense" style="font-weight:800;padding:9px 14px;font-size:13px">💸 سند صرف</button>
-          </div>
-          <div class="card-body" id="cashFilterBar"></div>
-          <div class="card-body p0">
-            <div class="tbl-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>#</th><th>التاريخ</th><th>اسم الطالب</th><th>الباقة</th>
-                    <th>المستحق</th><th>المدفوع</th><th>الخصم</th><th>المتبقي</th>
-                    <th>طريقة الدفع</th><th>الفترة</th><th>البريد</th><th>إجراء</th>
-                  </tr>
-                </thead>
-                <tbody id="cashBody"></tbody>
-              </table>
-            </div>
-          </div>
+  <div class="sub-section active" id="sub-cash">
+    <div class="kpi-grid" id="cashKpiGrid"></div>
+    <div class="card">
+      <div class="card-head">
+        <h3>💰 شاشة استلام نقدي</h3>
+        <span class="spacer"></span>
+        <span class="badge ok" id="cashCountBadge">0 عملية</span>
+        <button class="btn" data-act="exportTable" data-table="receipts">📥 تصدير CSV</button>
+        <button class="btn btn-primary" data-voucher="in:subscription" style="font-weight:800">🧾 سند استلام</button>
+        <button class="btn btn-print" data-voucher="out:expense" style="font-weight:800;padding:9px 14px;font-size:13px">💸 سند صرف</button>
+      </div>
+      <div class="card-body" id="cashFilterBar"></div>
+      <div class="card-body p0">
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th><th>التاريخ</th><th>اسم الطالب</th><th>الباقة</th>
+                <th>المستحق</th><th>المدفوع</th><th>الخصم</th><th>المتبقي</th>
+                <th>طريقة الدفع</th><th>الفترة</th><th>البريد</th><th>إجراء</th>
+              </tr>
+            </thead>
+            <tbody id="cashBody"></tbody>
+          </table>
         </div>
       </div>
+    </div>
+  </div>
 
-      <div class="sub-section" id="sub-reminder">
-        <div class="reminder-hero">
-          <div class="rh-ic">🔔</div>
-          <div class="rh-body">
-            <div class="rh-title">تذكير بسداد الاشتراك الشهري</div>
-            <div class="rh-sub">يُرسل تلقائياً أيام <b>25 و27 و29</b> — يشمل الاشتراك الحالي + القادم + التأجيلات</div>
-            <div id="reminderPeriodBadge" style="margin-top:10px"></div>
-          </div>
-          <div id="autoReminderStatus"></div>
-        </div>
-        <div class="kpi-grid" id="reminderKpiGrid"></div>
-        <div class="grid-2">
-          <div class="card">
-            <div class="card-head">
-              <h3>📋 قائمة الطلاب المستحقين</h3>
-              <span class="spacer"></span>
-              <button class="btn btn-reminder" data-act="sendAllReminders" id="sendAllBtn">📤 إرسال للجميع</button>
-            </div>
-            <div class="card-body p0">
-              <div class="tbl-wrap">
-                <table style="min-width:820px">
-                  <thead>
-                    <tr>
-                      <th>#</th><th>اسم الطالب</th><th>الباقة</th>
-                      <th>الاشتراك</th><th>التأجيلات</th>
-                      <th>المتبقي</th><th>الحالة</th><th>إجراء</th>
-                    </tr>
-                  </thead>
-                  <tbody id="reminderBody"></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-head"><h3>⚙️ التحكم في التذكير التلقائي</h3></div>
-            <div class="card-body">
-              <div class="set-item" style="margin-bottom:14px">
-                <div class="lbl">📅 موعد التذكير التلقائي</div>
-                <div class="val" style="color:var(--gold);font-size:16px">أيام 25، 27، 29 (بحد 3/شهر)</div>
-                <div class="hint">الساعة 9 صباحاً بتوقيت القاهرة</div>
-              </div>
-              <div id="autoReminderControls" style="display:flex;gap:10px;flex-wrap:wrap"></div>
-              <div class="set-item" style="margin-top:14px">
-                <div class="lbl">📊 آخر إرسال</div>
-                <div class="val" id="lastReminderSent" style="font-size:14px">—</div>
-              </div>
-            </div>
-          </div>
+  <div class="sub-section" id="sub-reminder">
+    <div class="reminder-hero">
+      <div class="rh-ic">🔔</div>
+      <div class="rh-body">
+        <div class="rh-title">تذكير بسداد الاشتراك الشهري</div>
+        <div class="rh-sub">يُرسل تلقائياً أيام <b>25 و27 و29</b> — يشمل الاشتراك الحالي + القادم + التأجيلات</div>
+        <div id="reminderPeriodBadge" style="margin-top:10px"></div>
+      </div>
+      <div id="autoReminderStatus"></div>
+    </div>
+    <div class="kpi-grid" id="reminderKpiGrid"></div>
+
+    <div class="card">
+      <div class="card-head">
+        <h3>📋 قائمة الطلاب المستحقين</h3>
+        <span class="spacer"></span>
+        <button class="btn btn-reminder" data-act="sendAllReminders" id="sendAllBtn">📤 إرسال للجميع</button>
+      </div>
+      <div class="card-body p0">
+        <div class="tbl-wrap">
+          <table style="min-width:820px">
+            <thead>
+              <tr>
+                <th>#</th><th>اسم الطالب</th><th>الباقة</th>
+                <th>الاشتراك</th><th>التأجيلات</th>
+                <th>المتبقي</th><th>الحالة</th><th>إجراء</th>
+              </tr>
+            </thead>
+            <tbody id="reminderBody"></tbody>
+          </table>
         </div>
       </div>
-    </section>
+    </div>
+  </div>
+</section>
 
     <!-- ═══════ المالية الموحدة ═══════ -->
     <section class="section" id="sec-finance">
@@ -947,89 +931,97 @@ html[dir="rtl"] .drawer{transform:translateX(-100%)}
     </section>
 
     <!-- ═══════ الإعدادات ═══════ -->
-    <section class="section" id="sec-setup">
-      <div class="sub-tabs">
-        <div class="sub-tab active" data-sub="settings">⚙️ الإعدادات</div>
-        <div class="sub-tab" data-sub="packages">📦 الباقات</div>
-        <div class="sub-tab" data-sub="opening">🏁 الافتتاحي</div>
-        <div class="sub-tab" data-sub="emaillog">📧 سجل البريد</div>
-      </div>
+<section class="section" id="sec-setup">
+  <div class="sub-tabs">
+    <div class="sub-tab active" data-sub="settings">⚙️ الإعدادات</div>
+    <div class="sub-tab" data-sub="packages">📦 الباقات</div>
+    <div class="sub-tab" data-sub="opening">🏁 الافتتاحي</div>
+    <div class="sub-tab" data-sub="emaillog">📧 سجل البريد</div>
+  </div>
 
-      <div class="sub-section active" id="sub-settings">
-        <div class="card">
-          <div class="card-head">
-            <h3>⚙️ الإعدادات الرئيسية</h3>
-            <span class="spacer"></span>
-            <button class="btn btn-add" id="installReminderBtn" data-act="installAutoReminder">🔔 تفعيل التذكير التلقائي</button>
-          </div>
-          <div class="card-body"><div class="set-grid" id="settingsGrid"></div></div>
+  <div class="sub-section active" id="sub-settings">
+    <div class="card">
+      <div class="card-head">
+        <h3>⚙️ الإعدادات الرئيسية</h3>
+      </div>
+      <div class="card-body">
+        <div class="set-item" style="margin-bottom:14px">
+          <div class="lbl">📅 التحكم في التذكير التلقائي</div>
+          <div class="val" style="color:var(--gold);font-size:16px">أيام 25، 27، 29 (بحد 3/شهر)</div>
+          <div class="hint">الساعة 9 صباحاً بتوقيت القاهرة</div>
+        </div>
+        <div id="autoReminderControls" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px"></div>
+        <div class="set-item" style="margin-bottom:14px">
+          <div class="lbl">📊 آخر إرسال</div>
+          <div class="val" id="lastReminderSent" style="font-size:14px">—</div>
+        </div>
+        <div class="set-grid" id="settingsGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sub-section" id="sub-packages">
+    <div class="card">
+      <div class="card-head">
+        <h3>📦 أسعار الباقات</h3>
+        <span class="spacer"></span>
+        <button class="btn btn-add" data-add="package">➕ إضافة باقة</button>
+      </div>
+      <div class="card-body p0">
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>نوع الباقة</th><th>عدد الحلقات</th><th>السعر داخل مصر</th><th>السعر خارج مصر</th><th>الملاحظات</th><th>إجراء</th></tr></thead>
+            <tbody id="packagesBody"></tbody>
+          </table>
         </div>
       </div>
+    </div>
+  </div>
 
-      <div class="sub-section" id="sub-packages">
-        <div class="card">
-          <div class="card-head">
-            <h3>📦 أسعار الباقات</h3>
-            <span class="spacer"></span>
-            <button class="btn btn-add" data-add="package">➕ إضافة باقة</button>
-          </div>
-          <div class="card-body p0">
-            <div class="tbl-wrap">
-              <table>
-                <thead><tr><th>نوع الباقة</th><th>عدد الحلقات</th><th>السعر داخل مصر</th><th>السعر خارج مصر</th><th>الملاحظات</th><th>إجراء</th></tr></thead>
-                <tbody id="packagesBody"></tbody>
-              </table>
-            </div>
-          </div>
+  <div class="sub-section" id="sub-opening">
+    <div class="card">
+      <div class="card-head">
+        <h3>🏁 الرصيد الافتتاحي</h3>
+        <span class="spacer"></span>
+        <span class="badge gold" id="openingTotalBadge">0 ج.م</span>
+        <button class="btn btn-add" data-add="opening">➕ إضافة رصيد</button>
+      </div>
+      <div class="card-body p0">
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>#</th><th>التاريخ</th><th>المبلغ</th><th>طريقة الاستلام</th><th>ملاحظات</th></tr></thead>
+            <tbody id="openingBody"></tbody>
+          </table>
         </div>
       </div>
+    </div>
+  </div>
 
-      <div class="sub-section" id="sub-opening">
-        <div class="card">
-          <div class="card-head">
-            <h3>🏁 الرصيد الافتتاحي</h3>
-            <span class="spacer"></span>
-            <span class="badge gold" id="openingTotalBadge">0 ج.م</span>
-            <button class="btn btn-add" data-add="opening">➕ إضافة رصيد</button>
-          </div>
-          <div class="card-body p0">
-            <div class="tbl-wrap">
-              <table>
-                <thead><tr><th>#</th><th>التاريخ</th><th>المبلغ</th><th>طريقة الاستلام</th><th>ملاحظات</th></tr></thead>
-                <tbody id="openingBody"></tbody>
-              </table>
-            </div>
-          </div>
+  <div class="sub-section" id="sub-emaillog">
+    <div class="kpi-grid" id="emailLogKpiGrid"></div>
+    <div class="card">
+      <div class="card-head">
+        <h3>📧 سجل البريد الإلكتروني</h3>
+        <span class="spacer"></span>
+        <span class="badge purple" id="emailLogCountBadge">0 رسالة</span>
+        <button class="btn btn-print" data-act="renderEmailLog">↻ تحديث</button>
+      </div>
+      <div class="card-body p0">
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th><th>التاريخ والوقت</th><th>المستلم</th><th>نوع الرسالة</th>
+                <th>الموضوع</th><th>الحالة</th><th>ملاحظات</th>
+              </tr>
+            </thead>
+            <tbody id="emailLogBody"></tbody>
+          </table>
         </div>
       </div>
-
-      <div class="sub-section" id="sub-emaillog">
-        <div class="kpi-grid" id="emailLogKpiGrid"></div>
-        <div class="card">
-          <div class="card-head">
-            <h3>📧 سجل البريد الإلكتروني</h3>
-            <span class="spacer"></span>
-            <span class="badge purple" id="emailLogCountBadge">0 رسالة</span>
-            <button class="btn btn-print" data-act="renderEmailLog">↻ تحديث</button>
-          </div>
-          <div class="card-body p0">
-            <div class="tbl-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>#</th><th>التاريخ والوقت</th><th>المستلم</th><th>نوع الرسالة</th>
-                    <th>الموضوع</th><th>الحالة</th><th>ملاحظات</th>
-                  </tr>
-                </thead>
-                <tbody id="emailLogBody"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  </main>
-</div>
+    </div>
+  </div>
+</section>
 
 <!-- ═══════ FAB (جديد) ═══════ -->
 <button class="fab" id="fabBtn" title="إضافة سريعة">＋</button>
@@ -3169,7 +3161,6 @@ function renderSettings(){
     { ic:'⏱️', lbl:'حد التأخر', val:`${s.lateDays||1} يوم`, hint:'بعدها يظهر متأخراً.' },
     { ic:'💱', lbl:'العملة', val:escapeHtml(s.currency||'ج.م'), hint:'عملة المبالغ.' },
     { ic:'📋', lbl:'رسوم التأجيل', val:'80 ج.م', hint:'تُضاف تلقائياً.' },
-    { ic:'🔔', lbl:'أيام التذكير', val:`${AUTO_REMINDER_DAYS.join('، ')} (بحد ${AUTO_REMINDER_MAX_PER_MONTH}/شهر)`, hint:'الساعة 9 ص.' },
     { ic:'💳', lbl:'إنستا باي', val:'رابط مباشر', hint:'يظهر في البريد.' },
     { ic:'📞', lbl:'فودافون كاش', val:`<b style="color:var(--red);direction:ltr;display:inline-block">${VODAFONE_CASH}</b>`, hint:'يظهر في البريد.' },
     { ic:'👨‍🏫', lbl:'المعلمون', val:`${TEACHERS.length} معلم`, hint:TEACHERS.join(' · ') }
@@ -3578,6 +3569,7 @@ function goTo(sec){
     if (group.parent === 'report') { fillReportMonths(); renderReport(); }
     if (group.sub === 'reports') renderReportsKPI();
     if (group.sub === 'reminder') renderReminder();
+     if (group.sub === 'settings') renderReminder();
     if (group.sub === 'emaillog') renderEmailLog();
     if (group.sub === 'calendar') renderCalendar();
     if (group.sub === 'parentreports') { fillParentReportMonths(); renderParentReports(); }
@@ -3600,6 +3592,7 @@ document.addEventListener('click', (e) => {
   const subEl = parentSec.querySelector(`#sub-${sub}`);
   if (subEl) subEl.classList.add('active');
   if (sub === 'reminder') renderReminder();
+  if (sub === 'settings') renderReminder();
   if (sub === 'emaillog') renderEmailLog();
   if (sub === 'calendar') renderCalendar();
   if (sub === 'parentreports') { fillParentReportMonths(); renderParentReports(); }

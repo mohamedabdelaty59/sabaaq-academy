@@ -69,7 +69,6 @@ body{font-family:'Tajawal',system-ui,sans-serif;background:var(--bg);color:var(-
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
-/* Sub-tabs */
 .sub-tabs{display:flex;gap:6px;margin-bottom:18px;padding:5px;background:var(--card);border:1px solid var(--border-s);border-radius:12px;overflow-x:auto;flex-wrap:nowrap}
 .sub-tabs::-webkit-scrollbar{height:0}
 .sub-tab{flex:0 0 auto;padding:9px 16px;border-radius:9px;font-size:13px;font-weight:700;color:var(--text2);cursor:pointer;transition:.18s;white-space:nowrap;border:1px solid transparent;user-select:none}
@@ -78,7 +77,6 @@ body{font-family:'Tajawal',system-ui,sans-serif;background:var(--bg);color:var(-
 .sub-section{display:none}
 .sub-section.active{display:block;animation:fade .3s ease}
 
-/* KPI */
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:16px;margin-bottom:24px}
 .kpi{background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--border-s);border-radius:var(--radius);padding:18px 20px;position:relative;overflow:hidden;transition:.25s}
 .kpi:hover{transform:translateY(-3px);border-color:var(--border);box-shadow:var(--shadow)}
@@ -91,7 +89,6 @@ body{font-family:'Tajawal',system-ui,sans-serif;background:var(--bg);color:var(-
 .kpi-val small{font-size:13px;font-weight:600;color:var(--text3);margin-inline-start:4px}
 .kpi-lbl{font-size:12.5px;color:var(--text3);margin-top:6px;font-weight:600}
 
-/* Cards & Tables */
 .card{background:var(--card);border:1px solid var(--border-s);border-radius:var(--radius);overflow:hidden;margin-bottom:22px}
 .card-head{display:flex;align-items:center;gap:12px;padding:17px 20px;border-bottom:1px solid var(--border-s);flex-wrap:wrap}
 .card-head h3{font-size:15.5px;font-weight:800}
@@ -138,7 +135,6 @@ td.num.blue{color:var(--blue)}
 .empty .e-ic{font-size:38px;opacity:.4;margin-bottom:12px}
 .empty p{font-size:13.5px;font-weight:600}
 
-/* Bulk Check & Bar */
 .bulk-check{appearance:none;width:18px;height:18px;border:1.5px solid var(--border);border-radius:5px;background:var(--bg2);cursor:pointer;position:relative;transition:.15s;flex-shrink:0}
 .bulk-check:checked{background:linear-gradient(135deg,var(--brand),var(--brand2));border-color:transparent}
 .bulk-check:checked::after{content:'✓';position:absolute;inset:0;display:grid;place-items:center;color:#06251c;font-size:12px;font-weight:900}
@@ -151,7 +147,6 @@ td.num.blue{color:var(--blue)}
 .bulk-bar button:hover{background:var(--card);color:var(--text)}
 .bulk-bar button.primary{background:var(--brand);color:#06251c;border-color:transparent}
 
-/* Date Filter */
 .date-filter{display:flex;gap:8px;align-items:center;margin-bottom:16px;padding:10px 14px;background:var(--card2);border:1px solid var(--border-s);border-radius:10px;flex-wrap:wrap}
 .date-filter label{font-size:12px;color:var(--text3);font-weight:700}
 .date-filter input{background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:8px;font-family:inherit;font-size:12.5px;outline:none}
@@ -160,7 +155,6 @@ td.num.blue{color:var(--blue)}
 .date-filter .btn-quick:hover{background:var(--brand);color:#06251c;border-color:transparent}
 .date-filter .btn-quick.active{background:rgba(45,212,167,.15);color:var(--brand);border-color:rgba(45,212,167,.35)}
 
-/* Modal */
 .modal-back{position:fixed;inset:0;background:rgba(5,8,12,.78);backdrop-filter:blur(6px);z-index:300;display:none;align-items:center;justify-content:center;padding:20px;animation:fade .2s}
 .modal-back.show{display:flex}
 .modal{background:var(--card);border:1px solid var(--border);border-radius:18px;width:100%;max-width:700px;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 30px 80px rgba(0,0,0,.75);animation:pop .28s cubic-bezier(.4,0,.2,1)}
@@ -187,7 +181,6 @@ td.num.blue{color:var(--blue)}
 .field select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239fb0c4' stroke-width='3'><path d='M6 9l6 6 6-6'/></svg>");background-repeat:no-repeat;background-position:left 13px center;padding-left:34px}
 .field input[type="date"]::-webkit-calendar-picker-indicator,.field input[type="month"]::-webkit-calendar-picker-indicator{filter:invert(.7)}
 
-/* Session Details */
 .session-details-wrap{grid-column:1/-1;background:linear-gradient(160deg,rgba(45,212,167,.06),rgba(45,212,167,.02));border:1px solid rgba(45,212,167,.25);border-radius:12px;padding:14px 16px}
 .sd-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding:8px 12px;background:linear-gradient(135deg,rgba(45,212,167,.12),rgba(45,212,167,.04));border-radius:8px;border:1px solid rgba(45,212,167,.25)}
 .sd-head .title{font-size:13px;font-weight:800;color:var(--brand);display:flex;align-items:center;gap:6px}
@@ -206,7 +199,6 @@ td.num.blue{color:var(--blue)}
 .sd-row.rd{grid-template-columns:36px 1fr 120px 1fr 34px}
 .sd-row.con{grid-template-columns:36px 1fr 120px 2fr 34px}
 
-/* FAB */
 .fab{position:fixed;bottom:26px;inset-inline-end:26px;width:60px;height:60px;border-radius:20px;background:linear-gradient(135deg,var(--brand),var(--brand2));border:none;color:#06251c;font-size:26px;cursor:pointer;z-index:70;display:grid;place-items:center;box-shadow:0 15px 35px -10px var(--brand-glow);transition:.22s;font-weight:800}
 .fab:hover{transform:scale(1.08) rotate(90deg)}
 .fab-menu{position:fixed;bottom:96px;inset-inline-end:26px;z-index:70;display:none;flex-direction:column;gap:8px;animation:fade .2s;max-height:70vh;overflow-y:auto;padding:4px}
@@ -215,7 +207,6 @@ td.num.blue{color:var(--blue)}
 .fab-menu button:hover{background:var(--brand);color:#06251c;border-color:transparent;transform:translateX(-4px)}
 .fab-menu button .fic{font-size:16px}
 
-/* Toast & Loader */
 .toast{position:fixed;bottom:26px;inset-inline-start:26px;background:var(--card2);border:1px solid var(--border);color:var(--text);padding:13px 20px;border-radius:12px;font-size:13.5px;font-weight:700;box-shadow:var(--shadow);z-index:400;transform:translateY(120px);opacity:0;transition:.35s;display:flex;align-items:center;gap:9px;max-width:calc(100vw - 52px)}
 .toast.show{transform:none;opacity:1}
 .loader{display:none;position:fixed;inset:0;background:rgba(13,17,23,.85);z-index:150;place-items:center;backdrop-filter:blur(4px)}
@@ -225,7 +216,6 @@ td.num.blue{color:var(--blue)}
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:45;backdrop-filter:blur(3px)}
 .overlay.show{display:block}
 
-/* Report Cards */
 .report-header{text-align:center;padding:20px;border-bottom:2px dashed var(--border-s);margin-bottom:22px}
 .report-title{font-size:22px;font-weight:900;color:var(--gold);letter-spacing:-.5px}
 .report-dates{font-size:13px;color:var(--text3);margin-top:6px;font-weight:600}
@@ -247,7 +237,6 @@ td.num.blue{color:var(--blue)}
 .report-tbl tr:last-child td{border-bottom:none}
 .report-tbl tr.totals td{background:rgba(255,255,255,.035);font-weight:900;color:var(--text);font-size:14px}
 
-/* Profile */
 .profile-hero{background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--border-s);border-radius:var(--radius);padding:22px 24px;margin-bottom:22px;display:flex;gap:20px;align-items:center;flex-wrap:wrap;position:relative;overflow:hidden}
 .profile-hero::before{content:'';position:absolute;top:0;inset-inline-start:0;width:100%;height:4px;background:linear-gradient(90deg,var(--brand),var(--gold),var(--blue))}
 .profile-avatar{width:82px;height:82px;border-radius:22px;overflow:hidden;background:#fff;display:grid;place-items:center;font-size:34px;font-weight:900;color:#06251c;box-shadow:0 12px 30px -8px var(--brand-glow);flex-shrink:0;padding:4px}
@@ -286,7 +275,6 @@ td.num.blue{color:var(--blue)}
 .timeline-body .tb-date{font-size:12px;color:var(--text3);font-weight:700}
 .timeline-body .tb-meta{font-size:12.5px;color:var(--text2);font-weight:600}
 
-/* Reminder */
 .reminder-hero{background:linear-gradient(135deg,rgba(245,181,68,.16),rgba(245,181,68,.04));border:1.5px solid rgba(245,181,68,.4);border-radius:16px;padding:22px 26px;margin-bottom:22px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;position:relative;overflow:hidden}
 .reminder-hero::before{content:'';position:absolute;top:0;inset-inline-start:0;width:100%;height:4px;background:linear-gradient(90deg,var(--gold),#d99a2e)}
 .reminder-hero .rh-ic{width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,var(--gold),#d99a2e);color:#fff;display:grid;place-items:center;font-size:30px;flex-shrink:0;box-shadow:0 12px 28px -8px rgba(245,181,68,.5)}
@@ -299,7 +287,6 @@ td.num.blue{color:var(--blue)}
 .reminder-status.off{background:rgba(255,107,107,.14);color:var(--red)}
 .reminder-status::before{content:'';width:8px;height:8px;border-radius:50%;background:currentColor;animation:pulse 2s infinite}
 
-/* Calendar */
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
 .cal-head{text-align:center;font-weight:800;color:var(--text3);font-size:12.5px;padding:10px 0;background:var(--card2);border-radius:8px;letter-spacing:.3px}
 .cal-cell{background:var(--card2);border:1px solid var(--border-s);border-radius:10px;min-height:100px;padding:8px;cursor:pointer;transition:.18s;position:relative;overflow:hidden}
@@ -316,7 +303,6 @@ td.num.blue{color:var(--blue)}
 .cal-cell .sess-badge.done{background:rgba(77,157,255,.14);color:var(--blue)}
 .cal-cell .more-badge{font-size:9.5px;color:var(--text3);margin-top:3px;font-weight:700}
 
-/* Schedule Dropdown */
 .sched-dd{position:relative;width:100%}
 .sched-dd-trigger{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:11px 13px;border-radius:10px;font-family:inherit;font-size:13.5px;cursor:pointer;transition:.18s;min-height:44px;text-align:right}
 .sched-dd-trigger:hover{border-color:var(--brand)}
@@ -341,7 +327,6 @@ td.num.blue{color:var(--blue)}
 .sdd-clear{display:block;width:100%;padding:9px;background:transparent;border:1px dashed var(--border);color:var(--text3);border-radius:8px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;margin-top:4px;transition:.18s}
 .sdd-clear:hover{color:var(--red);border-color:rgba(255,107,107,.4);background:rgba(255,107,107,.06)}
 
-/* Student Preview */
 .student-preview{grid-column:1/-1;background:linear-gradient(160deg,rgba(45,212,167,.08),rgba(45,212,167,.02));border:1.5px solid rgba(45,212,167,.3);border-radius:12px;padding:14px 18px}
 .student-preview .sp-title{font-size:12px;color:var(--brand);font-weight:800;margin-bottom:10px;letter-spacing:.5px;display:flex;align-items:center;gap:6px}
 .student-preview .sp-row{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-bottom:1px dashed rgba(45,212,167,.2);align-items:baseline;gap:10px}
@@ -353,7 +338,6 @@ td.num.blue{color:var(--blue)}
 .student-preview .sp-total .v{color:var(--brand);font-size:20px;font-weight:900}
 .student-preview .sp-meta{margin-top:10px;padding:10px 12px;background:rgba(45,212,167,.08);border-radius:8px;font-size:12px;color:var(--brand);font-weight:700;line-height:1.7}
 
-/* Prepaid Summary */
 .prepaid-summary{grid-column:1/-1;background:linear-gradient(135deg,rgba(245,181,68,.12),rgba(245,181,68,.04));border:1px solid rgba(245,181,68,.35);border-radius:12px;padding:14px 18px;margin-top:6px}
 .prepaid-summary .ps-title{font-size:12px;color:var(--gold);font-weight:800;margin-bottom:10px;letter-spacing:.5px}
 .prepaid-summary .ps-row{display:flex;justify-content:space-between;padding:5px 0;font-size:13.5px}
@@ -363,7 +347,6 @@ td.num.blue{color:var(--blue)}
 .prepaid-summary .ps-total .k{color:var(--gold);font-weight:800;font-size:15px}
 .prepaid-summary .ps-total .v{color:var(--gold);font-size:18px;font-weight:900}
 
-/* Due Summary */
 .due-summary{grid-column:1/-1;background:linear-gradient(135deg,rgba(45,212,167,.14),rgba(45,212,167,.04));border:1px solid rgba(45,212,167,.4);border-radius:12px;padding:14px 18px;margin-top:6px}
 .due-summary .ds-title{font-size:12px;color:var(--brand);font-weight:800;margin-bottom:10px;letter-spacing:.5px}
 .due-summary .ds-row{display:flex;justify-content:space-between;padding:5px 0;font-size:13.5px}
@@ -373,7 +356,6 @@ td.num.blue{color:var(--blue)}
 .due-summary .ds-total .k{color:var(--brand);font-weight:800;font-size:15px}
 .due-summary .ds-total .v{color:var(--brand);font-size:20px;font-weight:900}
 
-/* Postpone Detail Table */
 .postpone-detail-tbl{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:10px;border-radius:8px;overflow:hidden;background:rgba(245,181,68,.06);border:1px solid rgba(245,181,68,.25)}
 .postpone-detail-tbl thead th{background:rgba(245,181,68,.18);color:var(--gold);padding:7px 8px;font-weight:800;font-size:10.5px;text-align:center;border-bottom:1px solid rgba(245,181,68,.25);white-space:nowrap}
 .postpone-detail-tbl tbody td{padding:6px 8px;border-bottom:1px solid rgba(245,181,68,.12);text-align:center;color:var(--text2);font-weight:600;font-variant-numeric:tabular-nums}
@@ -381,7 +363,6 @@ td.num.blue{color:var(--blue)}
 .postpone-detail-tbl tbody tr:nth-child(even) td{background:rgba(245,181,68,.04)}
 .postpone-detail-tbl .fee{color:var(--red);font-weight:800}
 
-/* Drawer */
 .drawer-back{position:fixed;inset:0;background:rgba(5,8,12,.7);backdrop-filter:blur(4px);z-index:250;display:none;opacity:0;transition:.25s}
 .drawer-back.show{display:block;opacity:1}
 .drawer{position:fixed;top:0;inset-inline-end:0;bottom:0;width:min(620px,100vw);background:var(--bg2);border-inline-start:1px solid var(--border-s);z-index:260;transform:translateX(100%);transition:transform .32s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;box-shadow:-30px 0 60px rgba(0,0,0,.5)}
@@ -395,7 +376,6 @@ html[dir="rtl"] .drawer{transform:translateX(-100%)}
 .drawer-body::-webkit-scrollbar{width:6px}
 .drawer-body::-webkit-scrollbar-thumb{background:#243244;border-radius:6px}
 
-/* Command Palette */
 .cmd-back{position:fixed;inset:0;background:rgba(5,8,12,.78);backdrop-filter:blur(6px);z-index:500;display:none;align-items:flex-start;justify-content:center;padding-top:12vh}
 .cmd-back.show{display:flex;animation:fade .15s}
 .cmd-box{width:min(600px,92vw);background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.8);animation:pop .22s cubic-bezier(.4,0,.2,1)}
@@ -453,6 +433,27 @@ html[dir="rtl"] .drawer{transform:translateX(-100%)}
   .kpi-grid{page-break-inside:avoid}
   table{font-size:10px!important}
 }
+
+/* ═══════════ Voucher Modal v11.1 ═══════════ */
+.voucher-tabs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.voucher-tab{padding:14px 10px;border-radius:12px;border:2px solid var(--border);background:var(--card);color:var(--text2);cursor:pointer;text-align:center;transition:.2s;font-family:inherit}
+.voucher-tab:hover{background:var(--card2);transform:translateY(-1px)}
+.voucher-tab.active-in{border-color:var(--brand);background:linear-gradient(135deg,rgba(45,212,167,.15),rgba(45,212,167,.03));color:var(--brand);box-shadow:0 8px 20px -8px var(--brand-glow)}
+.voucher-tab.active-out{border-color:var(--red);background:linear-gradient(135deg,rgba(255,107,107,.15),rgba(255,107,107,.03));color:var(--red);box-shadow:0 8px 20px -8px rgba(255,107,107,.3)}
+.voucher-tab .vt-icon{font-size:26px;display:block;margin-bottom:6px}
+.voucher-tab .vt-label{font-size:15px;font-weight:800;display:block}
+.voucher-tab .vt-sub{font-size:11px;font-weight:600;opacity:.75;margin-top:2px;display:block}
+.voucher-ops{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;padding:8px;background:var(--bg2);border:1px solid var(--border-s);border-radius:12px}
+.voucher-op{padding:8px 14px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--text2);cursor:pointer;font-size:12.5px;font-weight:700;transition:.15s;font-family:inherit;white-space:nowrap}
+.voucher-op:hover{background:var(--card);color:var(--text)}
+.voucher-op.active{background:var(--brand);color:#06251c}
+.voucher-op.active-out{background:var(--red);color:#fff}
+@media(max-width:640px){
+  .voucher-tabs{grid-template-columns:1fr}
+  .voucher-tab{padding:10px 8px}
+  .voucher-tab .vt-icon{font-size:20px}
+  .voucher-op{font-size:11px;padding:6px 10px}
+}
 </style>
 </head>
 <body>
@@ -479,7 +480,7 @@ html[dir="rtl"] .drawer{transform:translateX(-100%)}
 
     <div class="sidebar-foot">
       <div>📅 آخر تحديث: <span id="lastUpd">—</span></div>
-      <div>💾 نظام الإدارة v11.0</div>
+      <div>💾 نظام الإدارة v11.1</div>
     </div>
   </aside>
 
@@ -721,8 +722,8 @@ html[dir="rtl"] .drawer{transform:translateX(-100%)}
             <span class="spacer"></span>
             <span class="badge ok" id="cashCountBadge">0 عملية</span>
             <button class="btn" data-act="exportTable" data-table="receipts">📥 تصدير CSV</button>
-            <button class="btn btn-prepaid" data-add="prepaidReceipt">💳 دفع مقدم</button>
-            <button class="btn btn-add" data-add="receipt">🧾 سند استلام</button>
+            <button class="btn btn-primary" data-voucher="in:subscription" style="font-weight:800">🧾 سند استلام</button>
+            <button class="btn btn-print" data-voucher="out:expense" style="font-weight:800;padding:9px 14px;font-size:13px">💸 سند صرف</button>
           </div>
           <div class="card-body" id="cashFilterBar"></div>
           <div class="card-body p0">
@@ -816,7 +817,7 @@ html[dir="rtl"] .drawer{transform:translateX(-100%)}
             <h3>💵 مصادر دخل أخرى</h3>
             <span class="spacer"></span>
             <button class="btn" data-act="exportTable" data-table="income">📥 تصدير CSV</button>
-            <button class="btn btn-add" data-add="income">➕ إضافة دخل</button>
+            <button class="btn btn-add" data-voucher="in:income">➕ إضافة دخل</button>
           </div>
           <div class="card-body p0">
             <div class="tbl-wrap">
@@ -835,7 +836,7 @@ html[dir="rtl"] .drawer{transform:translateX(-100%)}
             <h3>💸 المصروفات</h3>
             <span class="spacer"></span>
             <button class="btn" data-act="exportTable" data-table="expenses">📥 تصدير CSV</button>
-            <button class="btn btn-add" data-add="expense">➕ إضافة مصروف</button>
+            <button class="btn btn-add" data-voucher="out:expense">➕ إضافة مصروف</button>
           </div>
           <div class="card-body p0">
             <div class="tbl-wrap">
@@ -853,7 +854,7 @@ html[dir="rtl"] .drawer{transform:translateX(-100%)}
           <div class="card-head">
             <h3>🤲 الصدقة</h3>
             <span class="spacer"></span>
-            <button class="btn btn-add" data-add="charity">➕ إضافة صدقة</button>
+            <button class="btn btn-add" data-voucher="out:charity">➕ إضافة صدقة</button>
           </div>
           <div class="card-body p0">
             <div class="tbl-wrap">
@@ -871,7 +872,7 @@ html[dir="rtl"] .drawer{transform:translateX(-100%)}
           <div class="card-head">
             <h3>🤝 القرض الحسن</h3>
             <span class="spacer"></span>
-            <button class="btn btn-add" data-add="loan">➕ إضافة قرض</button>
+            <button class="btn btn-add" data-voucher="out:loanGiven">➕ إضافة قرض</button>
           </div>
           <div class="card-body p0">
             <div class="tbl-wrap">
@@ -909,7 +910,7 @@ html[dir="rtl"] .drawer{transform:translateX(-100%)}
           <div class="card-head">
             <h3>📈 الاستثمارات</h3>
             <span class="spacer"></span>
-            <button class="btn btn-add" data-add="investment">➕ إضافة استثمار</button>
+            <button class="btn btn-add" data-voucher="out:investment">➕ إضافة استثمار</button>
           </div>
           <div class="card-body p0">
             <div class="tbl-wrap">
@@ -1030,22 +1031,18 @@ html[dir="rtl"] .drawer{transform:translateX(-100%)}
   </main>
 </div>
 
+<!-- ═══════ FAB (جديد) ═══════ -->
 <button class="fab" id="fabBtn" title="إضافة سريعة">＋</button>
 <div class="fab-menu" id="fabMenu">
-  <button data-add="student"><span class="fic">👨‍🎓</span> تسجيل طالب</button>
-  <button data-add="receipt"><span class="fic">🧾</span> سند استلام</button>
-  <button data-add="studentReport"><span class="fic">📋</span> تقرير طالب</button>
-  <button data-add="prepaidReceipt"><span class="fic">💳</span> دفع مقدم</button>
-  <button data-add="expense"><span class="fic">💸</span> مصروف</button>
-  <button data-add="income"><span class="fic">💵</span> دخل</button>
-  <button data-add="opening"><span class="fic">🏁</span> رصيد افتتاحي</button>
-  <button data-add="loan"><span class="fic">🤝</span> قرض</button>
-  <button data-add="investment"><span class="fic">📈</span> استثمار</button>
-  <button data-add="charity"><span class="fic">🤲</span> صدقة</button>
-  <button data-add="obligation"><span class="fic">📑</span> التزام</button>
-  <button data-add="obligationPayment"><span class="fic">💳</span> سداد</button>
+  <button type="button" data-voucher="in:subscription"><span class="fic">🧾</span> سند استلام</button>
+  <button type="button" data-voucher="out:expense"><span class="fic">💸</span> سند صرف</button>
+  <button type="button" data-add="student"><span class="fic">👨‍🎓</span> تسجيل طالب</button>
+  <button type="button" data-add="studentReport"><span class="fic">📋</span> تقرير طالب</button>
+  <button type="button" data-add="package"><span class="fic">📦</span> باقة جديدة</button>
+  <button type="button" data-add="obligation"><span class="fic">📑</span> التزام جديد</button>
 </div>
 
+<!-- ═══════ Modal العادي (لنماذج student / studentReport / package / obligation / opening / editStudentPrice / changeStudentPackage / editInvestment / editPackage) ═══════ -->
 <div class="modal-back" id="modalBack">
   <div class="modal">
     <div class="modal-head">
@@ -1066,7 +1063,41 @@ html[dir="rtl"] .drawer{transform:translateX(-100%)}
   </div>
 </div>
 
-<!-- Drawer -->
+<!-- ═══════ Modal السند الموحد (v11.1) ═══════ -->
+<div class="modal-back" id="voucherBack">
+  <div class="modal" style="max-width:820px">
+    <div class="modal-head">
+      <div class="mh-ic" id="voucherIc">🧾</div>
+      <div style="flex:1">
+        <h3 id="voucherTitle">سند جديد</h3>
+        <div class="mh-sub" id="voucherSub">اختر النوع ثم العملية</div>
+      </div>
+      <button class="modal-close" id="voucherClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="voucher-tabs">
+        <button type="button" class="voucher-tab" data-type="in">
+          <span class="vt-icon">💰</span>
+          <span class="vt-label">سند استلام</span>
+          <span class="vt-sub">فلوس داخلة</span>
+        </button>
+        <button type="button" class="voucher-tab" data-type="out">
+          <span class="vt-icon">💸</span>
+          <span class="vt-label">سند صرف</span>
+          <span class="vt-sub">فلوس خارجة</span>
+        </button>
+      </div>
+      <div class="voucher-ops" id="voucherOps"></div>
+      <form id="voucherForm" class="form-grid" autocomplete="off"></form>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" id="voucherCancel">إلغاء</button>
+      <button class="btn btn-primary" id="voucherSave">💾 حفظ السند</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ Drawer (ملف الطالب) ═══════ -->
 <div class="drawer-back" id="drawerBack"></div>
 <div class="drawer" id="profileDrawer">
   <div class="drawer-head">
@@ -1079,7 +1110,7 @@ html[dir="rtl"] .drawer{transform:translateX(-100%)}
   </div>
 </div>
 
-<!-- Command Palette -->
+<!-- ═══════ Command Palette ═══════ -->
 <div class="cmd-back" id="cmdBack">
   <div class="cmd-box">
     <div class="cmd-input-wrap">
@@ -1096,7 +1127,7 @@ html[dir="rtl"] .drawer{transform:translateX(-100%)}
   </div>
 </div>
 
-<!-- Bulk Bar -->
+<!-- ═══════ Bulk Bar ═══════ -->
 <div class="bulk-bar" id="bulkBar">
   <span class="count" id="bulkCount">0</span>
   <span class="lbl">محدد</span>
@@ -1112,9 +1143,9 @@ html[dir="rtl"] .drawer{transform:translateX(-100%)}
 
 <script>
 /* ══════════════════════════════════════════════════════════════════ */
-/* الإعدادات الأساسية */
+/* SCRIPT 1 — الإعدادات + STATE + Helpers + calcDue + Hydrate + API */
 /* ══════════════════════════════════════════════════════════════════ */
-const API_URL = 'https://script.google.com/macros/s/AKfycbzG07RlugnsV50dL_OQ5waL05CvHCfVvTLVaXk0hY4hhLToT7hzE4KH9S-9giWlIUg/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycby_VkrJmSVX2El6k-NvXWVy344SQjwHXusa_gRsBOSLm6PtmDAWCekXidHZ18niM4hM/exec';
 const API_TOKEN = 'SABAQ_a8f3k9m2x7p5q1w4e6r8t0y2u4i6o8a0_2024';
 
 const ACADEMY = 'أكاديمية السَّبَّاق لتعليم القرآن الكريم';
@@ -1201,9 +1232,6 @@ function surahOptions(selected){
   return html;
 }
 
-/* ══════════════════════════════════════════════════════════════════ */
-/* دوال المستحق الموحدة */
-/* ══════════════════════════════════════════════════════════════════ */
 function monthLabelFromIdx(idx){
   const y = Math.floor(idx / 12);
   const m = (idx % 12) + 1;
@@ -1283,9 +1311,6 @@ function calcDue(opts){
   };
 }
 
-/* ══════════════════════════════════════════════════════════════════ */
-/* Hydrate */
-/* ══════════════════════════════════════════════════════════════════ */
 function hydrate(raw){
   const s = raw.settings || {};
   STATE.settings = {
@@ -1550,9 +1575,6 @@ function rebuildTotals(){
   STATE.totals = t;
 }
 
-/* ══════════════════════════════════════════════════════════════════ */
-/* API */
-/* ══════════════════════════════════════════════════════════════════ */
 async function apiFetch(url, options = {}, timeoutMs = 20000) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
@@ -1593,7 +1615,7 @@ async function apiPost(action, data) {
 
 <script>
 /* ══════════════════════════════════════════════════════════════════ */
-/* Schedule Picker */
+/* SCRIPT 2 — Schedule Picker */
 /* ══════════════════════════════════════════════════════════════════ */
 const SCHEDULE_DAYS = ['السبت','الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة'];
 function parseScheduleText(text){
@@ -1677,7 +1699,7 @@ function openStudentReportFor(studentName){
 
 <script>
 /* ══════════════════════════════════════════════════════════════════ */
-/* FORMS */
+/* SCRIPT 3 — FORMS (بعد التنظيف) + buildField + openForm + submitForm */
 /* ══════════════════════════════════════════════════════════════════ */
 const FORMS = {
   opening: { title:'إضافة رصيد افتتاحي', sub:'الرصيد الموجود قبل بدء تشغيل النظام', ic:'🏁', action:'addOpening',
@@ -1731,40 +1753,6 @@ const FORMS = {
       { n:'سعر الباقة', l:'السعر الجديد', t:'number', req:true },
       { n:'ملاحظات', l:'سبب التغيير', t:'textarea', full:true }
     ]},
-  receipt: { title:'سند استلام نقدي', sub:'المستحق = الافتتاحي + الشهور + التأجيل + المقابلة', ic:'🧾', action:'addReceipt',
-    fields: [
-      { n:'رقم الإيصال', l:'رقم الإيصال', t:'readonly-auto', def:'__auto__' },
-      { n:'التاريخ', l:'تاريخ الاستلام', t:'date', req:true, def:'today' },
-      { n:'اسم الطالب', l:'اسم الطالب', t:'select-student', req:true, full:true },
-      { n:'نوع الباقة', l:'الباقة', t:'readonly-pkg' },
-      { n:'due-preview', l:'', t:'due-preview', full:true },
-      { n:'المبلغ المستحق', l:'المبلغ المستحق', t:'number', req:true },
-      { n:'المبلغ المدفوع', l:'المبلغ المدفوع', t:'number', req:true },
-      { n:'خصم', l:'خصم (يُعتبر سداداً)', t:'number', def:'0' },
-      { n:'طريقة الدفع', l:'طريقة الدفع', t:'select', opts:['نقدي','تحويل بنكي','محفظة إلكترونية','شيك'], def:'نقدي' },
-      { n:'الفترة المستحقة', l:'الفترة المستحقة', t:'month', def:'currentMonth' },
-      { n:'ملاحظات', l:'ملاحظات', t:'textarea', full:true }
-    ]},
-  prepaidReceipt: { title:'إيصال دفع مقدم', sub:'دفع اشتراك لعدة أشهر مع خصم', ic:'💳', action:'addReceipt',
-    fields: [
-      { n:'رقم الإيصال', l:'رقم الإيصال', t:'readonly-auto', def:'__auto__' },
-      { n:'التاريخ', l:'تاريخ السداد', t:'date', req:true, def:'today' },
-      { n:'اسم الطالب', l:'اسم الطالب', t:'select-student', req:true, full:true },
-      { n:'نوع الباقة', l:'الباقة', t:'readonly-pkg' },
-      { n:'سعر الشهر', l:'سعر الشهر', t:'readonly-num' },
-      { n:'شهر البداية', l:'شهر بداية الاشتراك', t:'month', req:true, def:'currentMonth' },
-      { n:'عدد الأشهر', l:'عدد الأشهر المدفوعة مقدماً', t:'number', req:true, def:'3' },
-      { n:'الإجمالي', l:'الإجمالي قبل الخصم', t:'readonly-num' },
-      { n:'نوع الخصم', l:'نوع الخصم', t:'select', opts:['بدون خصم','نسبة %','مبلغ ثابت'], def:'بدون خصم' },
-      { n:'قيمة الخصم', l:'قيمة الخصم', t:'number', def:'0' },
-      { n:'المبلغ الصافي', l:'المبلغ الصافي المدفوع', t:'readonly-num' },
-      { n:'المبلغ المستحق', l:'المبلغ المستحق', t:'readonly-num' },
-      { n:'المبلغ المدفوع', l:'المبلغ المدفوع', t:'readonly-num' },
-      { n:'خصم', l:'قيمة الخصم', t:'readonly-num' },
-      { n:'المتبقي', l:'المتبقي', t:'readonly-num' },
-      { n:'طريقة الدفع', l:'طريقة الدفع', t:'select', opts:['نقدي','تحويل بنكي','محفظة إلكترونية','شيك'], def:'نقدي' },
-      { n:'ملاحظات', l:'ملاحظات', t:'textarea', full:true }
-    ]},
   studentReport: { title:'تقرير حلقة الطالب', sub:'يُرسل تلقائياً بالبريد — حقول ذكية حسب نوع الحلقة', ic:'📋', action:'addStudentReport',
     fields: [
       { n:'التاريخ', l:'📅 تاريخ التقييم', t:'date', req:true, def:'today' },
@@ -1779,62 +1767,6 @@ const FORMS = {
       { n:'تفاصيل الحلقة', l:'', t:'session-details', full:true },
       { n:'الحصة القادمة', l:'📚 الحصة القادمة (كل سطر: النوع | التفاصيل)', t:'textarea', full:true },
       { n:'ملاحظات', l:'💬 ملاحظات لولي الأمر (كل سطر ملاحظة)', t:'textarea', full:true }
-    ]},
-  income: { title:'إضافة مصدر دخل', sub:'دخل بخلاف الاشتراكات', ic:'💵', action:'addIncome',
-    fields: [
-      { n:'التاريخ', l:'التاريخ', t:'date', req:true, def:'today' },
-      { n:'البيان', l:'البيان', t:'text', req:true, full:true },
-      { n:'المبلغ', l:'المبلغ', t:'number', req:true },
-      { n:'طريقة الاستلام', l:'طريقة الاستلام', t:'select', opts:['نقدي','تحويل بنكي','محفظة إلكترونية','شيك'], def:'نقدي' },
-      { n:'ملاحظات', l:'ملاحظات', t:'textarea', full:true }
-    ]},
-  expense: { title:'إضافة مصروف', sub:'سجل المصروفات التشغيلية', ic:'💸', action:'addExpense',
-    fields: [
-      { n:'التاريخ', l:'التاريخ', t:'date', req:true, def:'today' },
-      { n:'البيان', l:'البيان', t:'text', req:true, full:true },
-      { n:'المبلغ', l:'المبلغ', t:'number', req:true },
-      { n:'النوع', l:'النوع', t:'select', opts:['تشغيلي','رأسمالي','صيانة','رواتب','أخرى'], def:'تشغيلي' },
-      { n:'ملاحظات', l:'ملاحظات', t:'textarea', full:true }
-    ]},
-  loan: { title:'إضافة قرض حسن', sub:'فلوسي عند شخص آخر', ic:'🤝', action:'addLoan',
-    fields: [
-      { n:'التاريخ', l:'التاريخ', t:'date', req:true, def:'today' },
-      { n:'اسم الشخص', l:'اسم الشخص', t:'text', req:true, full:true },
-      { n:'المبلغ', l:'المبلغ الأصلي', t:'number', req:true },
-      { n:'المتبقي', l:'المبلغ المتبقي', t:'number', hint:'يُملأ تلقائياً' },
-      { n:'الحالة', l:'الحالة', t:'select', opts:['قائم','مسدد جزئياً','مسدد'], def:'قائم' },
-      { n:'ملاحظات', l:'ملاحظات', t:'textarea', full:true }
-    ]},
-  investment: { title:'إضافة استثمار', sub:'أصل استثماري جديد', ic:'📈', action:'addInvestment',
-    fields: [
-      { n:'التاريخ', l:'التاريخ', t:'date', req:true, def:'today' },
-      { n:'البيان', l:'البيان', t:'text', req:true, full:true },
-      { n:'المبلغ', l:'رأس المال الأساسي', t:'number', req:true },
-      { n:'القيمة الحالية', l:'القيمة الحالية', t:'number' },
-      { n:'الحالة', l:'الحالة', t:'select', opts:['قائم','مصفى','مربح','خاسر'], def:'قائم' },
-      { n:'ملاحظات', l:'ملاحظات', t:'textarea', full:true }
-    ]},
-  investTrans: { title:'حركة استثمار', sub:'إضافة رأس مال — استلام أرباح — تصفية', ic:'💹', action:'addInvestTrans',
-    fields: [
-      { n:'التاريخ', l:'تاريخ الحركة', t:'date', req:true, def:'today' },
-      { n:'البيان', l:'الاستثمار', t:'select-invest', req:true, full:true },
-      { n:'نوع الحركة', l:'نوع الحركة', t:'select', opts:['إضافة رأس مال','استلام أرباح','تصفية جزئية'], def:'إضافة رأس مال' },
-      { n:'المبلغ', l:'المبلغ', t:'number', req:true },
-      { n:'ملاحظات', l:'ملاحظات', t:'textarea', full:true }
-    ]},
-  editInvestment: { title:'تعديل استثمار', sub:'تحديث القيمة الحالية أو الحالة', ic:'✏️', action:'updateInvestment',
-    fields: [
-      { n:'البيان', l:'اسم الاستثمار', t:'readonly', full:true },
-      { n:'القيمة الحالية', l:'القيمة الحالية', t:'number', req:true },
-      { n:'الحالة', l:'الحالة', t:'select', opts:['قائم','مصفى','مربح','خاسر'], def:'قائم' },
-      { n:'ملاحظات', l:'ملاحظات', t:'textarea', full:true }
-    ]},
-  charity: { title:'إضافة صدقة', sub:'سجل الصدقات (بند منفصل)', ic:'🤲', action:'addCharity',
-    fields: [
-      { n:'التاريخ', l:'التاريخ', t:'date', req:true, def:'today' },
-      { n:'البيان', l:'البيان', t:'text', req:true, full:true },
-      { n:'المبلغ', l:'المبلغ', t:'number', req:true },
-      { n:'ملاحظات', l:'ملاحظات', t:'textarea', full:true }
     ]},
   obligation: { title:'إضافة التزام', sub:'مبلغ مستحق عليّ', ic:'📑', action:'addObligation',
     fields: [
@@ -1859,17 +1791,11 @@ const FORMS = {
       { n:'السعر الشهري', l:'السعر الشهري', t:'number', req:true },
       { n:'ملاحظات', l:'ملاحظات', t:'textarea', full:true }
     ]},
-  obligationPayment: { title:'سند سداد / تحصيل', sub:'سداد التزام — أو تحصيل قرض', ic:'💳', action:'addPayment',
+  editInvestment: { title:'تعديل استثمار', sub:'تحديث القيمة الحالية أو الحالة', ic:'✏️', action:'updateInvestment',
     fields: [
-      { n:'رقم السند', l:'رقم السند', t:'readonly-auto', def:'__auto__' },
-      { n:'التاريخ', l:'التاريخ', t:'date', req:true, def:'today' },
-      { n:'النوع', l:'النوع', t:'select', opts:['التزام','قرض حسن'], def:'التزام' },
-      { n:'البيان', l:'البيان / اسم الشخص', t:'select-obligation', req:true, full:true },
-      { n:'المبلغ الأصلي', l:'المبلغ الأصلي', t:'readonly-num' },
-      { n:'المتبقي قبل السداد', l:'المتبقي قبل السداد', t:'readonly-num' },
-      { n:'المبلغ المسدد', l:'المبلغ المسدد', t:'number', req:true },
-      { n:'المتبقي بعد السداد', l:'المتبقي بعد السداد', t:'readonly-num' },
-      { n:'طريقة الدفع', l:'طريقة الدفع', t:'select', opts:['نقدي','تحويل بنكي','محفظة إلكترونية','شيك'], def:'نقدي' },
+      { n:'البيان', l:'اسم الاستثمار', t:'readonly', full:true },
+      { n:'القيمة الحالية', l:'القيمة الحالية', t:'number', req:true },
+      { n:'الحالة', l:'الحالة', t:'select', opts:['قائم','مصفى','مربح','خاسر'], def:'قائم' },
       { n:'ملاحظات', l:'ملاحظات', t:'textarea', full:true }
     ]}
 };
@@ -1889,12 +1815,6 @@ function buildField(f){
     input = `<select id="${id}" data-name="${escapeHtml(f.n)}" data-pkg-select><option value="">— اختر الباقة —</option>${STATE.packages.map(p=>`<option value="${p.type}">${p.type} حلقات — ${fmt(p.price)} ج.م</option>`).join('')}</select>`;
   } else if(f.t === 'select-student'){
     input = `<select id="${id}" data-name="${escapeHtml(f.n)}" data-student-select><option value="">— اختر الطالب —</option>${STATE.students.map(s=>`<option value="${escapeHtml(s.name)}" data-pkg="${s.pkg}" data-price="${s.price}" data-email="${escapeHtml(s.email||'')}" data-stype="${escapeHtml(s.sType||'')}">${escapeHtml(s.name)} (${s.pkg} حلقات)</option>`).join('')}</select>`;
-  } else if(f.t === 'select-obligation'){
-    const groups = [
-      { label:'التزام', items: STATE.obligations.map(o => val(o,'البيان')).filter(Boolean) },
-      { label:'قرض حسن', items: STATE.loans.map(l => val(l,'اسم الشخص') || val(l,'البيان')).filter(Boolean) }
-    ];
-    input = `<select id="${id}" data-name="${escapeHtml(f.n)}" data-oblig-select><option value="">— اختر —</option>${groups.map(g => g.items.length ? `<optgroup label="${g.label}">` + g.items.map(x => `<option value="${escapeHtml(x)}" data-grp="${g.label}">${escapeHtml(x)}</option>`).join('') + `</optgroup>` : '').join('')}</select>`;
   } else if(f.t === 'select-invest'){
     input = `<select id="${id}" data-name="${escapeHtml(f.n)}"><option value="">— اختر الاستثمار —</option>${STATE.investments.map(x => `<option value="${escapeHtml(val(x,'البيان'))}">${escapeHtml(val(x,'البيان'))}</option>`).join('')}</select>`;
   } else if(f.t === 'readonly-pkg'){
@@ -2035,7 +1955,6 @@ function openForm(key){
   setTimeout(() => {
     const pkgSel = formEl.querySelector('[data-pkg-select]');
     const stuSel = formEl.querySelector('[data-student-select]');
-    const dueInput = formEl.querySelector('[data-name="المبلغ المستحق"]');
     const pkgReadonly = formEl.querySelector('[data-name="نوع الباقة"]');
     const amountInput = formEl.querySelector('[data-name="المبلغ"]');
     const remainingInput = formEl.querySelector('[data-name="المتبقي"]');
@@ -2055,16 +1974,9 @@ function openForm(key){
       stuSel.addEventListener('change', () => {
         const opt = stuSel.selectedOptions[0];
         if(!opt || !opt.value) return;
-        const pkg = opt.dataset.pkg, price = opt.dataset.price;
+        const pkg = opt.dataset.pkg;
         if(pkgReadonly) pkgReadonly.value = pkg ? pkg + ' حلقات' : '';
-        if(CURRENT_FORM === 'receipt') renderDuePreview(formEl, opt.value);
-        if(dueInput && !dueInput.dataset.touched){
-          const d = computeDueDetails(opt.value);
-          if(d && d.remaining > 0) dueInput.value = d.remaining;
-          else dueInput.value = price || '';
-        }
       });
-      if(dueInput) dueInput.addEventListener('input', () => dueInput.dataset.touched = '1');
     }
     if(pkgSel){
       const priceInput = formEl.querySelector('[data-name="سعر الباقة"]');
@@ -2197,94 +2109,6 @@ function openForm(key){
         if(feeInp) feeInp.value = isPostponed ? '80 ج.م' : '0 ج.م';
       });
     }
-    if(CURRENT_FORM === 'obligationPayment'){
-      const typeSel = formEl.querySelector('[data-name="النوع"]');
-      const oblSel = formEl.querySelector('[data-oblig-select]');
-      const origInp = formEl.querySelector('[data-name="المبلغ الأصلي"]');
-      const befInp = formEl.querySelector('[data-name="المتبقي قبل السداد"]');
-      const payInp = formEl.querySelector('[data-name="المبلغ المسدد"]');
-      const aftInp = formEl.querySelector('[data-name="المتبقي بعد السداد"]');
-      const refresh = () => {
-        const t = typeSel.value, name = oblSel.value;
-        if(!name){ origInp.value=''; befInp.value=''; aftInp.value=''; return; }
-        const { original, before } = obligationRemaining(name, t);
-        const paid = Number(payInp.value) || 0;
-        origInp.value = fmt(original) + ' ج.م';
-        befInp.value = fmt(before) + ' ج.م';
-        aftInp.value = fmt(Math.max(0, before - paid)) + ' ج.م';
-      };
-      typeSel.addEventListener('change', () => { oblSel.value = ''; refresh(); });
-      oblSel.addEventListener('change', refresh);
-      payInp.addEventListener('input', refresh);
-    }
-    if(CURRENT_FORM === 'investTrans'){
-      const typeSel = formEl.querySelector('[data-name="نوع الحركة"]');
-      const amountInput2 = formEl.querySelector('[data-name="المبلغ"]');
-      const infoBox = document.createElement('div');
-      infoBox.style.cssText = 'grid-column:1/-1;padding:11px 14px;border-radius:10px;font-size:12.5px;font-weight:700;text-align:center;transition:.2s';
-      formEl.appendChild(infoBox);
-      const updateInfo = () => {
-        const t = typeSel.value;
-        const amt = Number(amountInput2?.value) || 0;
-        const f = fmt(amt) + ' ج.م';
-        if(t === 'إضافة رأس مال'){ infoBox.style.background = 'rgba(45,212,167,.12)'; infoBox.style.color = 'var(--brand)'; infoBox.textContent = '✅ ستزيد القيمة الحالية بـ ' + f; }
-        else if(t === 'تصفية جزئية'){ infoBox.style.background = 'rgba(255,107,107,.12)'; infoBox.style.color = 'var(--red)'; infoBox.textContent = '⚠️ ستنقص القيمة الحالية بـ ' + f; }
-        else { infoBox.style.background = 'rgba(245,181,68,.12)'; infoBox.style.color = 'var(--gold)'; infoBox.textContent = '💰 أرباح — لا تُغيّر القيمة الحالية'; }
-      };
-      typeSel.addEventListener('change', updateInfo);
-      if(amountInput2) amountInput2.addEventListener('input', updateInfo);
-      updateInfo();
-    }
-    if(CURRENT_FORM === 'prepaidReceipt'){
-      const stuSel2 = formEl.querySelector('[data-name="اسم الطالب"]');
-      const priceInp = formEl.querySelector('[data-name="سعر الشهر"]');
-      const monthsInp = formEl.querySelector('[data-name="عدد الأشهر"]');
-      const totalInp = formEl.querySelector('[data-name="الإجمالي"]');
-      const discType = formEl.querySelector('[data-name="نوع الخصم"]');
-      const discVal = formEl.querySelector('[data-name="قيمة الخصم"]');
-      const netInp = formEl.querySelector('[data-name="المبلغ الصافي"]');
-      const dueInp = formEl.querySelector('[data-name="المبلغ المستحق"]');
-      const paidInp = formEl.querySelector('[data-name="المبلغ المدفوع"]');
-      const discInp = formEl.querySelector('[data-name="خصم"]');
-      const remInp = formEl.querySelector('[data-name="المتبقي"]');
-      const pkgRo = formEl.querySelector('[data-name="نوع الباقة"]');
-      const summary = document.createElement('div');
-      summary.className = 'prepaid-summary';
-      summary.innerHTML = `<div class="ps-title">💡 ملخص الدفعة المقدمة</div><div id="psContent"></div>`;
-      formEl.appendChild(summary);
-      const recalc = () => {
-        const price = Number(priceInp.value) || 0;
-        const months = Number(monthsInp.value) || 0;
-        const total = price * months;
-        let discount = 0;
-        const dt = discType.value, dv = Number(discVal.value) || 0;
-        if(dt === 'نسبة %') discount = total * (dv / 100);
-        else if(dt === 'مبلغ ثابت') discount = dv;
-        discount = Math.min(discount, total);
-        const net = total - discount;
-        totalInp.value = fmt(total) + ' ج.م';
-        netInp.value = fmt(net) + ' ج.م';
-        dueInp.value = total; paidInp.value = net; discInp.value = discount; remInp.value = 0;
-        const psContent = formEl.querySelector('#psContent');
-        if(psContent){
-          const discPct = total > 0 ? ((discount / total) * 100).toFixed(1) : '0';
-          psContent.innerHTML = `<div class="ps-row"><span class="k">سعر الشهر</span><span class="v">${fmt(price)} ج.م</span></div><div class="ps-row"><span class="k">عدد الأشهر</span><span class="v">${months}</span></div><div class="ps-row"><span class="k">الإجمالي</span><span class="v">${fmt(total)} ج.م</span></div>${discount > 0 ? `<div class="ps-row"><span class="k">🎁 الخصم (${discPct}%)</span><span class="v" style="color:var(--gold)">− ${fmt(discount)} ج.م</span></div>` : ''}<div class="ps-row ps-total"><span class="k">✅ الصافي المدفوع</span><span class="v">${fmt(net)} ج.م</span></div>`;
-        }
-      };
-      stuSel2.addEventListener('change', () => {
-        const opt = stuSel2.selectedOptions[0];
-        if(!opt || !opt.value) return;
-        const price = Number(opt.dataset.price) || 0;
-        const pkg = opt.dataset.pkg || '';
-        priceInp.value = price;
-        if(pkgRo) pkgRo.value = pkg ? pkg + ' حلقات' : '';
-        recalc();
-      });
-      monthsInp.addEventListener('input', recalc);
-      discType.addEventListener('change', recalc);
-      discVal.addEventListener('input', recalc);
-      recalc();
-    }
   }, 30);
 
   document.getElementById('modalBack').classList.add('show');
@@ -2359,41 +2183,6 @@ async function submitForm(){
 
   if(CURRENT_KEY_VALUE !== null && CURRENT_KEY_VALUE !== undefined) data._key = CURRENT_KEY_VALUE;
 
-  if(CURRENT_FORM === 'receipt'){
-    const stu = STATE.students.find(s => s.name === data['اسم الطالب']);
-    if(stu){
-      data['نوع الباقة'] = stu.pkg;
-      if(!data['المبلغ المستحق']) data['المبلغ المستحق'] = stu.price;
-    }
-    if(data['الفترة المستحقة'] && data['الفترة المستحقة'].length === 7) data['الفترة المستحقة'] += '-01';
-  }
-  if(CURRENT_FORM === 'prepaidReceipt'){
-    const months = Number(data['عدد الأشهر']) || 0;
-    const startMonthStr = data['شهر البداية'];
-    const priceVal = Number(data['سعر الشهر']) || 0;
-    const discTypeVal = data['نوع الخصم'];
-    const discValueVal = Number(data['قيمة الخصم']) || 0;
-    const userNotes = data['ملاحظات'] || '';
-    const [y, m] = startMonthStr.split('-').map(Number);
-    const endDate = new Date(y, m - 1 + months - 1, 1);
-    const endMonthStr = `${endDate.getFullYear()}-${String(endDate.getMonth()+1).padStart(2,'0')}`;
-    const [sy, sm] = startMonthStr.split('-').map(Number);
-    const [ey, em] = endMonthStr.split('-').map(Number);
-    const startLabel = `${AR_MONTHS[sm-1]} ${sy}`;
-    const endLabel = `${AR_MONTHS[em-1]} ${ey}`;
-    const total = priceVal * months;
-    let discAmt = 0;
-    if(discTypeVal === 'نسبة %') discAmt = total * (discValueVal / 100);
-    else if(discTypeVal === 'مبلغ ثابت') discAmt = discValueVal;
-    discAmt = Math.min(discAmt, total);
-    const net = total - discAmt;
-    data['الفترة المستحقة'] = startMonthStr + '-01';
-    data['المبلغ المستحق'] = total;
-    data['المبلغ المدفوع'] = net;
-    data['خصم'] = discAmt;
-    data['المتبقي'] = 0;
-    data['ملاحظات'] = `📌 دفعة مقدمة · ${months} أشهر · ${startLabel} → ${endLabel}` + (userNotes ? ' — ' + userNotes : '');
-  }
   if(CURRENT_FORM === 'studentReport'){
     const stu = STATE.students.find(s => s.name === data['اسم الطالب']);
     if(stu && !data['البريد الإلكتروني'] && stu.email) data['البريد الإلكتروني'] = stu.email;
@@ -2506,7 +2295,7 @@ function investCalc(name){
 
 <script>
 /* ══════════════════════════════════════════════════════════════════ */
-/* نظام التذكير الشهري */
+/* SCRIPT 4 — Reminder System */
 /* ══════════════════════════════════════════════════════════════════ */
 function computeReminderData(){
   const now = new Date();
@@ -2564,7 +2353,6 @@ function renderReminder(){
     const totalNextSub = due.reduce((a,d) => a + d.nextSubDue, 0);
     const totalOldPostpone = due.reduce((a,d) => a + d.oldPostponeFees, 0);
     const totalNewPostpone = due.reduce((a,d) => a + d.newPostponeFees, 0);
-    const totalOpening = due.reduce((a,d) => a + d.opening, 0);
     const totalInterview = due.reduce((a,d) => a + d.interview, 0);
     const auto = STATE_REMINDER.hasAuto;
 
@@ -2699,7 +2487,7 @@ function showPostponeDetailsModal(studentName){
 
 <script>
 /* ══════════════════════════════════════════════════════════════════ */
-/* سجل البريد */
+/* SCRIPT 5 — Email Log */
 /* ══════════════════════════════════════════════════════════════════ */
 function renderEmailLog(){
   const log = STATE.emailLog || [];
@@ -2736,7 +2524,7 @@ function renderEmailLog(){
 
 <script>
 /* ══════════════════════════════════════════════════════════════════ */
-/* ملف الطالب */
+/* SCRIPT 6 — Profile */
 /* ══════════════════════════════════════════════════════════════════ */
 function computeStudentStatsLocal(studentName){
   const reports = STATE.reports.filter(r => r.student === studentName);
@@ -2830,7 +2618,7 @@ function printProfileReport(name){
 
 <script>
 /* ══════════════════════════════════════════════════════════════════ */
-/* التقرير الشهري */
+/* SCRIPT 7 — Monthly Report */
 /* ══════════════════════════════════════════════════════════════════ */
 function getAvailableMonths(){
   const set = new Set();
@@ -2941,7 +2729,7 @@ function printReport(){
 
 <script>
 /* ══════════════════════════════════════════════════════════════════ */
-/* الإيصالات الحرارية */
+/* SCRIPT 8 — Thermal Receipts + Payment Vouchers */
 /* ══════════════════════════════════════════════════════════════════ */
 function buildThermalReceipt(config){
   const { docTitle, receiptNo, date, student, pkg, method, periodLabel, periodValue, periodStart, periodEnd, calcLines, discount, finalLabel, finalValue, finalClass, statusBadge, footerExtra } = config;
@@ -3044,7 +2832,7 @@ function showInvestTrans(name){
 
 <script>
 /* ══════════════════════════════════════════════════════════════════ */
-/* Rendering */
+/* SCRIPT 9 — Rendering (KPIs + Tables) */
 /* ══════════════════════════════════════════════════════════════════ */
 function renderKPIs(){
   const t = STATE.totals;
@@ -3081,7 +2869,6 @@ function renderKPIs(){
   ];
   document.getElementById('cashKpiGrid').innerHTML = cashKpis.map(k => `<div class="kpi" style="--accent:${k.c};--accent-bg:${k.bg}"><div class="kpi-head"><div class="kpi-ic">${k.ic}</div><div class="kpi-trend">${k.tr}</div></div><div class="kpi-val" style="color:${k.c}">${k.val}</div><div class="kpi-lbl">${k.lbl}</div></div>`).join('');
 
-  // Finance KPIs
   const fk = document.getElementById('financeKpiGrid');
   if (fk) fk.innerHTML = [
     { ic:'💵', lbl:'إجمالي الدخل', val:money(t.totalPaid + t.otherIncome), c:'var(--brand)', bg:'rgba(45,212,167,.12)', tr:'دخل' },
@@ -3254,7 +3041,7 @@ function renderLoans(filter=''){
   body.innerHTML = rows.map((r,i) => {
     const name = val(r,'اسم الشخص') || val(r,'البيان');
     const { before } = obligationRemaining(name, 'قرض حسن');
-    return `<tr><td><span class="idx">${i+1}</span></td><td>${fmtDateShort(val(r,'التاريخ'))}</td><td class="name">${escapeHtml(name||'—')}</td><td class="num blue">${fmt(numField(r,'المبلغ'))}</td><td class="num gold">${fmt(before)}</td><td>${escapeHtml(val(r,'الحالة')||'—')}</td><td style="color:var(--text3)">${escapeHtml(val(r,'ملاحظات')||'—')}</td><td><button class="btn btn-pay" data-act="openForm" data-form="obligationPayment" title="تحصيل">💳</button></td></tr>`;
+    return `<tr><td><span class="idx">${i+1}</span></td><td>${fmtDateShort(val(r,'التاريخ'))}</td><td class="name">${escapeHtml(name||'—')}</td><td class="num blue">${fmt(numField(r,'المبلغ'))}</td><td class="num gold">${fmt(before)}</td><td>${escapeHtml(val(r,'الحالة')||'—')}</td><td style="color:var(--text3)">${escapeHtml(val(r,'ملاحظات')||'—')}</td><td><button class="btn btn-pay" data-voucher="in:loanCollect" title="تحصيل">💳</button></td></tr>`;
   }).join('');
 }
 function renderInvest(filter=''){
@@ -3266,7 +3053,7 @@ function renderInvest(filter=''){
     const name = val(r,'البيان');
     const c = investCalc(name);
     const isGain = c.unrealized >= 0;
-    return `<tr><td><span class="idx">${i+1}</span></td><td>${fmtDateShort(val(r,'التاريخ'))}</td><td class="name">${escapeHtml(name||'—')}</td><td class="num blue">${fmt(c.initial)}</td><td class="num gold">${fmt(c.adds)}</td><td class="num green">${fmt(c.profits)}</td><td class="num" style="color:var(--purple)">${fmt(c.current)}</td><td class="num ${isGain?'green':'red'}">${c.unrealized>=0?'+':''}${fmt(c.unrealized)}</td><td><span class="badge ${isGain?'ok':'late'}">${isGain?'+':''}${c.pct.toFixed(1)}%</span></td><td><button class="btn btn-pay" data-act="openForm" data-form="investTrans" title="حركة">💹</button><button class="btn btn-print" data-act="showInvestTrans" data-name="${escapeHtml(name)}" title="سجل">📜</button><button class="btn btn-edit" data-act="editInvestment" data-name="${escapeHtml(name)}" title="تعديل">✏️</button></td></tr>`;
+    return `<tr><td><span class="idx">${i+1}</span></td><td>${fmtDateShort(val(r,'التاريخ'))}</td><td class="name">${escapeHtml(name||'—')}</td><td class="num blue">${fmt(c.initial)}</td><td class="num gold">${fmt(c.adds)}</td><td class="num green">${fmt(c.profits)}</td><td class="num" style="color:var(--purple)">${fmt(c.current)}</td><td class="num ${isGain?'green':'red'}">${c.unrealized>=0?'+':''}${fmt(c.unrealized)}</td><td><span class="badge ${isGain?'ok':'late'}">${isGain?'+':''}${c.pct.toFixed(1)}%</span></td><td><button class="btn btn-pay" data-voucher="out:investAdd" title="حركة">💹</button><button class="btn btn-print" data-act="showInvestTrans" data-name="${escapeHtml(name)}" title="سجل">📜</button><button class="btn btn-edit" data-act="editInvestment" data-name="${escapeHtml(name)}" title="تعديل">✏️</button></td></tr>`;
   }).join('');
 }
 function renderCharity(filter=''){
@@ -3281,7 +3068,7 @@ function renderObligations(filter=''){
   body.innerHTML = rows.map((r,i) => {
     const name = val(r,'البيان');
     const { before } = obligationRemaining(name, 'التزام');
-    return `<tr><td><span class="idx">${i+1}</span></td><td>${fmtDateShort(val(r,'التاريخ'))}</td><td class="name">${escapeHtml(name||'—')}</td><td class="num red">${fmt(numField(r,'المبلغ'))}</td><td class="num gold">${fmt(before)}</td><td>${escapeHtml(val(r,'الحالة')||'—')}</td><td style="color:var(--text3)">${escapeHtml(val(r,'ملاحظات')||'—')}</td><td><button class="btn btn-pay" data-act="openForm" data-form="obligationPayment" title="سداد">💳</button></td></tr>`;
+    return `<tr><td><span class="idx">${i+1}</span></td><td>${fmtDateShort(val(r,'التاريخ'))}</td><td class="name">${escapeHtml(name||'—')}</td><td class="num red">${fmt(numField(r,'المبلغ'))}</td><td class="num gold">${fmt(before)}</td><td>${escapeHtml(val(r,'الحالة')||'—')}</td><td style="color:var(--text3)">${escapeHtml(val(r,'ملاحظات')||'—')}</td><td><button class="btn btn-pay" data-voucher="out:obligationPay" title="سداد">💳</button></td></tr>`;
   }).join('');
 }
 function renderPackages(){
@@ -3318,7 +3105,7 @@ function renderSettings(){
 
 <script>
 /* ══════════════════════════════════════════════════════════════════ */
-/* طباعة تقرير الطالب */
+/* SCRIPT 10 — Print Student Report */
 /* ══════════════════════════════════════════════════════════════════ */
 function printStudentReport(no){
   const r = STATE.reports.find(x => Number(x.no) === Number(no));
@@ -3355,7 +3142,7 @@ function printStudentReport(no){
 
 <script>
 /* ══════════════════════════════════════════════════════════════════ */
-/* التقويم */
+/* SCRIPT 11 — Calendar */
 /* ══════════════════════════════════════════════════════════════════ */
 let CAL_STATE = { current: new Date(), selected: null };
 function getSessionsForDate(date){
@@ -3493,7 +3280,7 @@ function printCalendar(){
 
 <script>
 /* ══════════════════════════════════════════════════════════════════ */
-/* تقارير أولياء الأمور */
+/* SCRIPT 12 — Parent Reports */
 /* ══════════════════════════════════════════════════════════════════ */
 let PARENT_REPORT_MONTH = null;
 function getParentReportMonths(){
@@ -3614,7 +3401,7 @@ function generateAllParentReports(){
 
 <script>
 /* ══════════════════════════════════════════════════════════════════ */
-/* Charts + Routing الجديد + Command Palette + Bulk + Date Filter */
+/* SCRIPT 13 — Charts + Routing + CMD Palette + Bulk + CSV + Delegation */
 /* ══════════════════════════════════════════════════════════════════ */
 Chart.defaults.font.family = "'Tajawal', sans-serif";
 Chart.defaults.color = '#9fb0c4';
@@ -3652,7 +3439,6 @@ function buildCharts(){
   }
 }
 
-/* 1️⃣ خريطة السيكشنات الجديدة */
 const SEC_GROUPS = {
   dash:     { parent:'dash',     sub:null },
   students: { parent:'students', sub:'list' },
@@ -3727,7 +3513,6 @@ function goTo(sec){
   document.getElementById('overlay')?.classList.remove('show');
 }
 
-/* 3️⃣ Sub-tabs */
 document.addEventListener('click', (e) => {
   const tab = e.target.closest('.sub-tab');
   if (!tab) return;
@@ -3745,7 +3530,6 @@ document.addEventListener('click', (e) => {
   if (sub === 'parentreports') { fillParentReportMonths(); renderParentReports(); }
 });
 
-/* 4️⃣ Drawer */
 const drawer = document.getElementById('profileDrawer');
 const drawerBack = document.getElementById('drawerBack');
 function openProfileDrawer(name) {
@@ -3764,7 +3548,6 @@ function closeDrawer() {
 drawerBack?.addEventListener('click', closeDrawer);
 document.getElementById('drawerClose')?.addEventListener('click', closeDrawer);
 
-/* 5️⃣ Command Palette */
 const cmdBack = document.getElementById('cmdBack');
 const cmdInput = document.getElementById('cmdInput');
 const cmdResults = document.getElementById('cmdResults');
@@ -3795,10 +3578,9 @@ const CMD_SECTIONS = [
 ];
 const CMD_ACTIONS = [
   { ic:'➕', title:'تسجيل طالب جديد', tag:'عملية', action:() => openForm('student') },
-  { ic:'🧾', title:'سند استلام جديد', tag:'عملية', action:() => openForm('receipt') },
+  { ic:'🧾', title:'سند استلام جديد', tag:'عملية', action:() => openVoucherModal('in','subscription') },
+  { ic:'💸', title:'سند صرف جديد', tag:'عملية', action:() => openVoucherModal('out','expense') },
   { ic:'📋', title:'تقرير طالب جديد', tag:'عملية', action:() => openForm('studentReport') },
-  { ic:'💸', title:'إضافة مصروف', tag:'عملية', action:() => openForm('expense') },
-  { ic:'💵', title:'إضافة دخل', tag:'عملية', action:() => openForm('income') },
   { ic:'🖨️', title:'طباعة الصفحة الحالية', tag:'عملية', action:() => window.print() },
   { ic:'🔄', title:'تحديث البيانات', tag:'عملية', action:() => loadFromSheets() }
 ];
@@ -3839,7 +3621,6 @@ document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); if (cmdBack.classList.contains('show')) closeCommandPalette(); else openCommandPalette(); }
 });
 
-/* 6️⃣ Bulk Actions */
 let selectedIds = { students: new Set(), follow: new Set() };
 function updateBulkBar() {
   const total = selectedIds.students.size + selectedIds.follow.size;
@@ -3886,7 +3667,6 @@ document.addEventListener('click', async (e) => {
   }
 });
 
-/* 7️⃣ CSV */
 function exportStudentsCSV(names) {
   const rows = STATE.summary.filter(s => names.includes(s.name));
   if (!rows.length) { showToast('⚠️ لا توجد بيانات'); return; }
@@ -3919,7 +3699,6 @@ function downloadCSV(content, filename) {
   showToast('✅ تم تصدير ' + filename);
 }
 
-/* 8️⃣ Date Filter */
 function renderDateFilter(containerId, onChange) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -3947,7 +3726,6 @@ function renderDateFilter(containerId, onChange) {
   onChange(saved);
 }
 
-/* Event Delegation الرئيسي */
 document.addEventListener('click', (e) => {
   const t = e.target.closest('[data-act]');
   if (!t) return;
@@ -4022,7 +3800,7 @@ document.getElementById('modalCancel').addEventListener('click', closeForm);
 document.getElementById('modalSave').addEventListener('click', submitForm);
 document.getElementById('modalBack').addEventListener('click', e => { if(e.target === e.currentTarget) closeForm(); });
 document.addEventListener('keydown', e => {
-  if(e.key === 'Escape') { closeForm(); closeCommandPalette(); closeDrawer(); }
+  if(e.key === 'Escape') { closeForm(); closeCommandPalette(); closeDrawer(); closeVoucherModal(); }
   if(e.key === 'Enter' && e.target.closest('#modalForm') && e.target.tagName !== 'TEXTAREA'){ e.preventDefault(); if(document.getElementById('modalSave').style.display !== 'none') submitForm(); }
 });
 document.addEventListener('change', e => {
@@ -4070,15 +3848,532 @@ document.addEventListener('error', (e) => {
   if (parent && !parent.textContent.trim()) { parent.textContent = fallback; }
 }, true);
 
-/* 9️⃣ التحميل الأولي */
 document.addEventListener('DOMContentLoaded', () => {
   renderDateFilter('studentsFilterBar', ({ from, to }) => { window._studentsDateFilter = { from, to }; renderStudents(); });
   renderDateFilter('cashFilterBar', ({ from, to }) => { window._cashDateFilter = { from, to }; renderCash(); });
 });
 
-loadFromSheets();
-setTimeout(() => { const lastSec = localStorage.getItem('lastSection') || 'dash'; if (SEC_GROUPS[lastSec]) goTo(lastSec); setTimeout(() => showToast('💡 اضغط Ctrl+K للبحث السريع'), 2500); }, 1000);
 window.addEventListener('resize', () => { Object.values(charts).forEach(c => c && c.resize()); });
+</script>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════ */
+/* SCRIPT 14 — 🧾 Unified Voucher (v11.1) */
+/* ══════════════════════════════════════════════════════════════════ */
+const VOUCHER_OPS = {
+  in: [
+    { id:'subscription', icon:'📦', label:'اشتراك شهري',  action:'addReceipt',    special:'subscription' },
+    { id:'prepaid',      icon:'💳', label:'دفع مقدم',     action:'addReceipt',    special:'prepaid' },
+    { id:'income',       icon:'💵', label:'دخل آخر',      action:'addIncome',     special:'income' },
+    { id:'loanCollect',  icon:'🤝', label:'تحصيل قرض',    action:'addPayment',    special:'loanCollect' },
+    { id:'investProfit', icon:'📈', label:'أرباح استثمار',action:'addInvestTrans',special:'investProfit' },
+    { id:'investLiquid', icon:'💹', label:'تصفية استثمار',action:'addInvestTrans',special:'investLiquid' }
+  ],
+  out: [
+    { id:'expense',      icon:'💸', label:'مصروف',        action:'addExpense',    special:'expense' },
+    { id:'charity',      icon:'🤲', label:'صدقة',         action:'addCharity',    special:'charity' },
+    { id:'obligationPay',icon:'📑', label:'سداد التزام',  action:'addPayment',    special:'obligationPay' },
+    { id:'loanGiven',    icon:'🤝', label:'قرض معطى',     action:'addLoan',       special:'loanGiven' },
+    { id:'investment',   icon:'📈', label:'استثمار جديد', action:'addInvestment', special:'investment' },
+    { id:'investAdd',    icon:'💹', label:'إضافة رأس مال',action:'addInvestTrans',special:'investAdd' }
+  ]
+};
+
+let CURRENT_VOUCHER = { type:'in', op:'subscription' };
+
+function openVoucherModal(presetType, presetOp) {
+  CURRENT_VOUCHER.type = presetType || 'in';
+  CURRENT_VOUCHER.op = presetOp || VOUCHER_OPS[CURRENT_VOUCHER.type][0].id;
+  document.getElementById('voucherForm').innerHTML = '';
+  document.getElementById('voucherBack').classList.add('show');
+  document.body.style.overflow = 'hidden';
+  selectVoucherType(CURRENT_VOUCHER.type);
+  document.querySelectorAll('.voucher-tab').forEach(t => {
+    t.onclick = () => selectVoucherType(t.dataset.type);
+  });
+}
+
+function closeVoucherModal() {
+  document.getElementById('voucherBack').classList.remove('show');
+  document.body.style.overflow = '';
+  document.getElementById('voucherForm').innerHTML = '';
+}
+
+function selectVoucherType(type) {
+  CURRENT_VOUCHER.type = type;
+  document.querySelectorAll('.voucher-tab').forEach(t => {
+    t.classList.remove('active-in','active-out');
+    if (t.dataset.type === type) t.classList.add(type === 'in' ? 'active-in' : 'active-out');
+  });
+  const ic = document.getElementById('voucherIc');
+  const title = document.getElementById('voucherTitle');
+  const sub = document.getElementById('voucherSub');
+  if (type === 'in') {
+    ic.textContent = '💰';
+    title.textContent = 'سند استلام';
+    sub.textContent = 'اختر العملية ثم أدخل البيانات';
+  } else {
+    ic.textContent = '💸';
+    title.textContent = 'سند صرف';
+    sub.textContent = 'اختر العملية ثم أدخل البيانات';
+  }
+  renderVoucherOps();
+  selectVoucherOp(VOUCHER_OPS[type][0].id);
+}
+
+function renderVoucherOps() {
+  const wrap = document.getElementById('voucherOps');
+  const ops = VOUCHER_OPS[CURRENT_VOUCHER.type];
+  wrap.innerHTML = ops.map(op =>
+    `<button type="button" class="voucher-op${CURRENT_VOUCHER.op === op.id ? (CURRENT_VOUCHER.type === 'in' ? ' active' : ' active-out') : ''}" data-op="${op.id}">${op.icon} ${op.label}</button>`
+  ).join('');
+  wrap.querySelectorAll('.voucher-op').forEach(btn => {
+    btn.onclick = () => selectVoucherOp(btn.dataset.op);
+  });
+}
+
+function selectVoucherOp(opId) {
+  CURRENT_VOUCHER.op = opId;
+  document.querySelectorAll('.voucher-op').forEach(b => {
+    b.classList.remove('active','active-out');
+    if (b.dataset.op === opId) b.classList.add(CURRENT_VOUCHER.type === 'in' ? 'active' : 'active-out');
+  });
+  renderVoucherForm(opId);
+}
+
+function renderVoucherForm(opId) {
+  const form = document.getElementById('voucherForm');
+  form.innerHTML = '';
+  form.className = 'form-grid';
+  const op = VOUCHER_OPS[CURRENT_VOUCHER.type].find(o => o.id === opId);
+  if (!op) return;
+
+  const builders = {
+    subscription: buildVoucherSubscriptionForm,
+    prepaid:      buildVoucherPrepaidForm,
+    income:       buildVoucherIncomeForm,
+    loanCollect:  () => buildVoucherPaymentForm('قرض حسن'),
+    investProfit: () => buildVoucherInvestTransForm('استلام أرباح'),
+    investLiquid: () => buildVoucherInvestTransForm('تصفية جزئية'),
+    expense:      buildVoucherExpenseForm,
+    charity:      buildVoucherCharityForm,
+    obligationPay:() => buildVoucherPaymentForm('التزام'),
+    loanGiven:    buildVoucherLoanGivenForm,
+    investment:   buildVoucherInvestmentForm,
+    investAdd:    () => buildVoucherInvestTransForm('إضافة رأس مال')
+  };
+  if (builders[opId]) builders[opId]();
+}
+
+function buildVoucherSubscriptionForm() {
+  const form = document.getElementById('voucherForm');
+  const fields = [
+    { n:'التاريخ', l:'التاريخ', t:'date', def:todayISO(), req:true },
+    { n:'طريقة الدفع', l:'طريقة الدفع', t:'select', opts:['نقدي','تحويل بنكي','محفظة إلكترونية','شيك'], def:'نقدي' },
+    { n:'اسم الطالب', l:'👨‍🎓 الطالب', t:'select-student', req:true, full:true },
+    { n:'نوع الباقة', l:'الباقة', t:'readonly-pkg' },
+    { n:'due-preview', l:'', t:'due-preview', full:true },
+    { n:'المبلغ المستحق', l:'المستحق', t:'number', req:true },
+    { n:'المبلغ المدفوع', l:'المدفوع', t:'number', req:true },
+    { n:'خصم', l:'خصم', t:'number', def:'0' },
+    { n:'الفترة المستحقة', l:'الفترة المستحقة', t:'month', def:currentMonthISO() },
+    { n:'ملاحظات', l:'ملاحظات', t:'textarea', full:true }
+  ];
+  form.innerHTML = fields.map(buildField).join('');
+
+  setTimeout(() => {
+    const stuSel = form.querySelector('[data-student-select]');
+    const pkgRo = form.querySelector('[data-name="نوع الباقة"]');
+    const dueInp = form.querySelector('[data-name="المبلغ المستحق"]');
+    const paidInp = form.querySelector('[data-name="المبلغ المدفوع"]');
+    const periodInp = form.querySelector('[data-name="الفترة المستحقة"]');
+    const discInp = form.querySelector('[data-name="خصم"]');
+
+    const updateBalances = () => {
+      const paid = Number(paidInp?.value) || 0;
+      const disc = Number(discInp?.value) || 0;
+      if (disc > paid) discInp.value = paid;
+    };
+    if (paidInp) paidInp.addEventListener('input', updateBalances);
+    if (discInp) discInp.addEventListener('input', updateBalances);
+
+    if (stuSel) {
+      stuSel.addEventListener('change', () => {
+        const opt = stuSel.selectedOptions[0];
+        if (!opt || !opt.value) return;
+        if (pkgRo) pkgRo.value = opt.dataset.pkg ? opt.dataset.pkg + ' حلقات' : '';
+        renderDuePreview(form, opt.value);
+        const d = computeDueDetails(opt.value);
+        if (dueInp && !dueInp.dataset.touched) {
+          if (d && d.remaining > 0) dueInp.value = d.remaining;
+          else dueInp.value = opt.dataset.price || '';
+        }
+        if (periodInp && !periodInp.dataset.touched && d && d.subStartISO) {
+          periodInp.value = d.subStartISO.slice(0, 7);
+        }
+      });
+      if (dueInp) dueInp.addEventListener('input', () => dueInp.dataset.touched = '1');
+      if (periodInp) periodInp.addEventListener('input', () => periodInp.dataset.touched = '1');
+    }
+  }, 30);
+}
+
+function buildVoucherPrepaidForm() {
+  const form = document.getElementById('voucherForm');
+  const fields = [
+    { n:'التاريخ', l:'التاريخ', t:'date', def:todayISO(), req:true },
+    { n:'طريقة الدفع', l:'طريقة الدفع', t:'select', opts:['نقدي','تحويل بنكي','محفظة إلكترونية','شيك'], def:'نقدي' },
+    { n:'اسم الطالب', l:'👨‍🎓 الطالب', t:'select-student', req:true, full:true },
+    { n:'نوع الباقة', l:'الباقة', t:'readonly-pkg' },
+    { n:'سعر الشهر', l:'سعر الشهر', t:'readonly-num' },
+    { n:'شهر البداية', l:'شهر بداية الاشتراك', t:'month', def:currentMonthISO(), req:true },
+    { n:'عدد الأشهر', l:'عدد الأشهر المدفوعة', t:'number', def:'3', req:true },
+    { n:'نوع الخصم', l:'نوع الخصم', t:'select', opts:['بدون خصم','نسبة %','مبلغ ثابت'], def:'بدون خصم' },
+    { n:'قيمة الخصم', l:'قيمة الخصم', t:'number', def:'0' },
+    { n:'prepaid-preview', l:'', t:'prepaid-preview', full:true },
+    { n:'ملاحظات', l:'ملاحظات', t:'textarea', full:true }
+  ];
+  form.innerHTML = fields.map(buildField).join('');
+
+  const previewField = form.querySelector('[data-name="prepaid-preview"]');
+  if (previewField) {
+    previewField.outerHTML = `<div class="prepaid-summary" id="voucherPrepaidPreview" style="grid-column:1/-1"><div style="font-size:12px;color:var(--gold);font-weight:800;margin-bottom:10px;letter-spacing:.5px">💡 ملخص الدفعة المقدمة</div><div id="voucherPrepaidContent" style="color:var(--text3);font-size:13px;text-align:center;padding:10px">اختر الطالب وأدخل البيانات</div></div>`;
+  }
+
+  setTimeout(() => {
+    const stuSel = form.querySelector('[data-student-select]');
+    const pkgRo = form.querySelector('[data-name="نوع الباقة"]');
+    const priceInp = form.querySelector('[data-name="سعر الشهر"]');
+    const monthsInp = form.querySelector('[data-name="عدد الأشهر"]');
+    const startM = form.querySelector('[data-name="شهر البداية"]');
+    const discType = form.querySelector('[data-name="نوع الخصم"]');
+    const discVal = form.querySelector('[data-name="قيمة الخصم"]');
+    const content = document.getElementById('voucherPrepaidContent');
+
+    const recalc = () => {
+      const price = Number(priceInp?.value) || 0;
+      const months = Number(monthsInp?.value) || 0;
+      const total = price * months;
+      let disc = 0;
+      const dt = discType?.value, dv = Number(discVal?.value) || 0;
+      if (dt === 'نسبة %') disc = total * (dv / 100);
+      else if (dt === 'مبلغ ثابت') disc = dv;
+      disc = Math.min(disc, total);
+      const net = total - disc;
+
+      if (content) {
+        if (!price || !months) {
+          content.innerHTML = '<div style="color:var(--text3);text-align:center;padding:8px">اختر الطالب وأدخل البيانات</div>';
+          return;
+        }
+        const [sy, sm] = (startM?.value || '').split('-').map(Number);
+        const endDate = new Date(sy, sm - 1 + months - 1, 1);
+        const [ey, em] = [endDate.getFullYear(), endDate.getMonth() + 1];
+        const startLabel = `${AR_MONTHS[sm-1]} ${sy}`;
+        const endLabel = `${AR_MONTHS[em-1]} ${ey}`;
+        const discPct = total > 0 ? ((disc / total) * 100).toFixed(1) : '0';
+
+        content.innerHTML = `
+          <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13.5px"><span style="color:var(--text2);font-weight:600">سعر الشهر</span><span style="font-weight:900">${fmt(price)} ج.م</span></div>
+          <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13.5px"><span style="color:var(--text2);font-weight:600">عدد الأشهر</span><span style="font-weight:900">${months}</span></div>
+          <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13.5px"><span style="color:var(--text2);font-weight:600">الفترة</span><span style="font-weight:900;color:var(--gold)">${startLabel} → ${endLabel}</span></div>
+          <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13.5px"><span style="color:var(--text2);font-weight:600">الإجمالي</span><span style="font-weight:900">${fmt(total)} ج.م</span></div>
+          ${disc > 0 ? `<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13.5px"><span style="color:var(--text2);font-weight:600">🎁 الخصم (${discPct}%)</span><span style="font-weight:900;color:var(--gold)">− ${fmt(disc)} ج.م</span></div>` : ''}
+          <div style="border-top:1px dashed rgba(245,181,68,.35);margin-top:8px;padding-top:10px;display:flex;justify-content:space-between"><span style="color:var(--gold);font-weight:800">✅ الصافي المدفوع</span><span style="color:var(--gold);font-size:20px;font-weight:900">${fmt(net)} ج.م</span></div>`;
+      }
+    };
+
+    if (stuSel) {
+      stuSel.addEventListener('change', () => {
+        const opt = stuSel.selectedOptions[0];
+        if (!opt || !opt.value) return;
+        if (pkgRo) pkgRo.value = opt.dataset.pkg ? opt.dataset.pkg + ' حلقات' : '';
+        if (priceInp) priceInp.value = fmt(Number(opt.dataset.price) || 0) + ' ج.م';
+        recalc();
+      });
+    }
+    [monthsInp, startM, discType, discVal].forEach(inp => {
+      if (!inp) return;
+      inp.addEventListener('input', recalc);
+      inp.addEventListener('change', recalc);
+    });
+    recalc();
+  }, 30);
+}
+
+function buildVoucherIncomeForm() {
+  const form = document.getElementById('voucherForm');
+  form.innerHTML = [
+    { n:'التاريخ', l:'التاريخ', t:'date', def:todayISO(), req:true },
+    { n:'طريقة الاستلام', l:'طريقة الاستلام', t:'select', opts:['نقدي','تحويل بنكي','محفظة إلكترونية','شيك'], def:'نقدي' },
+    { n:'البيان', l:'📝 البيان / المصدر', t:'text', req:true, full:true, ph:'مثال: تبرع من فاعل خير' },
+    { n:'المبلغ', l:'💰 المبلغ', t:'number', req:true, full:true },
+    { n:'ملاحظات', l:'ملاحظات', t:'textarea', full:true }
+  ].map(buildField).join('');
+}
+
+function buildVoucherExpenseForm() {
+  const form = document.getElementById('voucherForm');
+  form.innerHTML = [
+    { n:'التاريخ', l:'التاريخ', t:'date', def:todayISO(), req:true },
+    { n:'النوع', l:'نوع المصروف', t:'select', opts:['تشغيلي','رأسمالي','صيانة','رواتب','أخرى'], def:'تشغيلي' },
+    { n:'البيان', l:'📝 البيان', t:'text', req:true, full:true, ph:'مثال: فاتورة كهرباء' },
+    { n:'المبلغ', l:'💰 المبلغ', t:'number', req:true, full:true },
+    { n:'ملاحظات', l:'ملاحظات', t:'textarea', full:true }
+  ].map(buildField).join('');
+}
+
+function buildVoucherCharityForm() {
+  const form = document.getElementById('voucherForm');
+  form.innerHTML = [
+    { n:'التاريخ', l:'التاريخ', t:'date', def:todayISO(), req:true },
+    { n:'البيان', l:'📝 البيان', t:'text', req:true, full:true, ph:'مثال: صدقة على محتاج' },
+    { n:'المبلغ', l:'💰 المبلغ', t:'number', req:true, full:true },
+    { n:'ملاحظات', l:'ملاحظات', t:'textarea', full:true }
+  ].map(buildField).join('');
+}
+
+function buildVoucherLoanGivenForm() {
+  const form = document.getElementById('voucherForm');
+  form.innerHTML = [
+    { n:'التاريخ', l:'التاريخ', t:'date', def:todayISO(), req:true },
+    { n:'اسم الشخص', l:'👤 اسم الشخص', t:'text', req:true, full:true },
+    { n:'المبلغ', l:'💰 المبلغ', t:'number', req:true, full:true },
+    { n:'الحالة', l:'الحالة', t:'select', opts:['قائم','مسدد جزئياً','مسدد'], def:'قائم' },
+    { n:'ملاحظات', l:'ملاحظات', t:'textarea', full:true }
+  ].map(buildField).join('');
+}
+
+function buildVoucherInvestmentForm() {
+  const form = document.getElementById('voucherForm');
+  form.innerHTML = [
+    { n:'التاريخ', l:'التاريخ', t:'date', def:todayISO(), req:true },
+    { n:'البيان', l:'📝 اسم الاستثمار', t:'text', req:true, full:true, ph:'مثال: أسهم - شركة X' },
+    { n:'المبلغ', l:'💰 رأس المال', t:'number', req:true },
+    { n:'القيمة الحالية', l:'القيمة الحالية', t:'number', hint:'تُملأ تلقائياً من رأس المال' },
+    { n:'الحالة', l:'الحالة', t:'select', opts:['قائم','مصفى','مربح','خاسر'], def:'قائم' },
+    { n:'ملاحظات', l:'ملاحظات', t:'textarea', full:true }
+  ].map(buildField).join('');
+
+  setTimeout(() => {
+    const capInp = form.querySelector('[data-name="المبلغ"]');
+    const curInp = form.querySelector('[data-name="القيمة الحالية"]');
+    if (capInp && curInp) {
+      capInp.addEventListener('input', () => {
+        if (!curInp.value) curInp.value = capInp.value;
+      });
+    }
+  }, 30);
+}
+
+function buildVoucherPaymentForm(type) {
+  const form = document.getElementById('voucherForm');
+  const items = type === 'التزام'
+    ? STATE.obligations.map(o => ({ name: val(o,'البيان'), original: numField(o,'المبلغ'), remaining: numField(o,'المتبقي') || numField(o,'المبلغ') }))
+    : STATE.loans.map(l => ({ name: val(l,'اسم الشخص') || val(l,'البيان'), original: numField(l,'المبلغ'), remaining: numField(l,'المتبقي') || numField(l,'المبلغ') }));
+
+  if (!items.length) {
+    form.innerHTML = `<div style="grid-column:1/-1;padding:30px 20px;text-align:center;color:var(--text3)">
+      <div style="font-size:32px;opacity:.5;margin-bottom:8px">📭</div>
+      <div style="font-size:14px;font-weight:700">لا توجد ${type === 'التزام' ? 'التزامات' : 'قروض'} مسجلة</div>
+      <div style="font-size:12px;margin-top:6px">أضف أول ${type === 'التزام' ? 'التزام' : 'قرض'} من القسم المخصص</div>
+    </div>`;
+    return;
+  }
+
+  form.innerHTML = `
+    <div class="field"><label>التاريخ <span class="req">*</span></label><input type="date" data-name="التاريخ" value="${todayISO()}"></div>
+    <div class="field"><label>طريقة الدفع</label>
+      <select data-name="طريقة الدفع">${['نقدي','تحويل بنكي','محفظة إلكترونية','شيك'].map(o => `<option value="${o}">${o}</option>`).join('')}</select>
+    </div>
+    <div class="field full"><label>${type === 'التزام' ? '📑 البيان' : '👤 اسم الشخص'} <span class="req">*</span></label>
+      <select data-name="البيان" id="voucherPayItem">
+        <option value="">— اختر —</option>
+        ${items.map(it => `<option value="${escapeHtml(it.name)}" data-original="${it.original}" data-remaining="${it.remaining}">${escapeHtml(it.name)}</option>`).join('')}
+      </select>
+    </div>
+    <div class="field"><label>المبلغ الأصلي</label><input type="text" data-name="__original" readonly style="opacity:.7;font-weight:800;color:var(--gold)"></div>
+    <div class="field"><label>المتبقي قبل السداد</label><input type="text" data-name="__before" readonly style="opacity:.7;font-weight:800;color:var(--gold)"></div>
+    <div class="field full"><label>💰 المبلغ المسدد <span class="req">*</span></label><input type="number" data-name="المبلغ المسدد" step="any"></div>
+    <div class="field"><label>المتبقي بعد السداد</label><input type="text" data-name="__after" readonly style="opacity:.7;font-weight:800;color:var(--red)"></div>
+    <div class="field full"><label>ملاحظات</label><textarea data-name="ملاحظات"></textarea></div>
+  `;
+
+  setTimeout(() => {
+    const itemSel = form.querySelector('#voucherPayItem');
+    const origInp = form.querySelector('[data-name="__original"]');
+    const befInp = form.querySelector('[data-name="__before"]');
+    const payInp = form.querySelector('[data-name="المبلغ المسدد"]');
+    const aftInp = form.querySelector('[data-name="__after"]');
+
+    const refresh = () => {
+      const opt = itemSel?.selectedOptions[0];
+      if (!opt || !opt.value) { origInp.value = ''; befInp.value = ''; aftInp.value = ''; return; }
+      const original = Number(opt.dataset.original) || 0;
+      const remaining = Number(opt.dataset.remaining) || 0;
+      const paid = Number(payInp?.value) || 0;
+      origInp.value = fmt(original) + ' ج.م';
+      befInp.value = fmt(remaining) + ' ج.م';
+      aftInp.value = fmt(Math.max(0, remaining - paid)) + ' ج.م';
+    };
+    itemSel?.addEventListener('change', refresh);
+    payInp?.addEventListener('input', refresh);
+  }, 30);
+}
+
+function buildVoucherInvestTransForm(transType) {
+  const form = document.getElementById('voucherForm');
+  const invests = STATE.investments.map(x => val(x,'البيان')).filter(Boolean);
+
+  if (!invests.length) {
+    form.innerHTML = `<div style="grid-column:1/-1;padding:30px 20px;text-align:center;color:var(--text3)">
+      <div style="font-size:32px;opacity:.5;margin-bottom:8px">📭</div>
+      <div style="font-size:14px;font-weight:700">لا توجد استثمارات مسجلة</div>
+    </div>`;
+    return;
+  }
+
+  const isInflow = transType === 'استلام أرباح' || transType === 'تصفية جزئية';
+  form.innerHTML = `
+    <div class="field"><label>التاريخ <span class="req">*</span></label><input type="date" data-name="التاريخ" value="${todayISO()}"></div>
+    <div class="field"><label>نوع الحركة</label><input type="text" value="${transType}" readonly style="opacity:.75"></div>
+    <div class="field full"><label>📈 الاستثمار <span class="req">*</span></label>
+      <select data-name="البيان">
+        <option value="">— اختر —</option>
+        ${invests.map(x => `<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('')}
+      </select>
+    </div>
+    <div class="field full"><label>💰 المبلغ <span class="req">*</span></label><input type="number" data-name="المبلغ" step="any"></div>
+    <div class="field full"><label>ملاحظات</label><textarea data-name="ملاحظات"></textarea></div>
+  `;
+
+  const infoBox = document.createElement('div');
+  infoBox.style.cssText = 'grid-column:1/-1;padding:11px 14px;border-radius:10px;font-size:12.5px;font-weight:700;text-align:center';
+  infoBox.style.background = isInflow ? 'rgba(45,212,167,.12)' : 'rgba(245,181,68,.12)';
+  infoBox.style.color = isInflow ? 'var(--brand)' : 'var(--gold)';
+  infoBox.textContent = isInflow
+    ? `✅ مبلغ داخل — سيُضاف للسيولة النقدية`
+    : `⚠️ مبلغ خارج — سيُضاف لرأس المال الحالي`;
+  form.appendChild(infoBox);
+}
+
+async function submitVoucher() {
+  const form = document.getElementById('voucherForm');
+  const op = VOUCHER_OPS[CURRENT_VOUCHER.type].find(o => o.id === CURRENT_VOUCHER.op);
+  if (!op) return;
+
+  const data = {};
+  form.querySelectorAll('[data-name]').forEach(el => {
+    const name = el.dataset.name;
+    if (name.startsWith('__')) return;
+    let v = el.value?.trim ? el.value.trim() : el.value;
+    if (v === '' || v === undefined) return;
+    if (el.type === 'number') v = Number(v);
+    data[name] = v;
+  });
+
+  const btn = document.getElementById('voucherSave');
+  const oldTxt = btn.textContent;
+  btn.textContent = '⏳ جاري الحفظ...'; btn.disabled = true;
+
+  try {
+    switch (op.special) {
+      case 'subscription':
+        if (!data['اسم الطالب']) throw new Error('اختر الطالب');
+        if (!data['المبلغ المدفوع']) throw new Error('أدخل المبلغ المدفوع');
+        if (data['الفترة المستحقة'] && data['الفترة المستحقة'].length === 7) data['الفترة المستحقة'] += '-01';
+        break;
+
+      case 'prepaid': {
+        if (!data['اسم الطالب']) throw new Error('اختر الطالب');
+        const months = Number(data['عدد الأشهر']) || 0;
+        const startM = data['شهر البداية'];
+        if (!startM || !months) throw new Error('أدخل شهر البداية وعدد الأشهر');
+        const price = Number((data['سعر الشهر'] || '0').replace(/[^\d.]/g, '')) || 0;
+        const discType = data['نوع الخصم'];
+        const discVal = Number(data['قيمة الخصم']) || 0;
+        const total = price * months;
+        let disc = 0;
+        if (discType === 'نسبة %') disc = total * (discVal / 100);
+        else if (discType === 'مبلغ ثابت') disc = discVal;
+        disc = Math.min(disc, total);
+        const net = total - disc;
+        const [sy, sm] = startM.split('-').map(Number);
+        const endD = new Date(sy, sm - 1 + months - 1, 1);
+        const [ey, em] = [endD.getFullYear(), endD.getMonth() + 1];
+        const startLabel = `${AR_MONTHS[sm-1]} ${sy}`;
+        const endLabel = `${AR_MONTHS[em-1]} ${ey}`;
+        data['الفترة المستحقة'] = startM + '-01';
+        data['المبلغ المستحق'] = total;
+        data['المبلغ المدفوع'] = net;
+        data['خصم'] = disc;
+        data['نوع الباقة'] = (data['نوع الباقة'] || '').replace(' حلقات','');
+        const userNote = data['ملاحظات'] || '';
+        data['ملاحظات'] = `📌 دفعة مقدمة · ${months} أشهر · ${startLabel} → ${endLabel}` + (userNote ? ' — ' + userNote : '');
+        break;
+      }
+
+      case 'loanCollect':
+        if (!data['البيان']) throw new Error('اختر القرض');
+        if (!data['المبلغ المسدد']) throw new Error('أدخل المبلغ المحصل');
+        data['النوع'] = 'قرض حسن';
+        data['المبلغ الأصلي'] = numField(STATE.loans.find(l => (val(l,'اسم الشخص')||val(l,'البيان')) === data['البيان']) || {}, 'المبلغ');
+        data['المتبقي قبل السداد'] = Number(data['__before']?.replace?.(/[^\d.]/g,'')) || 0;
+        data['المتبقي بعد السداد'] = Math.max(0, (Number(data['__before']?.replace?.(/[^\d.]/g,'')) || 0) - data['المبلغ المسدد']);
+        delete data['__original']; delete data['__before']; delete data['__after'];
+        break;
+
+      case 'obligationPay':
+        if (!data['البيان']) throw new Error('اختر الالتزام');
+        if (!data['المبلغ المسدد']) throw new Error('أدخل المبلغ المسدد');
+        data['النوع'] = 'التزام';
+        data['المبلغ الأصلي'] = numField(STATE.obligations.find(o => val(o,'البيان') === data['البيان']) || {}, 'المبلغ');
+        data['المتبقي قبل السداد'] = Number(data['__before']?.replace?.(/[^\d.]/g,'')) || 0;
+        data['المتبقي بعد السداد'] = Math.max(0, (Number(data['__before']?.replace?.(/[^\d.]/g,'')) || 0) - data['المبلغ المسدد']);
+        delete data['__original']; delete data['__before']; delete data['__after'];
+        break;
+
+      case 'investProfit':  data['نوع الحركة'] = 'استلام أرباح'; break;
+      case 'investLiquid':  data['نوع الحركة'] = 'تصفية جزئية';  break;
+      case 'investAdd':     data['نوع الحركة'] = 'إضافة رأس مال'; break;
+    }
+
+    await apiPost(op.action, data);
+    showToast(`✅ تم حفظ ${op.label} بنجاح`);
+    closeVoucherModal();
+    setTimeout(() => loadFromSheets(), 500);
+  } catch (err) {
+    console.error(err);
+    showToast('⚠️ ' + err.message);
+  } finally {
+    btn.textContent = oldTxt; btn.disabled = false;
+  }
+}
+
+document.getElementById('voucherClose')?.addEventListener('click', closeVoucherModal);
+document.getElementById('voucherCancel')?.addEventListener('click', closeVoucherModal);
+document.getElementById('voucherSave')?.addEventListener('click', submitVoucher);
+document.getElementById('voucherBack')?.addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeVoucherModal();
+});
+
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-voucher]');
+  if (!btn) return;
+  e.preventDefault();
+  e.stopPropagation();
+  document.getElementById('fabMenu')?.classList.remove('show');
+  const [type, op] = btn.dataset.voucher.split(':');
+  openVoucherModal(type, op);
+});
+
+/* ═══ التحميل الأولي ═══ */
+loadFromSheets();
+setTimeout(() => {
+  const lastSec = localStorage.getItem('lastSection') || 'dash';
+  if (SEC_GROUPS[lastSec]) goTo(lastSec);
+  setTimeout(() => showToast('💡 اضغط Ctrl+K للبحث السريع'), 2500);
+}, 1000);
 </script>
 </body>
 </html>

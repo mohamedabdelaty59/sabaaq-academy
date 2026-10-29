@@ -643,10 +643,14 @@ td.num.blue{color:var(--blue)}
             <div class="tbl-wrap">
               <table style="min-width:820px">
                 <thead><tr>
-                  <th>#</th><th>اسم الطالب</th><th>الباقة</th>
-                  <th>افتتاحي</th><th>اشتراك حالي</th><th>🔔 الشهر القادم</th>
-                  <th>تأجيلات</th><th>مقابلة</th>
-                  <th>المدفوع</th><th>المتبقي</th><th>الحالة</th><th>تذكير</th>
+                  <th>#</th>
+                  <th>اسم الطالب</th>
+                  <th>الباقة</th>
+                  <th>مستحقات الاشتراك</th>
+                  <th>التأجيلات (مستحق / مرحّل)</th>
+                  <th>المتبقي</th>
+                  <th>الحالة</th>
+                  <th>إجراء</th>
                 </tr></thead>
                 <tbody id="reminderBody"></tbody>
               </table>
@@ -888,7 +892,7 @@ td.num.blue{color:var(--blue)}
 /* ══════════════════════════════════════════════════════════════════ */
 /* 🔐 v9.2: الإعدادات الأساسية + API آمن */
 /* ══════════════════════════════════════════════════════════════════ */
-const API_URL = 'https://script.google.com/macros/s/AKfycbyygJnhYA9U59Yv9c8nIloUMiJwJ3uxmVftREsTiwExzwXgb8oRVTSvEDf3SjEcYHkv/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbzG07RlugnsV50dL_OQ5waL05CvHCfVvTLVaXk0hY4hhLToT7hzE4KH9S-9giWlIUg/exec';
 const API_TOKEN = 'SABAQ_a8f3k9m2x7p5q1w4e6r8t0y2u4i6o8a0_2024';
 
 const ACADEMY = 'أكاديمية السَّبَّاق لتعليم القرآن الكريم';
@@ -1233,6 +1237,59 @@ function hydrate(raw){
   STATE_REMINDER.hasAuto = !!raw.hasAutoReminder;
 }
 
+function splitPostponesFrontend(studentName) {
+  const receipts = STATE.receipts.filter(r => r.student === studentName);
+  const lastPaymentDate = receipts.length
+    ? receipts.map(r => r.date).filter(Boolean).sort().pop()
+    : null;
+
+  const allPostpones = STATE.reports.filter(r => r.student === studentName && r.status === 'مؤجل');
+
+  const today = new Date();
+  const currentIdx = today.getFullYear() * 12 + today.getMonth();
+
+  let lastPaymentIdx = -1;
+  if (lastPaymentDate) {
+    const lp = lastPaymentDate.split('-').map(Number);
+    lastPaymentIdx = lp[0] * 12 + (lp[1] - 1);
+  }
+
+  const oldPostpones = [];
+  const newPostpones = [];
+
+  allPostpones.forEach(r => {
+    const postponeDate = toISODate(r.date);
+    let isDeferred = false;
+
+    // قاعدة: تأجيل >= آخر سداد + خلال شهر السداد = مرحّل
+    if (lastPaymentDate && postponeDate >= lastPaymentDate && currentIdx <= lastPaymentIdx) {
+      isDeferred = true;
+    }
+
+    const fee = r.postponeFee || POSTPONE_FEE;
+    const entry = {
+      dayName: getArabicDayName(postponeDate),
+      originalDate: postponeDate,
+      postponeDate: toISODate(r.postponeDate),
+      fee: fee,
+      reportNo: r.no
+    };
+
+    if (isDeferred) newPostpones.push(entry);
+    else oldPostpones.push(entry);
+  });
+
+  return {
+    lastPaymentDate,
+    lastPaymentIdx,
+    currentIdx,
+    oldPostpones,
+    newPostpones,
+    oldPostponeFees: oldPostpones.reduce((a, p) => a + p.fee, 0),
+    newPostponeFees: newPostpones.reduce((a, p) => a + p.fee, 0)
+  };
+}
+
 /* ══════════════════════════════════════════════════════════════════ */
 /* 🆕 v9.2: computeSummary — 3 حالات (منتظم / مستحق / متأخر) */
 /* ══════════════════════════════════════════════════════════════════ */
@@ -1242,8 +1299,9 @@ function computeSummary(){
     const paid = payments.reduce((a,r) => a + r.paid, 0);
     const disc = payments.reduce((a,r) => a + (r.disc || 0), 0);
     const last = payments.length ? payments.map(p => p.date).filter(Boolean).sort().pop() || '' : '';
-    const postponed = STATE.reports.filter(r => r.student === s.name && r.status === 'مؤجل');
-    const postponeFees = postponed.reduce((a,r) => a + (r.postponeFee || POSTPONE_FEE), 0);
+
+    // 🆕 v10.0: تقسيم التأجيلات
+    const split = splitPostponesFrontend(s.name);
 
     const calc = calcDue({
       price: s.price,
@@ -1251,7 +1309,8 @@ function computeSummary(){
       regDateISO: s.reg,
       openingBalance: s.openingBalance,
       interviewFee: s.interviewFee,
-      postponeFees, paid, disc
+      postponeFees: split.oldPostponeFees, // نمرر القديمة فقط
+      paid, disc
     });
 
     let state = '—';
@@ -1272,7 +1331,13 @@ function computeSummary(){
       currentSubDue: calc.currentSubDue, nextSubDue: calc.nextSubDue,
       subStart: calc.subStartISO,
       isReminderPeriod: calc.isReminderPeriod, isLate: calc.isLate,
-      postponeFees, postponedCount: postponed.length,
+      // 🆕 التأجيلات
+      postponeFees: split.oldPostponeFees,
+      newPostponeFees: split.newPostponeFees,
+      oldPostpones: split.oldPostpones,
+      newPostpones: split.newPostpones,
+      postponedCount: split.oldPostpones.length + split.newPostpones.length,
+      lastPaymentDate: split.lastPaymentDate,
       state
     };
   });
@@ -2545,14 +2610,15 @@ function computeReminderData(){
   const nextMonthDate = new Date(nowY, nowM, 1);
   const nextMonthLabel = `${AR_MONTHS[nextMonthDate.getMonth()]} ${nextMonthDate.getFullYear()}`;
 
-  const data = STATE.students
+  return STATE.students
     .filter(s => s.status !== 'موقوف' && s.email)
     .map(s => {
       const payments = STATE.receipts.filter(r => r.student === s.name);
       const paid = payments.reduce((a,r) => a + r.paid, 0);
       const disc = payments.reduce((a,r) => a + (r.disc || 0), 0);
-      const postponed = STATE.reports.filter(r => r.student === s.name && r.status === 'مؤجل');
-      const postponeFees = postponed.reduce((a,r) => a + (r.postponeFee || POSTPONE_FEE), 0);
+
+      // 🆕 v10.0: تقسيم التأجيلات
+      const split = splitPostponesFrontend(s.name);
 
       const calc = calcDue({
         price: s.price,
@@ -2560,10 +2626,10 @@ function computeReminderData(){
         regDateISO: s.reg,
         openingBalance: s.openingBalance,
         interviewFee: s.interviewFee,
-        postponeFees, paid, disc
+        postponeFees: split.oldPostponeFees,
+        paid, disc
       });
 
-      // فحص التخطي في auto reminder: subStart > current month
       const skipAutoBecauseFutureStart = calc.subStartIdx > nowIdx;
 
       return {
@@ -2576,15 +2642,19 @@ function computeReminderData(){
         totalSubDue: calc.totalSubDue,
         currentSubLabel: calc.currentSubLabel,
         nextSubLabel: calc.nextSubLabel,
-        postponeFees, postponedCount: postponed.length,
-        postponedDetails: postponed.map(r => ({
-          dayName: getArabicDayName(r.date),
-          originalDate: r.date,
-          postponeDate: r.postponeDate,
-          fee: r.postponeFee || POSTPONE_FEE
-        })),
+        // 🆕 التأجيلات
+        oldPostponeFees: split.oldPostponeFees,
+        newPostponeFees: split.newPostponeFees,
+        oldPostpones: split.oldPostpones,
+        newPostpones: split.newPostpones,
+        postponeFees: split.oldPostponeFees + split.newPostponeFees,
+        postponedCount: split.oldPostpones.length + split.newPostpones.length,
+        postponedDetails: [...split.oldPostpones, ...split.newPostpones],
+        lastPaymentDate: split.lastPaymentDate,
+        // الأساسيات
         paid, disc,
-        due: calc.due, remaining: calc.remaining,
+        due: calc.due,
+        remaining: calc.remaining,
         remainingCurrent: calc.remainingCurrent,
         isReminderPeriod: calc.isReminderPeriod,
         isLate: calc.isLate,
@@ -2597,153 +2667,157 @@ function computeReminderData(){
         targetMonthLabel: calc.targetMonthLabel
       };
     });
-
-  return data;
 }
 
 function renderReminder(){
-  const data = computeReminderData();
-  const isReminderPeriod = data.length ? data[0].isReminderPeriod : (new Date().getDate() >= REMINDER_DAY);
-  const nextMonthLabel = data.length
-    ? data[0].nextMonthLabel
-    : (() => { const n = new Date(); const d = new Date(n.getFullYear(), n.getMonth()+1, 1);
-               return `${AR_MONTHS[d.getMonth()]} ${d.getFullYear()}`; })();
-
-  const due = data.filter(d => !d.isPaid);
-  const totalDue = due.reduce((a,d) => a + d.remaining, 0);
-  const totalCurrentSub = due.reduce((a,d) => a + d.currentSubDue, 0);
-  const totalNextSub = due.reduce((a,d) => a + d.nextSubDue, 0);
-  const totalPostpone = due.reduce((a,d) => a + d.postponeFees, 0);
-  const totalOpening = due.reduce((a,d) => a + d.opening, 0);
-  const totalInterview = due.reduce((a,d) => a + d.interview, 0);
-  const auto = STATE_REMINDER.hasAuto;
-
-  const kpis = [
-    { ic:'👥', lbl:'إجمالي الطلاب', val: fmt(data.length), c:'var(--blue)', bg:'rgba(77,157,255,.12)', tr:'طالب' },
-    { ic:'⏳', lbl: isReminderPeriod ? 'مستحق عليهم (شامل القادم)' : 'مستحق عليهم', val: fmt(due.length), c:'var(--gold)', bg:'rgba(245,181,68,.12)', tr:'طالب' },
-    { ic:'✅', lbl:'مسددون', val: fmt(data.length - due.length), c:'var(--brand)', bg:'rgba(45,212,167,.12)', tr:'طالب' },
-    { ic:'💵', lbl:'إجمالي المستحق', val: money(totalDue), c:'var(--red)', bg:'rgba(255,107,107,.12)', tr:'مستحق' },
-    { ic:'📅', lbl:'مستحقات الاشتراك', val: money(totalCurrentSub), c:'var(--blue)', bg:'rgba(77,157,255,.12)', tr:'اشتراك' },
-    { ic:'🔔', lbl:`اشتراك ${nextMonthLabel}`, val: money(totalNextSub), c:'var(--purple)', bg:'rgba(167,139,250,.12)', tr:'قادم' },
-    { ic:'⏸️', lbl:'رسوم التأجيل', val: money(totalPostpone), c:'var(--gold)', bg:'rgba(245,181,68,.12)', tr:'تأجيل' },
-    { ic:'🏁', lbl:'رصيد افتتاحي', val: money(totalOpening), c:'var(--blue)', bg:'rgba(77,157,255,.12)', tr:'افتتاحي' },
-    { ic:'🎯', lbl:'رسوم المقابلة', val: money(totalInterview), c:'var(--purple)', bg:'rgba(167,139,250,.12)', tr:'مقابلة' }
-  ];
-  const kpiGridEl = document.getElementById('reminderKpiGrid');
-  if (kpiGridEl) {
-    kpiGridEl.innerHTML = kpis.map(k => `
-      <div class="kpi" style="--accent:${k.c};--accent-bg:${k.bg}">
-        <div class="kpi-head"><div class="kpi-ic">${k.ic}</div><div class="kpi-trend">${k.tr}</div></div>
-        <div class="kpi-val" style="color:${k.c}">${k.val}</div>
-        <div class="kpi-lbl">${k.lbl}</div>
-      </div>`).join('');
-  }
-
-  const periodBadge = document.getElementById('reminderPeriodBadge');
-  if (periodBadge) {
-    if (isReminderPeriod) {
-      periodBadge.innerHTML = `<span class="badge purple" style="font-size:12.5px;padding:7px 14px">
-        🔔 التذكير المبكر نشط الآن — يُحتسب اشتراك <b>${escapeHtml(nextMonthLabel)}</b> على الطلاب المستحقين
-      </span>`;
-    } else {
-      const daysLeft = REMINDER_DAY - new Date().getDate();
-      periodBadge.innerHTML = `<span class="badge off" style="font-size:12.5px;padding:7px 14px">
-        ⏰ التذكير المبكر يبدأ يوم ${REMINDER_DAY} — متبقي ${daysLeft} يوم
-      </span>`;
-    }
-  }
-
-  const statusEl = document.getElementById('autoReminderStatus');
-  if (statusEl){
-    let html = auto
-      ? '<span class="reminder-status on">التذكير التلقائي مُفعَّل</span>'
-      : '<span class="reminder-status off">التذكير التلقائي معطَّل</span>';
-    if (isReminderPeriod) {
-      html += ` <span class="reminder-status on" style="margin-inline-start:6px;background:rgba(167,139,250,.14);color:var(--purple)">🔔 التذكير المبكر مفعّل</span>`;
-    }
-    statusEl.innerHTML = html;
-  }
-
-  const controls = document.getElementById('autoReminderControls');
-  if (controls){
-    controls.innerHTML = auto
-      ? `<button class="btn btn-danger" data-act="removeAutoReminder" style="flex:1;justify-content:center">🗑️ إزالة التذكير التلقائي</button>
-         <button class="btn btn-reminder" data-act="sendAllReminders" style="flex:1;justify-content:center">📤 إرسال الآن</button>`
-      : `<button class="btn btn-add" data-act="installAutoReminder" style="flex:1;justify-content:center">🔔 تفعيل التذكير التلقائي</button>
-         <button class="btn btn-reminder" data-act="sendAllReminders" style="flex:1;justify-content:center">📤 إرسال الآن</button>`;
-  }
-
-  const body = document.getElementById('reminderBody');
-  if (!body) return;
-  if (!data.length){ body.innerHTML = emptyRow(12); return; }
-
-  body.innerHTML = data
-    .sort((a,b) => b.remaining - a.remaining)
-    .map((d, i) => {
-      let statusBadge;
-      if (d.isPaid) {
-        statusBadge = '<span class="badge ok">مسدد</span>';
-      } else if (d.isLate) {
-        statusBadge = '<span class="badge late">متأخر</span>';
-      } else if (d.onlyNextMonthDue) {
-        statusBadge = `<span class="badge gold" title="مستحق بسبب اشتراك ${escapeHtml(d.nextMonthLabel)}">🔔 شهر قادم</span>`;
-      } else {
-        statusBadge = '<span class="badge gold">مستحق</span>';
-      }
-
-      const openingCell = d.opening > 0
-        ? `<span class="num blue">${fmt(d.opening)}</span>`
-        : '<span style="color:var(--text3)">—</span>';
-
-      const currentCell = d.currentSubDue > 0
-        ? `<span class="num blue" title="${escapeHtml(d.currentSubLabel)}">${fmt(d.currentSubDue)}</span>`
-        : '<span style="color:var(--text3)">—</span>';
-
-      const nextCell = d.nextSubDue > 0
-        ? `<span class="num" style="color:var(--purple);font-weight:800" title="${escapeHtml(d.nextSubLabel || d.nextMonthLabel)}">+${fmt(d.nextSubDue)}</span>`
-        : '<span style="color:var(--text3)">—</span>';
-
-      const postCell = d.postponeFees > 0
-        ? `<button class="btn btn-edit" data-act="showPostponeDetails" data-name="${escapeHtml(d.name)}" style="padding:3px 8px;font-size:11px" title="عرض التفاصيل">📋 ${fmt(d.postponeFees)} <span style="opacity:.7">(${d.postponedCount})</span></button>`
-        : '<span style="color:var(--text3)">—</span>';
-
-      const interviewCell = d.interview > 0
-        ? `<span class="num purple" style="color:var(--purple)">${fmt(d.interview)}</span>`
-        : '<span style="color:var(--text3)">—</span>';
-
-      const btn = d.isPaid
-        ? '<span style="color:var(--text3);font-size:11px">—</span>'
-        : `<button class="btn btn-reminder" data-act="sendReminder" data-name="${escapeHtml(d.name)}" title="إرسال تذكير">🔔</button>`;
-
-      return `<tr>
-        <td><span class="idx">${i+1}</span></td>
-        <td class="name">${escapeHtml(d.name)}</td>
-        <td><span class="pkg-pill">${d.pkg} حلقات</span></td>
-        <td>${openingCell}</td>
-        <td>${currentCell}</td>
-        <td style="text-align:center">${nextCell}</td>
-        <td>${postCell}</td>
-        <td>${interviewCell}</td>
-        <td class="num green">${fmt(d.paid)}</td>
-        <td class="num ${d.isPaid ? 'green' : 'red'}">${fmt(d.remaining)}</td>
-        <td>${statusBadge}</td>
-        <td>${btn}</td>
-      </tr>`;
-    }).join('');
-}
-
-async function sendReminder(name, btnEl){
-  if (!confirm('إرسال تذكير بالبريد إلى: ' + name + '؟')) return;
-  const oldText = btnEl ? btnEl.textContent : null;
-  if (btnEl){ btnEl.disabled = true; btnEl.textContent = '⏳'; }
   try {
-    await apiPost('sendReminder', { 'اسم الطالب': name });
-    showToast('✅ تم إرسال التذكير');
-    if (btnEl){ btnEl.textContent = '✅'; btnEl.style.opacity = '.6'; }
-    setTimeout(() => loadFromSheets(), 800);
-  } catch(err){
-    showToast('⚠️ ' + err.message);
-    if (btnEl){ btnEl.disabled = false; btnEl.textContent = oldText || '🔔'; }
+    const data = computeReminderData();
+    const isReminderPeriod = data.length ? data[0].isReminderPeriod : (new Date().getDate() >= REMINDER_DAY);
+    const nextMonthLabel = data.length
+      ? data[0].nextMonthLabel
+      : (() => { const n = new Date(); const d = new Date(n.getFullYear(), n.getMonth()+1, 1);
+                 return `${AR_MONTHS[d.getMonth()]} ${d.getFullYear()}`; })();
+
+    const due = data.filter(d => !d.isPaid || d.newPostponeFees > 0);
+    const totalDue = due.reduce((a,d) => a + d.remaining, 0);
+    const totalCurrentSub = due.reduce((a,d) => a + d.currentSubDue, 0);
+    const totalNextSub = due.reduce((a,d) => a + d.nextSubDue, 0);
+    const totalOldPostpone = due.reduce((a,d) => a + d.oldPostponeFees, 0);
+    const totalNewPostpone = due.reduce((a,d) => a + d.newPostponeFees, 0);
+    const totalOpening = due.reduce((a,d) => a + d.opening, 0);
+    const totalInterview = due.reduce((a,d) => a + d.interview, 0);
+    const auto = STATE_REMINDER.hasAuto;
+
+    // 1) كروت الإحصائيات (KPIs)
+    const kpis = [
+      { ic:'👥', lbl:'إجمالي الطلاب', val: fmt(data.length), c:'var(--blue)', bg:'rgba(77,157,255,.12)', tr:'طالب' },
+      { ic:'⏳', lbl:'مستحق عليهم', val: fmt(due.filter(d => d.remaining > 0).length), c:'var(--gold)', bg:'rgba(245,181,68,.12)', tr:'طالب' },
+      { ic:'✅', lbl:'مسددون', val: fmt(data.filter(d => d.isPaid && d.newPostponeFees === 0).length), c:'var(--brand)', bg:'rgba(45,212,167,.12)', tr:'طالب' },
+      { ic:'💵', lbl:'إجمالي المستحق', val: money(totalDue), c:'var(--red)', bg:'rgba(255,107,107,.12)', tr:'مستحق' },
+      { ic:'📅', lbl:'مستحقات الاشتراك', val: money(totalCurrentSub), c:'var(--blue)', bg:'rgba(77,157,255,.12)', tr:'اشتراك' },
+      { ic:'🔔', lbl:`اشتراك ${nextMonthLabel}`, val: money(totalNextSub), c:'var(--purple)', bg:'rgba(167,139,250,.12)', tr:'قادم' },
+      { ic:'⏸️', lbl:'رسوم تأجيل مستحقة', val: money(totalOldPostpone), c:'var(--gold)', bg:'rgba(245,181,68,.12)', tr:'مستحق' },
+      { ic:'📋', lbl:'رسوم تأجيل مرحّلة', val: money(totalNewPostpone), c:'var(--blue)', bg:'rgba(77,157,255,.12)', tr:'مرحّل' },
+      { ic:'🎯', lbl:'رسوم المقابلة', val: money(totalInterview), c:'var(--purple)', bg:'rgba(167,139,250,.12)', tr:'مقابلة' }
+    ];
+    const kpiGridEl = document.getElementById('reminderKpiGrid');
+    if (kpiGridEl) {
+      kpiGridEl.innerHTML = kpis.map(k => `
+        <div class="kpi" style="--accent:${k.c};--accent-bg:${k.bg}">
+          <div class="kpi-head"><div class="kpi-ic">${k.ic}</div><div class="kpi-trend">${k.tr}</div></div>
+          <div class="kpi-val" style="color:${k.c}">${k.val}</div>
+          <div class="kpi-lbl">${k.lbl}</div>
+        </div>`).join('');
+    }
+
+    // 2) شارة فترة التذكير
+    const periodBadge = document.getElementById('reminderPeriodBadge');
+    if (periodBadge) {
+      if (isReminderPeriod) {
+        periodBadge.innerHTML = `<span class="badge purple" style="font-size:12.5px;padding:7px 14px">
+          🔔 التذكير المبكر نشط الآن — يُحتسب اشتراك <b>${escapeHtml(nextMonthLabel)}</b> على الطلاب المستحقين
+        </span>`;
+      } else {
+        const daysLeft = REMINDER_DAY - new Date().getDate();
+        periodBadge.innerHTML = `<span class="badge off" style="font-size:12.5px;padding:7px 14px">
+          ⏰ التذكير المبكر يبدأ يوم ${REMINDER_DAY} — متبقي ${daysLeft} يوم
+        </span>`;
+      }
+    }
+
+    // 3) حالة التذكير التلقائي
+    const statusEl = document.getElementById('autoReminderStatus');
+    if (statusEl){
+      let html = auto
+        ? '<span class="reminder-status on">التذكير التلقائي مُفعَّل</span>'
+        : '<span class="reminder-status off">التذكير التلقائي معطَّل</span>';
+      if (isReminderPeriod) {
+        html += ` <span class="reminder-status on" style="margin-inline-start:6px;background:rgba(167,139,250,.14);color:var(--purple)">🔔 التذكير المبكر مفعّل</span>`;
+      }
+      statusEl.innerHTML = html;
+    }
+
+    // 4) أزرار التحكم
+    const controls = document.getElementById('autoReminderControls');
+    if (controls){
+      controls.innerHTML = auto
+        ? `<button class="btn btn-danger" data-act="removeAutoReminder" style="flex:1;justify-content:center">🗑️ إزالة التذكير التلقائي</button>
+           <button class="btn btn-reminder" data-act="sendAllReminders" style="flex:1;justify-content:center">📤 إرسال الآن</button>`
+        : `<button class="btn btn-add" data-act="installAutoReminder" style="flex:1;justify-content:center">🔔 تفعيل التذكير التلقائي</button>
+           <button class="btn btn-reminder" data-act="sendAllReminders" style="flex:1;justify-content:center">📤 إرسال الآن</button>`;
+    }
+
+    // 5) جدول الطلاب (8 أعمدة)
+    const body = document.getElementById('reminderBody');
+    if (!body) return;
+    if (!data.length){ body.innerHTML = emptyRow(8); return; }
+
+    body.innerHTML = data
+      .sort((a,b) => {
+        const aNeed = a.remaining > 0 ? 1 : (a.newPostponeFees > 0 ? 0.5 : 0);
+        const bNeed = b.remaining > 0 ? 1 : (b.newPostponeFees > 0 ? 0.5 : 0);
+        return bNeed - aNeed || b.remaining - a.remaining;
+      })
+      .map((d, i) => {
+        let statusBadge;
+        if (d.isPaid && d.newPostponeFees === 0) {
+          statusBadge = '<span class="badge ok">مسدد</span>';
+        } else if (d.isPaid && d.newPostponeFees > 0) {
+          statusBadge = '<span class="badge blue" title="رسوم تأجيل مرحّلة للشهر القادم">✅ مرحّل</span>';
+        } else if (d.isLate) {
+          statusBadge = '<span class="badge late">متأخر</span>';
+        } else {
+          statusBadge = '<span class="badge gold">مستحق</span>';
+        }
+
+        let paidRemaining = d.paid + d.disc;
+        const unpaidOpening = Math.max(0, d.opening - paidRemaining);
+        paidRemaining = Math.max(0, paidRemaining - d.opening);
+
+        const unpaidInterview = Math.max(0, d.interview - paidRemaining);
+        paidRemaining = Math.max(0, paidRemaining - d.interview);
+
+        const unpaidCurrent = Math.max(0, d.currentSubDue - paidRemaining);
+        paidRemaining = Math.max(0, paidRemaining - d.currentSubDue);
+
+        const unpaidNext = Math.max(0, d.nextSubDue - paidRemaining);
+        paidRemaining = Math.max(0, paidRemaining - d.nextSubDue);
+
+        const unpaidOldPostpone = Math.max(0, d.oldPostponeFees - paidRemaining);
+
+        const totalSubDue = unpaidOpening + unpaidInterview + unpaidCurrent + unpaidNext;
+        const subCell = totalSubDue > 0 
+          ? `<span class="num blue" style="font-weight:800">${fmt(totalSubDue)}</span>`
+          : '<span style="color:var(--text3)">—</span>';
+
+        const postCell = (unpaidOldPostpone > 0 || d.newPostponeFees > 0)
+          ? `<div style="display:flex;gap:4px;align-items:center;justify-content:center;flex-wrap:wrap">
+               ${unpaidOldPostpone > 0 ? `<button class="btn btn-edit" data-act="showPostponeDetails" data-name="${escapeHtml(d.name)}" style="padding:3px 8px;font-size:11px" title="تأجيلات مستحقة">📋 ${fmt(unpaidOldPostpone)}</button>` : ''}
+               ${d.newPostponeFees > 0 ? `<span class="badge blue" style="font-size:10px;padding:2px 6px" title="مرحّلة">⏸️ ${fmt(d.newPostponeFees)}</span>` : ''}
+             </div>`
+          : '<span style="color:var(--text3)">—</span>';
+
+        const btn = (d.isPaid && d.newPostponeFees === 0)
+          ? '<span style="color:var(--text3);font-size:11px">—</span>'
+          : `<button class="btn btn-reminder" data-act="sendReminder" data-name="${escapeHtml(d.name)}" title="${d.isPaid ? 'إرسال إشعار استلام' : 'إرسال تذكير'}">${d.isPaid ? '✅' : '🔔'}</button>`;
+
+        return `<tr>
+          <td><span class="idx">${i+1}</span></td>
+          <td class="name">${escapeHtml(d.name)}</td>
+          <td><span class="pkg-pill">${d.pkg} حلقات</span></td>
+          <td>${subCell}</td>
+          <td>${postCell}</td>
+          <td class="num ${d.isPaid ? 'green' : 'red'}" style="font-weight:900">${fmt(d.remaining)}</td>
+          <td>${statusBadge}</td>
+          <td>${btn}</td>
+        </tr>`;
+      }).join('');
+  } catch (err) {
+    console.error("Error rendering reminders:", err);
+    const body = document.getElementById('reminderBody');
+    if (body) {
+      body.innerHTML = `<tr><td colspan="8" style="text-align:center;color:red;padding:20px;font-weight:bold;">حدث خطأ أثناء عرض البيانات: ${err.message}</td></tr>`;
+    }
   }
 }
 

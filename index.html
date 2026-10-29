@@ -516,7 +516,7 @@ html[dir="rtl"] .drawer{transform:translateX(-100%)}
           <div class="card-body"><div class="chart-box sm"><canvas id="chartLine"></canvas></div></div></div>
         <div class="card"><div class="card-head"><h3>🏆 ملخص الباقات</h3></div>
           <div class="card-body p0"><div class="tbl-wrap"><table>
-            <thead><tr><th>الباقة</th><th>عدد الطلاب</th><th>السعر</th><th>الإيراد المتوقع</th></tr></thead>
+            <thead><tr><th>الباقة</th><th>عدد الطلاب</th><th>السعر (داخل / خارج)</th><th>الإيراد المتوقع</th></tr></thead>
             <tbody id="pkgSummaryBody"></tbody>
           </table></div></div></div>
       </div>
@@ -976,7 +976,7 @@ html[dir="rtl"] .drawer{transform:translateX(-100%)}
           <div class="card-body p0">
             <div class="tbl-wrap">
               <table>
-                <thead><tr><th>نوع الباقة</th><th>عدد الحلقات</th><th>السعر الشهري</th><th>الملاحظات</th><th>إجراء</th></tr></thead>
+                <thead><tr><th>نوع الباقة</th><th>عدد الحلقات</th><th>السعر داخل مصر</th><th>السعر خارج مصر</th><th>الملاحظات</th><th>إجراء</th></tr></thead>
                 <tbody id="packagesBody"></tbody>
               </table>
             </div>
@@ -1145,7 +1145,7 @@ html[dir="rtl"] .drawer{transform:translateX(-100%)}
 /* ══════════════════════════════════════════════════════════════════ */
 /* SCRIPT 1 — الإعدادات + STATE + Helpers + calcDue + Hydrate + API */
 /* ══════════════════════════════════════════════════════════════════ */
-const API_URL = 'https://script.google.com/macros/s/AKfycbwZ-9ydnt4k-LvHkr2uOVi1KR2sps98u8ukUopoJmbtXi6a7hD89odQmKpyANoY-ScU/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbzwrFVXWSpkQTIB996wMXikpHeiqOZ4CWK6DcJObx5kL4e9TGguzAjYEix1Cg769g6e/exec';
 const API_TOKEN = 'SABAQ_a8f3k9m2x7p5q1w4e6r8t0y2u4i6o8a0_2024';
 
 const ACADEMY = 'أكاديمية السَّبَّاق لتعليم القرآن الكريم';
@@ -1319,12 +1319,17 @@ function hydrate(raw){
     alertDays: Number(s['عدد أيام التنبيه قبل الاستحقاق'])||5,
     lateDays: Number(s['حد التأخر بالأيام'])||1, currency: 'ج.م'
   };
-  STATE.packages = (raw.packages||[]).filter(p => val(p,'نوع الباقة','type')).map(p => ({
+STATE.packages = (raw.packages||[]).filter(p => val(p,'نوع الباقة','type')).map(p => {
+  const domesticPrice = Number(val(p,'السعر داخل مصر','السعر الشهري','price'))||0;
+  const foreignPrice  = Number(val(p,'السعر خارج مصر','priceForeign'))||domesticPrice;
+  return {
     type: Number(val(p,'نوع الباقة','type'))||0,
-    price: Number(val(p,'السعر الشهري','price'))||0,
+    price: domesticPrice,
+    priceForeign: foreignPrice,
     sessions: Number(val(p,'عدد الحلقات','sessions'))||0,
     note: val(p,'ملاحظات','note')||'—'
-  }));
+  };
+});
   STATE.opening = (raw.opening || []).filter(r => numField(r,'المبلغ') > 0);
   STATE.students = (raw.students||[]).filter(s => val(s,'اسم الطالب','name')).map((s,i) => {
     const pkg = Number(val(s,'نوع الباقة','pkg'))||0;
@@ -1777,18 +1782,20 @@ const FORMS = {
       { n:'الحالة', l:'الحالة', t:'select', opts:['قائم','مسدد جزئياً','مسدد'], def:'قائم' },
       { n:'ملاحظات', l:'ملاحظات', t:'textarea', full:true }
     ]},
-  package: { title:'إضافة باقة جديدة', sub:'سعر باقة شهرية', ic:'📦', action:'addPackage',
+  package: { title:'إضافة باقة جديدة', sub:'سعر باقة شهرية — داخل وخارج مصر', ic:'📦', action:'addPackage',
     fields: [
       { n:'نوع الباقة', l:'عدد الحلقات (معرّف الباقة)', t:'number', req:true },
       { n:'عدد الحلقات', l:'عدد الحلقات الأسبوعية', t:'number', req:true },
-      { n:'السعر الشهري', l:'السعر الشهري', t:'number', req:true },
+      { n:'السعر داخل مصر', l:'💰 السعر داخل مصر', t:'number', req:true },
+      { n:'السعر خارج مصر', l:'🌍 السعر خارج مصر', t:'number', req:true },
       { n:'ملاحظات', l:'ملاحظات', t:'textarea', full:true }
     ]},
   editPackage: { title:'تعديل باقة', sub:'تعديل السعر/عدد الحلقات/الملاحظات', ic:'✏️', action:'updatePackage',
     fields: [
       { n:'نوع الباقة', l:'معرّف الباقة', t:'readonly' },
       { n:'عدد الحلقات', l:'عدد الحلقات', t:'number', req:true },
-      { n:'السعر الشهري', l:'السعر الشهري', t:'number', req:true },
+      { n:'السعر داخل مصر', l:'💰 السعر داخل مصر', t:'number', req:true },
+      { n:'السعر خارج مصر', l:'🌍 السعر خارج مصر', t:'number', req:true },
       { n:'ملاحظات', l:'ملاحظات', t:'textarea', full:true }
     ]},
   editInvestment: { title:'تعديل استثمار', sub:'تحديث القيمة الحالية أو الحالة', ic:'✏️', action:'updateInvestment',
@@ -1812,7 +1819,7 @@ function buildField(f){
   } else if(f.t === 'select'){
     input = `<select id="${id}" data-name="${escapeHtml(f.n)}">${f.opts.map(o=>`<option value="${escapeHtml(o)}" ${o===f.def?'selected':''}>${escapeHtml(o)}</option>`).join('')}</select>`;
   } else if(f.t === 'select-pkg'){
-    input = `<select id="${id}" data-name="${escapeHtml(f.n)}" data-pkg-select><option value="">— اختر الباقة —</option>${STATE.packages.map(p=>`<option value="${p.type}">${p.type} حلقات — ${fmt(p.price)} ج.م</option>`).join('')}</select>`;
+    input = `<select id="${id}" data-name="${escapeHtml(f.n)}" data-pkg-select><option value="">— اختر الباقة —</option>${STATE.packages.map(p=>`<option value="${p.type}">${p.type} حلقات — ${fmt(p.price)} / ${fmt(p.priceForeign)} ج.م</option>`).join('')}</select>`;
   } else if(f.t === 'select-student'){
     input = `<select id="${id}" data-name="${escapeHtml(f.n)}" data-student-select><option value="">— اختر الطالب —</option>${STATE.students.map(s=>`<option value="${escapeHtml(s.name)}" data-pkg="${s.pkg}" data-price="${s.price}" data-email="${escapeHtml(s.email||'')}" data-stype="${escapeHtml(s.sType||'')}">${escapeHtml(s.name)} (${s.pkg} حلقات)</option>`).join('')}</select>`;
   } else if(f.t === 'select-invest'){
@@ -1990,6 +1997,28 @@ function openForm(key){
       const regInp = formEl.querySelector('[data-name="تاريخ التسجيل"]');
       const priceInp = formEl.querySelector('[data-name="سعر الباقة"]');
       const interviewInp = formEl.querySelector('[data-name="رسوم المقابلة الفنية"]');
+      const pkgInp = formEl.querySelector('[data-name="نوع الباقة"]');
+      const residenceInp = formEl.querySelector('[data-name="مكان الإقامة"]');
+
+      // 🆕 v10.5: Auto-fill السعر حسب الباقة + الإقامة
+      const updatePrice = () => {
+        if (!pkgInp || !priceInp) return;
+        const p = STATE.packages.find(x => String(x.type) === String(pkgInp.value));
+        if (!p) return;
+        const isForeign = residenceInp && residenceInp.value === 'خارج مصر';
+        const suggested = isForeign ? (p.priceForeign || p.price) : p.price;
+        if (!priceInp.dataset.touched || !priceInp.value || priceInp.value === '0') {
+          priceInp.value = suggested;
+        }
+        priceInp.placeholder = `افتراضي: ${fmt(suggested)} ج.م`;
+      };
+
+      pkgInp?.addEventListener('change', updatePrice);
+      residenceInp?.addEventListener('change', updatePrice);
+      priceInp?.addEventListener('input', () => priceInp.dataset.touched = '1');
+
+      setTimeout(updatePrice, 30);
+
       const refreshPreview = () => renderStudentRegistrationPreview(formEl);
       [regInp, priceInp, interviewInp].forEach(inp => {
         if(!inp) return;
@@ -1998,6 +2027,28 @@ function openForm(key){
       });
       refreshPreview();
     }
+
+    // 🆕 v10.5: Auto-fill للـ changeStudentPackage
+    if(CURRENT_FORM === 'changeStudentPackage'){
+      const pkgInp = formEl.querySelector('[data-name="نوع الباقة"]');
+      const priceInp = formEl.querySelector('[data-name="سعر الباقة"]');
+      const nameInp = formEl.querySelector('[data-name="اسم الطالب"]');
+
+      const stu = nameInp ? STATE.students.find(s => s.name === nameInp.value) : null;
+      const residence = stu ? (stu.residence || 'داخل مصر') : 'داخل مصر';
+      const isForeign = residence === 'خارج مصر';
+
+      pkgInp?.addEventListener('change', () => {
+        if (!priceInp || !pkgInp) return;
+        const p = STATE.packages.find(x => String(x.type) === String(pkgInp.value));
+        if (!p) return;
+        if (!priceInp.dataset.touched || !priceInp.value) {
+          priceInp.value = isForeign ? (p.priceForeign || p.price) : p.price;
+        }
+      });
+      priceInp?.addEventListener('input', () => priceInp.dataset.touched = '1');
+    }
+
     if(CURRENT_FORM === 'studentReport'){
       const statusSel = formEl.querySelector('[data-name="الحالة"]');
       const postponeInp = formEl.querySelector('[data-name="تاريخ التأجيل"]');
@@ -2221,7 +2272,13 @@ async function submitForm(){
 function editPackage(type){
   const p = STATE.packages.find(x => x.type === Number(type));
   if(!p){ showToast('⚠️ الباقة غير موجودة'); return; }
-  openFormWithValues('editPackage', { 'نوع الباقة': p.type, 'عدد الحلقات': p.sessions, 'السعر الشهري': p.price, 'ملاحظات': p.note }, p.type);
+  openFormWithValues('editPackage', {
+    'نوع الباقة': p.type,
+    'عدد الحلقات': p.sessions,
+    'السعر داخل مصر': p.price,
+    'السعر خارج مصر': p.priceForeign,
+    'ملاحظات': p.note
+  }, p.type);
 }
 async function deletePackage(type){
   if(!confirm('هل تريد حذف الباقة رقم ' + type + '؟')) return;
@@ -3073,15 +3130,33 @@ function renderObligations(filter=''){
 }
 function renderPackages(){
   const body = document.getElementById('packagesBody');
-  if(!STATE.packages.length){ body.innerHTML = emptyRow(5); return; }
-  body.innerHTML = STATE.packages.map(p => `<tr><td class="name">${p.type} حلقات</td><td class="num">${p.sessions}</td><td class="num gold">${fmt(p.price)}</td><td style="color:var(--text3)">${escapeHtml(p.note||'—')}</td><td style="white-space:nowrap"><button class="btn btn-print" data-act="editPackage" data-id="${p.type}" title="تعديل">✏️</button><button class="btn btn-danger" data-act="deletePackage" data-id="${p.type}" title="حذف">🗑️</button></td></tr>`).join('');
+  if(!STATE.packages.length){ body.innerHTML = emptyRow(6); return; }
+  body.innerHTML = STATE.packages.map(p => `<tr>
+    <td class="name">${p.type} حلقات</td>
+    <td class="num">${p.sessions}</td>
+    <td class="num gold">${fmt(p.price)}</td>
+    <td class="num" style="color:var(--blue)">${fmt(p.priceForeign)}</td>
+    <td style="color:var(--text3)">${escapeHtml(p.note||'—')}</td>
+    <td style="white-space:nowrap">
+      <button class="btn btn-print" data-act="editPackage" data-id="${p.type}" title="تعديل">✏️</button>
+      <button class="btn btn-danger" data-act="deletePackage" data-id="${p.type}" title="حذف">🗑️</button>
+    </td>
+  </tr>`).join('');
 }
 function renderPkgSummary(){
   const body = document.getElementById('pkgSummaryBody');
   if(!STATE.packages.length){ body.innerHTML = emptyRow(4); return; }
   body.innerHTML = STATE.packages.map(p => {
-    const count = STATE.students.filter(s => s.pkg === p.type).length;
-    return `<tr><td class="name">${p.type} حلقات</td><td><span class="badge ok">${count} طالب</span></td><td class="num gold">${fmt(p.price)}</td><td class="num green">${fmt(p.price * count)}</td></tr>`;
+    const students = STATE.students.filter(s => s.pkg === p.type);
+    const count = students.length;
+    // 🆕 v10.5: الإيراد الفعلي من أسعار الطلاب (داخل + خارج)
+    const expectedRevenue = students.reduce((sum, s) => sum + (Number(s.price) || 0), 0);
+    return `<tr>
+      <td class="name">${p.type} حلقات</td>
+      <td><span class="badge ok">${count} طالب</span></td>
+      <td class="num gold">${fmt(p.price)} / <span style="color:var(--blue)">${fmt(p.priceForeign)}</span></td>
+      <td class="num green">${fmt(expectedRevenue)}</td>
+    </tr>`;
   }).join('');
 }
 function renderSettings(){

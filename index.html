@@ -1922,15 +1922,56 @@ function renderDuePreview(form, name){
   }
   const d = computeDueDetails(name);
   if(!d){ content.innerHTML = '<div style="color:var(--red);font-size:13px;text-align:center;padding:10px">⚠️ الطالب غير موجود</div>'; return; }
+
+  // توزيع المبالغ المدفوعة والخصومات على الشهور القديمة أولاً
+  let availablePayment = d.paid + d.disc;
+  
+  const unpaidOpening = Math.max(0, d.opening - availablePayment);
+  availablePayment = Math.max(0, availablePayment - d.opening);
+
+  const unpaidInterview = Math.max(0, d.interview - availablePayment);
+  availablePayment = Math.max(0, availablePayment - d.interview);
+
+  const unpaidCurrent = Math.max(0, d.currentSubDue - availablePayment);
+  availablePayment = Math.max(0, availablePayment - d.currentSubDue);
+
+  const unpaidNext = Math.max(0, d.nextSubDue - availablePayment);
+  availablePayment = Math.max(0, availablePayment - d.nextSubDue);
+
+  const unpaidPostpone = Math.max(0, d.postponeFees - availablePayment);
+  
   const rows = [];
-  if(d.opening > 0) rows.push(`<div class="ds-row"><span class="k">🏁 رصيد افتتاحي</span><span class="v">${fmt(d.opening)} ج.م</span></div>`);
-  if(d.monthsCurrent > 0) rows.push(`<div class="ds-row"><span class="k">📅 اشتراك ${escapeHtml(d.currentSubLabel)}</span><span class="v">${fmt(d.currentSubDue)} ج.م</span></div>`);
-  if(d.isReminderPeriod && d.nextSubDue > 0) rows.push(`<div class="ds-row"><span class="k">🔔 اشتراك ${escapeHtml(d.nextSubLabel)} (قادم)</span><span class="v" style="color:var(--purple)">+ ${fmt(d.nextSubDue)} ج.م</span></div>`);
-  if(d.postponeFees > 0) rows.push(`<div class="ds-row"><span class="k">⏸️ رسوم التأجيل (${d.postponeCount} مرة)</span><span class="v" style="color:var(--gold)">${fmt(d.postponeFees)} ج.م</span></div>`);
-  if(d.interview > 0) rows.push(`<div class="ds-row"><span class="k">🎯 رسوم المقابلة الفنية</span><span class="v">${fmt(d.interview)} ج.م</span></div>`);
-  if(d.disc > 0) rows.push(`<div class="ds-row"><span class="k">🎁 إجمالي الخصومات</span><span class="v" style="color:var(--gold)">− ${fmt(d.disc)} ج.م</span></div>`);
-  rows.push(`<div class="ds-row"><span class="k">✅ إجمالي المدفوع</span><span class="v" style="color:var(--brand)">${fmt(d.paid)} ج.م</span></div>`);
-  rows.push(`<div class="ds-row ds-total"><span class="k">⏳ المتبقي على الطالب</span><span class="v">${fmt(d.remaining)} ج.م</span></div>`);
+  if(unpaidOpening > 0) rows.push(`<div class="ds-row"><span class="k">🏁 رصيد افتتاحي غير مسدد</span><span class="v">${fmt(unpaidOpening)} ج.م</span></div>`);
+  
+  if(unpaidCurrent > 0) {
+    rows.push(`<div class="ds-row"><span class="k">📅 اشتراك ${escapeHtml(d.currentSubLabel)}</span><span class="v">${fmt(unpaidCurrent)} ج.م</span></div>`);
+  }
+  
+  if(d.isReminderPeriod && unpaidNext > 0) {
+    rows.push(`<div class="ds-row"><span class="k">🔔 اشتراك ${escapeHtml(d.nextSubLabel)} (قادم)</span><span class="v" style="color:var(--purple)">+ ${fmt(unpaidNext)} ج.م</span></div>`);
+  }
+  
+  if(unpaidPostpone > 0) {
+    rows.push(`<div class="ds-row"><span class="k">⏸️ رسوم التأجيل غير المسددة</span><span class="v" style="color:var(--gold)">${fmt(unpaidPostpone)} ج.م</span></div>`);
+  }
+  
+  if(unpaidInterview > 0) {
+    rows.push(`<div class="ds-row"><span class="k">🎯 رسوم المقابلة الفنية</span><span class="v">${fmt(unpaidInterview)} ج.م</span></div>`);
+  }
+
+  if (d.remaining <= 0 && rows.length === 0) {
+     content.innerHTML = '<div style="color:var(--brand);font-size:13px;text-align:center;padding:10px;font-weight:bold">✅ الطالب مسدد بالكامل</div>';
+     return;
+  }
+
+  rows.push(`<div class="ds-row ds-total"><span class="k">⏳ المتبقي الإجمالي على الطالب</span><span class="v">${fmt(d.remaining)} ج.م</span></div>`);
+  
+  if (d.paid > 0 || d.disc > 0) {
+    rows.push(`<div style="font-size:11px;color:var(--text3);text-align:center;margin-top:8px;border-top:1px dashed var(--border-s);padding-top:8px">
+      إجمالي المدفوع سابقاً: ${fmt(d.paid)} ج.م | إجمالي الخصم: ${fmt(d.disc)} ج.م
+    </div>`);
+  }
+
   content.innerHTML = rows.join('');
 }
 
@@ -4043,7 +4084,7 @@ function buildVoucherSubscriptionForm() {
     { n:'due-preview', l:'', t:'due-preview', full:true },
     { n:'المبلغ المستحق', l:'المستحق', t:'number', req:true },
     { n:'المبلغ المدفوع', l:'المدفوع', t:'number', req:true },
-    { n:'خصم', l:'خصم', t:'number', def:'0' },
+    { n:'خصم', l:'خصم (%)', t:'number', def:'0' }, 
     { n:'الفترة المستحقة', l:'الفترة المستحقة', t:'month', def:currentMonthISO() },
     { n:'ملاحظات', l:'ملاحظات', t:'textarea', full:true }
   ];
@@ -4056,31 +4097,56 @@ function buildVoucherSubscriptionForm() {
     const paidInp = form.querySelector('[data-name="المبلغ المدفوع"]');
     const periodInp = form.querySelector('[data-name="الفترة المستحقة"]');
     const discInp = form.querySelector('[data-name="خصم"]');
+    const previewContent = form.querySelector('#dsContent');
 
-    const updateBalances = () => {
+    // دالة التحديث اللحظي للشاشة أثناء الكتابة
+    const updateLivePreview = () => {
+      const due = Number(dueInp?.value) || 0;
       const paid = Number(paidInp?.value) || 0;
-      const disc = Number(discInp?.value) || 0;
-      if (disc > paid) discInp.value = paid;
+      const discPct = Number(discInp?.value) || 0;
+      
+      const discAmt = Math.round(due * (discPct / 100));
+      const rem = Math.max(0, due - paid - discAmt);
+
+      if (previewContent && stuSel?.value && due > 0) {
+        previewContent.innerHTML = `
+          <div class="ds-row"><span class="k">📅 إجمالي المستحق للفاتورة</span><span class="v">${fmt(due)} ج.م</span></div>
+          <div class="ds-row"><span class="k">🎁 الخصم (${discPct}%)</span><span class="v" style="color:var(--gold)">− ${fmt(discAmt)} ج.م</span></div>
+          <div class="ds-row"><span class="k">✅ المبلغ المدفوع</span><span class="v" style="color:var(--brand)">${fmt(paid)} ج.م</span></div>
+          <div class="ds-row ds-total"><span class="k">⏳ المتبقي (لهذه الفاتورة)</span><span class="v">${fmt(rem)} ج.م</span></div>
+        `;
+      }
     };
-    if (paidInp) paidInp.addEventListener('input', updateBalances);
-    if (discInp) discInp.addEventListener('input', updateBalances);
+
+    if (dueInp) dueInp.addEventListener('input', () => { dueInp.dataset.touched = '1'; updateLivePreview(); });
+    if (paidInp) paidInp.addEventListener('input', () => { paidInp.dataset.touched = '1'; updateLivePreview(); });
+    if (discInp) discInp.addEventListener('input', updateLivePreview);
 
     if (stuSel) {
       stuSel.addEventListener('change', () => {
         const opt = stuSel.selectedOptions[0];
         if (!opt || !opt.value) return;
+        
         if (pkgRo) pkgRo.value = opt.dataset.pkg ? opt.dataset.pkg + ' حلقات' : '';
-        renderDuePreview(form, opt.value);
+        
         const d = computeDueDetails(opt.value);
+        
+        // جلب المتبقي الفعلي فقط (لتجنب عرض الشهور القديمة المدفوعة)
         if (dueInp && !dueInp.dataset.touched) {
-          if (d && d.remaining > 0) dueInp.value = d.remaining;
-          else dueInp.value = opt.dataset.price || '';
+          dueInp.value = (d && d.remaining > 0) ? d.remaining : (opt.dataset.price || '');
         }
+        
         if (periodInp && !periodInp.dataset.touched && d && d.subStartISO) {
           periodInp.value = d.subStartISO.slice(0, 7);
         }
+        
+        if (paidInp && !paidInp.dataset.touched) {
+          paidInp.value = dueInp.value; 
+        }
+        
+        updateLivePreview();
       });
-      if (dueInp) dueInp.addEventListener('input', () => dueInp.dataset.touched = '1');
+      
       if (periodInp) periodInp.addEventListener('input', () => periodInp.dataset.touched = '1');
     }
   }, 30);
@@ -4346,11 +4412,25 @@ async function submitVoucher() {
 
   try {
     switch (op.special) {
-      case 'subscription':
+      case 'subscription': {
         if (!data['اسم الطالب']) throw new Error('اختر الطالب');
-        if (!data['المبلغ المدفوع']) throw new Error('أدخل المبلغ المدفوع');
-        if (data['الفترة المستحقة'] && data['الفترة المستحقة'].length === 7) data['الفترة المستحقة'] += '-01';
+        if (!data['المبلغ المدفوع'] && data['المبلغ المدفوع'] !== 0) throw new Error('أدخل المبلغ المدفوع');
+        
+        if (data['الفترة المستحقة'] && data['الفترة المستحقة'].length === 7) {
+          data['الفترة المستحقة'] += '-01';
+        }
+
+        // 🆕 تحويل نسبة الخصم إلى قيمة مالية ثابتة قبل الحفظ
+        const dueAmount = Number(data['المبلغ المستحق']) || 0;
+        const discPct = Number(data['خصم']) || 0;
+
+        if (discPct > 0) {
+          data['خصم'] = Math.round(dueAmount * (discPct / 100)); 
+        } else {
+          data['خصم'] = 0;
+        }
         break;
+      }
 
       case 'prepaid': {
         if (!data['اسم الطالب']) throw new Error('اختر الطالب');

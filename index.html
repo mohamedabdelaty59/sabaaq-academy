@@ -197,6 +197,9 @@ td.num.blue{color:var(--blue)}
 .sd-row.taj{grid-template-columns:36px 1fr 120px 130px 1fr 34px}
 .sd-row.mem{grid-template-columns:36px 1fr 100px 130px 1fr 34px}
 .sd-row.rd{grid-template-columns:36px 1fr 120px 1fr 34px}
+.sd-row.next-mem{grid-template-columns:36px 1fr 1fr 34px}
+.sd-row.next-rev{grid-template-columns:36px 1fr 1fr 34px}
+.sd-row.next-rd{grid-template-columns:36px 1fr 120px 34px}  
 .sd-row.con{grid-template-columns:36px 1fr 120px 2fr 34px}
 
 .fab{position:fixed;bottom:26px;inset-inline-end:26px;width:60px;height:60px;border-radius:20px;background:linear-gradient(135deg,var(--brand),var(--brand2));border:none;color:#06251c;font-size:26px;cursor:pointer;z-index:70;display:grid;place-items:center;box-shadow:0 15px 35px -10px var(--brand-glow);transition:.22s;font-weight:800}
@@ -417,6 +420,7 @@ html[dir="rtl"] .drawer{transform:translateX(-100%)}
   .cal-cell .day-num{font-size:11px}
   .cal-cell .sess-badge{font-size:9px;padding:1px 4px}
   .sd-row.rev,.sd-row.taj,.sd-row.mem,.sd-row.rd,.sd-row.con{grid-template-columns:30px 1fr 1fr 30px}
+  .sd-row.next-mem,.sd-row.next-rev,.sd-row.next-rd{grid-template-columns:30px 1fr 1fr 30px}
   .postpone-detail-tbl{font-size:10px}
   .postpone-detail-tbl thead th,.postpone-detail-tbl tbody td{padding:5px 4px}
   .drawer{width:100vw;border-radius:0}
@@ -1315,7 +1319,7 @@ html[dir="rtl"] .drawer{transform:translateX(-100%)}
 /* ══════════════════════════════════════════════════════════════════ */
 /* SCRIPT 1 — الإعدادات + STATE + Helpers + calcDue + Hydrate + API */
 /* ══════════════════════════════════════════════════════════════════ */
-const API_URL = 'https://script.google.com/macros/s/AKfycby2iAGL0FJp1jlwl8-dX4v04aJfsSgFR7x4aLoMUEXVIMPPyCujO9MtHJzz259xnYrX/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxN7ICxUtUkDMZI0iTfOQZGpHaCaa8k1IlVky2-8Q530A688THYaVhapFgjc7sNAow0/exec';
 const API_TOKEN = 'SABAQ_a8f3k9m2x7p5q1w4e6r8t0y2u4i6o8a0_2024';
 
 const ACADEMY = 'أكاديمية السَّبَّاق لتعليم القرآن الكريم';
@@ -2297,7 +2301,7 @@ function openForm(key){
       let currentInitialItems = [];
       let currentInitialText = '';
 
-      const renderMemorizationUI = () => {
+const renderMemorizationUI = () => {
         container.querySelector('[data-sd-content]').innerHTML = `
           <div class="sd-head"><div class="title">📖 السور المقيّمة</div><button type="button" class="add-btn" data-add-row>➕ إضافة سورة</button></div>
           <div data-rows></div>
@@ -2307,28 +2311,37 @@ function openForm(key){
         const rowsBox = container.querySelector('[data-rows]');
         const nextRowsBox = container.querySelector('[data-next-rows]');
         
-        const createRow = (surah='', range='', rating='ممتاز', note='', isNext=false) => {
-          const targetBox = isNext ? nextRowsBox : rowsBox;
-          const idx = targetBox.children.length + 1;
+        const createRow = (surah='', range='', rating='ممتاز', note='') => {
+          const idx = rowsBox.children.length + 1;
           const div = document.createElement('div');
           div.className = 'sd-row mem';
           div.innerHTML = `<span class="num">${idx}</span><select data-f="surah" class="surah-select">${surahOptions(surah)}</select><input type="text" data-f="range" placeholder="الآيات (1-5)" value="${escapeHtml(range)}"><select data-f="rating">${['ممتاز','جيد جداً','جيد','مقبول','يحتاج مراجعة'].map(r => `<option value="${r}" ${r===rating?'selected':''}>${r}</option>`).join('')}</select><input type="text" data-f="note" placeholder="ملاحظة" value="${escapeHtml(note)}"><button type="button" class="del-btn" data-del>✕</button>`;
-          targetBox.appendChild(div);
-          div.querySelector('[data-del]').onclick = () => { div.remove(); [...targetBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
+          rowsBox.appendChild(div);
+          div.querySelector('[data-del]').onclick = () => { div.remove(); [...rowsBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
         };
 
-        container.querySelector('[data-add-row]').onclick = () => createRow('', '', 'ممتاز', '', false);
-        container.querySelector('[data-add-next-row]').onclick = () => createRow('', '', 'ممتاز', '', true);
+        // ✅ صف الحصة القادمة — بدون تقييم ولا ملاحظة
+        const createNextRow = (surah='', range='') => {
+          const idx = nextRowsBox.children.length + 1;
+          const div = document.createElement('div');
+          div.className = 'sd-row next-mem';
+          div.innerHTML = `<span class="num">${idx}</span><select data-f="surah" class="surah-select">${surahOptions(surah)}</select><input type="text" data-f="range" placeholder="الآيات (1-5)" value="${escapeHtml(range)}"><button type="button" class="del-btn" data-del>✕</button>`;
+          nextRowsBox.appendChild(div);
+          div.querySelector('[data-del]').onclick = () => { div.remove(); [...nextRowsBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
+        };
+
+        container.querySelector('[data-add-row]').onclick = () => createRow();
+        container.querySelector('[data-add-next-row]').onclick = () => createNextRow();
 
         if (currentInitialItems && currentInitialItems.length > 0) {
-          currentInitialItems.forEach(it => createRow(it.surah, it.range, it.rating, it.note, false));
+          currentInitialItems.forEach(it => createRow(it.surah, it.range, it.rating, it.note));
         } else {
           createRow();
         }
-        createRow('', '', 'ممتاز', '', true);
+        createNextRow();
       };
 
-      const renderReviewUI = () => {
+const renderReviewUI = () => {
         container.querySelector('[data-sd-content]').innerHTML = `
           <div class="sd-head"><div class="title">🔄 السور المراجَعة</div><button type="button" class="add-btn" data-add-row>➕ إضافة سورة</button></div>
           <div data-rows></div>
@@ -2338,25 +2351,34 @@ function openForm(key){
         const rowsBox = container.querySelector('[data-rows]');
         const nextRowsBox = container.querySelector('[data-next-rows]');
         
-        const createRow = (surah='', range='', rating='ممتاز', note='', isNext=false) => {
-          const targetBox = isNext ? nextRowsBox : rowsBox;
-          const idx = targetBox.children.length + 1;
+        const createRow = (surah='', range='', rating='ممتاز', note='') => {
+          const idx = rowsBox.children.length + 1;
           const div = document.createElement('div');
           div.className = 'sd-row rev';
           div.innerHTML = `<span class="num">${idx}</span><select data-f="surah" class="surah-select">${surahOptions(surah)}</select><input type="text" data-f="range" placeholder="نطاق المراجعة" value="${escapeHtml(range)}"><select data-f="rating">${['ممتاز','جيد جداً','جيد','مقبول','يحتاج مراجعة'].map(r => `<option value="${r}" ${r===rating?'selected':''}>${r}</option>`).join('')}</select><input type="text" data-f="note" placeholder="ملاحظة" value="${escapeHtml(note)}"><button type="button" class="del-btn" data-del>✕</button>`;
-          targetBox.appendChild(div);
-          div.querySelector('[data-del]').onclick = () => { div.remove(); [...targetBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
+          rowsBox.appendChild(div);
+          div.querySelector('[data-del]').onclick = () => { div.remove(); [...rowsBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
         };
 
-        container.querySelector('[data-add-row]').onclick = () => createRow('', '', 'ممتاز', '', false);
-        container.querySelector('[data-add-next-row]').onclick = () => createRow('', '', 'ممتاز', '', true);
+        // ✅ صف الحصة القادمة — بدون تقييم ولا ملاحظة
+        const createNextRow = (surah='', range='') => {
+          const idx = nextRowsBox.children.length + 1;
+          const div = document.createElement('div');
+          div.className = 'sd-row next-rev';
+          div.innerHTML = `<span class="num">${idx}</span><select data-f="surah" class="surah-select">${surahOptions(surah)}</select><input type="text" data-f="range" placeholder="نطاق المراجعة" value="${escapeHtml(range)}"><button type="button" class="del-btn" data-del>✕</button>`;
+          nextRowsBox.appendChild(div);
+          div.querySelector('[data-del]').onclick = () => { div.remove(); [...nextRowsBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
+        };
+
+        container.querySelector('[data-add-row]').onclick = () => createRow();
+        container.querySelector('[data-add-next-row]').onclick = () => createNextRow();
 
         if (currentInitialItems && currentInitialItems.length > 0) {
-          currentInitialItems.forEach(it => createRow(it.surah, it.range, it.rating, it.note, false));
+          currentInitialItems.forEach(it => createRow(it.surah, it.range, it.rating, it.note));
         } else {
           createRow();
         }
-        createRow('', '', 'ممتاز', '', true);
+        createNextRow();
       };
 
 const renderTajweedUI = () => {
@@ -2372,7 +2394,7 @@ const renderTajweedUI = () => {
         `;
       };
 
-      const renderReadingUI = () => {
+const renderReadingUI = () => {
         container.querySelector('[data-sd-content]').innerHTML = `
           <div class="sd-head"><div class="title">📗 السور المقروءة</div><button type="button" class="add-btn" data-add-row>➕ إضافة سورة</button></div>
           <div data-rows></div>
@@ -2382,25 +2404,34 @@ const renderTajweedUI = () => {
         const rowsBox = container.querySelector('[data-rows]');
         const nextRowsBox = container.querySelector('[data-next-rows]');
         
-        const createRow = (surah='', pages='', note='', isNext=false) => {
-          const targetBox = isNext ? nextRowsBox : rowsBox;
-          const idx = targetBox.children.length + 1;
+        const createRow = (surah='', pages='', note='') => {
+          const idx = rowsBox.children.length + 1;
           const div = document.createElement('div');
           div.className = 'sd-row rd';
           div.innerHTML = `<span class="num">${idx}</span><select data-f="surah" class="surah-select">${surahOptions(surah)}</select><input type="text" data-f="pages" placeholder="عدد الصفحات" value="${escapeHtml(pages)}"><input type="text" data-f="note" placeholder="ملاحظة" value="${escapeHtml(note)}"><button type="button" class="del-btn" data-del>✕</button>`;
-          targetBox.appendChild(div);
-          div.querySelector('[data-del]').onclick = () => { div.remove(); [...targetBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
+          rowsBox.appendChild(div);
+          div.querySelector('[data-del]').onclick = () => { div.remove(); [...rowsBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
         };
 
-        container.querySelector('[data-add-row]').onclick = () => createRow('', '', '', false);
-        container.querySelector('[data-add-next-row]').onclick = () => createRow('', '', '', true);
+        // ✅ صف الحصة القادمة — بدون ملاحظة
+        const createNextRow = (surah='', pages='') => {
+          const idx = nextRowsBox.children.length + 1;
+          const div = document.createElement('div');
+          div.className = 'sd-row next-rd';
+          div.innerHTML = `<span class="num">${idx}</span><select data-f="surah" class="surah-select">${surahOptions(surah)}</select><input type="text" data-f="pages" placeholder="عدد الصفحات" value="${escapeHtml(pages)}"><button type="button" class="del-btn" data-del>✕</button>`;
+          nextRowsBox.appendChild(div);
+          div.querySelector('[data-del]').onclick = () => { div.remove(); [...nextRowsBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
+        };
+
+        container.querySelector('[data-add-row]').onclick = () => createRow();
+        container.querySelector('[data-add-next-row]').onclick = () => createNextRow();
 
         if (currentInitialItems && currentInitialItems.length > 0) {
-          currentInitialItems.forEach(it => createRow(it.surah, it.pages, it.note, false));
+          currentInitialItems.forEach(it => createRow(it.surah, it.pages, it.note));
         } else {
           createRow();
         }
-        createRow('', '', '', true);
+        createNextRow();
       };
 
   const renderContemplationUI = () => {
@@ -3605,7 +3636,7 @@ function printStudentReport(no){
 
   let nextHtml = '';
   if (['حفظ', 'مراجعة', 'قراءة'].includes(sd.type) && sd.nextItems && sd.nextItems.length > 0) {
-    nextHtml = `<h3 class="sec-title">📚 الحصة القادمة</h3><table class="surah-tbl"><thead><tr><th style="width:50px">الرقم</th><th>السورة</th><th style="width:180px">النطاق / الآيات</th><th style="width:130px">التقييم</th></tr></thead><tbody>${sd.nextItems.map((it,i) => { const rt = it.rating || '—'; const cls = rt.includes('ممتاز') ? 'excellent' : rt.includes('جيد جداً') ? 'good' : 'ok'; return `<tr><td class="num">${i+1}</td><td class="surah-txt">${escapeHtml(it.surah||'—')}</td><td class="note-cell">${escapeHtml(it.range||it.pages||'—')}</td><td><span class="rating ${cls}">${escapeHtml(rt)}</span></td></tr>`; }).join('')}</tbody></table>`;
+    nextHtml = `<h3 class="sec-title">📚 الحصة القادمة</h3><table class="surah-tbl"><thead><tr><th style="width:50px">الرقم</th><th>السورة</th><th>النطاق / الآيات</th></tr></thead><tbody>${sd.nextItems.map((it,i) => `<tr><td class="num">${i+1}</td><td class="surah-txt">${escapeHtml(it.surah||'—')}</td><td class="note-cell">${escapeHtml(it.range || it.pages || '—')}</td></tr>`).join('')}</tbody></table>`;
   } else if (nextLessonText) {
     nextHtml = `<h3 class="sec-title">📚 الحصة القادمة</h3><div style="background:#f8faf9;border:1px dashed #cfe0d6;border-radius:10px;padding:14px 22px;font-size:13.5px;color:#333;line-height:1.7;white-space:pre-wrap;">${escapeHtml(nextLessonText)}</div>`;
   } else if (nextRows.length) {

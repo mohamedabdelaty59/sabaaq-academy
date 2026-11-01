@@ -552,7 +552,7 @@ html[dir="rtl"] .drawer{transform:translateX(-100%)}
   .cmd-item{padding:9px 11px;gap:8px}
   .cmd-item .ci-title{font-size:12.5px}
   .cmd-item .ci-sub{font-size:10.5px}
-}                          ← آخر قوس للـ 640px
+}                          /* آخر قوس للـ 640px */
 
 /* ═══════════ القائمة الجانبية — Full Screen على الموبايل ═══════════ */
 @media(max-width:860px){
@@ -1560,15 +1560,32 @@ STATE.packages = (raw.packages||[]).filter(p => val(p,'نوع الباقة','typ
   STATE.emailLog = (raw.emailLog || []).filter(r => val(r,'المستلم') || val(r,'نوع الرسالة'));
 
   STATE.reports = (raw.reports || []).filter(r => val(r,'اسم الطالب')).map(r => {
-    let sessionDetails = { type: val(r,'نوع الحلقة')||'حفظ', items: [] };
+    // ✅ الافتراضي بيشمل كل الحقول الجديدة — عشان الحفظ/الطباعة/الـ prefill
+    let sessionDetails = {
+      type: val(r,'نوع الحلقة') || 'حفظ',
+      items: [],
+      nextItems: [],
+      learned: [],
+      tajweedText: '',
+      nextLessonText: ''
+    };
     const rawDetails = val(r,'تفاصيل الحلقة');
     if(rawDetails){
       try {
         const parsed = JSON.parse(rawDetails);
         if(parsed && Array.isArray(parsed.items)){
-          sessionDetails = { type: parsed.type || val(r,'نوع الحلقة') || 'حفظ', items: parsed.items };
+          // ✅ الحفاظ على كل الحقول الجديدة من الـ JSON
+          sessionDetails = {
+            type: parsed.type || val(r,'نوع الحلقة') || 'حفظ',
+            items: parsed.items,
+            nextItems: Array.isArray(parsed.nextItems) ? parsed.nextItems : [],
+            learned: Array.isArray(parsed.learned) ? parsed.learned : [],
+            tajweedText: parsed.tajweedText || '',
+            nextLessonText: parsed.nextLessonText || ''
+          };
         }
       } catch(e) {
+        // fallback للصيغة القديمة (سطور مفصولة بـ |)
         const oldType = val(r,'نوع الحلقة') || 'حفظ';
         const items = String(rawDetails).split('\n').map(l=>l.trim()).filter(Boolean).map(line => {
           const p = line.split('|').map(x => x.trim());
@@ -1576,7 +1593,14 @@ STATE.packages = (raw.packages||[]).filter(p => val(p,'نوع الباقة','typ
           if(oldType === 'قراءة') return { surah: p[0]||'' };
           return { surah: p[0]||'', rating: p[1]||'', note: p[2]||'' };
         });
-        sessionDetails = { type: oldType, items };
+        sessionDetails = {
+          type: oldType,
+          items,
+          nextItems: [],
+          learned: [],
+          tajweedText: '',
+          nextLessonText: ''
+        };
       }
     }
     return {
@@ -2335,11 +2359,11 @@ function openForm(key){
         createRow('', '', 'ممتاز', '', true);
       };
 
-      const renderTajweedUI = () => {
+const renderTajweedUI = () => {
         container.querySelector('[data-sd-content]').innerHTML = `
           <div class="sd-head"><div class="title">🎯 ما تم أخذه في التجويد</div></div>
           <div class="field full" style="margin-top:10px;">
-            <textarea data-name="tajweedText" placeholder="أحكام النون الساكنة والتنوين..." style="width:100%; padding:11px 13px; border-radius:10px; background:var(--bg2); color:var(--text); border:1px solid var(--border); min-height:80px; font-family:inherit; font-size:13.5px; outline:none; resize:vertical;">${escapeHtml(currentInitialText || '')}</textarea>
+            <textarea data-name="tajweedText" placeholder="أحكام النون الساكنة والتنوين..." style="width:100%; padding:11px 13px; border-radius:10px; background:var(--bg2); color:var(--text); border:1px solid var(--border); min-height:80px; font-family:inherit; font-size:13.5px; outline:none; resize:vertical;"></textarea>
           </div>
           <div class="sd-head" style="margin-top:18px; border-color:var(--blue); background:rgba(77,157,255,.08)"><div class="title" style="color:var(--blue)">📚 الحصة القادمة</div></div>
           <div class="field full" style="margin-top:10px;">
@@ -2490,6 +2514,7 @@ function openForm(key){
         if(feeInp) feeInp.value = isPostponed ? '80 ج.م' : '0 ج.م';
       });
     }
+  }, 30);   // ← السطر الناقص
 
   document.getElementById('modalBack').classList.add('show');
   setTimeout(() => {

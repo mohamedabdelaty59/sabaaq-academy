@@ -367,7 +367,7 @@ td.num.blue{color:var(--blue)}
 .drawer-back.show{display:block;opacity:1}
 .drawer{position:fixed;top:0;inset-inline-end:0;bottom:0;width:min(620px,100vw);background:var(--bg2);border-inline-start:1px solid var(--border-s);z-index:260;transform:translateX(100%);transition:transform .32s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;box-shadow:-30px 0 60px rgba(0,0,0,.5)}
 html[dir="rtl"] .drawer{transform:translateX(-100%)}
-.drawer.open{transform:none}
+.drawer.open{transform:translateX(0) !important}
 .drawer-head{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--border-s);background:linear-gradient(180deg,#182130,#141c28);flex-shrink:0}
 .drawer-head h3{font-size:16px;font-weight:800;flex:1}
 .drawer-close{width:36px;height:36px;border-radius:10px;background:var(--card2);border:1px solid var(--border);color:var(--text2);cursor:pointer;font-size:16px;display:grid;place-items:center;transition:.18s}

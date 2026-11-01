@@ -3991,14 +3991,12 @@ const VOUCHER_OPS = {
 let CURRENT_VOUCHER = { type:'in', op:'subscription' };
 
 function openVoucherModal(presetType, presetOp, presetItem) {
-  const type = presetType === 'out' ? 'out' : 'in';  // ✅ تحقق صريح
-  CURRENT_VOUCHER.type = type;
-  CURRENT_VOUCHER.op = presetOp || VOUCHER_OPS[type][0].id;
+  CURRENT_VOUCHER.type = presetType || 'in';
+  CURRENT_VOUCHER.op = presetOp || VOUCHER_OPS[CURRENT_VOUCHER.type][0].id;
   document.getElementById('voucherForm').innerHTML = '';
   document.getElementById('voucherBack').classList.add('show');
   document.body.style.overflow = 'hidden';
-  // ✅ مرر العملية عشان يفتح على الفورم الصح
-  selectVoucherType(type, CURRENT_VOUCHER.op);
+  selectVoucherType(CURRENT_VOUCHER.type, CURRENT_VOUCHER.op);
   document.querySelectorAll('.voucher-tab').forEach(t => {
     t.onclick = () => selectVoucherType(t.dataset.type);
   });
@@ -4009,7 +4007,7 @@ function openVoucherModal(presetType, presetOp, presetItem) {
         sel.value = presetItem;
         sel.dispatchEvent(new Event('change'));
       }
-    }, 200);  // ✅ زوّدت الـ timeout لـ 200ms
+    }, 200);
   }
 }
 
@@ -4038,7 +4036,6 @@ function selectVoucherType(type, preferredOp) {
     sub.textContent = 'اختر العملية ثم أدخل البيانات';
   }
   renderVoucherOps();
-  // ✅ اختار العملية المطلوبة، أو أول عملية في التصنيف لو مش محددة
   const opToSelect = (preferredOp && VOUCHER_OPS[type].some(o => o.id === preferredOp))
     ? preferredOp
     : VOUCHER_OPS[type][0].id;
@@ -4293,21 +4290,42 @@ function buildVoucherLoanGivenForm() {
   ].map(buildField).join('');
 }
 
+function buildVoucherInvestmentForm() {
+  const form = document.getElementById('voucherForm');
+  form.innerHTML = [
+    { n:'التاريخ', l:'التاريخ', t:'date', def:todayISO(), req:true },
+    { n:'البيان', l:'📝 اسم الاستثمار', t:'text', req:true, full:true, ph:'مثال: أسهم - شركة X' },
+    { n:'المبلغ', l:'💰 رأس المال', t:'number', req:true },
+    { n:'القيمة الحالية', l:'القيمة الحالية', t:'number', hint:'تُملأ تلقائياً من رأس المال' },
+    { n:'الحالة', l:'الحالة', t:'select', opts:['قائم','مصفى','مربح','خاسر'], def:'قائم' },
+    { n:'ملاحظات', l:'ملاحظات', t:'textarea', full:true }
+  ].map(buildField).join('');
+
+  setTimeout(() => {
+    const capInp = form.querySelector('[data-name="المبلغ"]');
+    const curInp = form.querySelector('[data-name="القيمة الحالية"]');
+    if (capInp && curInp) {
+      capInp.addEventListener('input', () => {
+        if (!curInp.value) curInp.value = capInp.value;
+      });
+    }
+  }, 30);
+}
+
 function buildVoucherPaymentForm(type) {
   const form = document.getElementById('voucherForm');
-  const items = type === 'التزام'
-      ? STATE.obligations.map(o => {
-          const name = val(o,'البيان');
-          const { original, before } = obligationRemaining(name, 'التزام');
-          return { name, original, remaining: before };
-        })
-      : STATE.loans.map(l => {
-          const name = val(l,'اسم الشخص') || val(l,'البيان');
-          const { original, before } = obligationRemaining(name, 'قرض حسن');
-          return { name, original, remaining: before };
-        });
-
-  // 🆕 فحص "لا توجد التزامات/قروض"
+const items = type === 'التزام'
+    ? STATE.obligations.map(o => {
+        const name = val(o,'البيان');
+        const { original, before } = obligationRemaining(name, 'التزام');
+        return { name, original, remaining: before };
+      })
+    : STATE.loans.map(l => {
+        const name = val(l,'اسم الشخص') || val(l,'البيان');
+        const { original, before } = obligationRemaining(name, 'قرض حسن');
+        return { name, original, remaining: before };
+      });
+  
   if (!items.length) {
     form.innerHTML = `<div style="grid-column:1/-1;padding:30px 20px;text-align:center;color:var(--text3)">
       <div style="font-size:32px;opacity:.5;margin-bottom:8px">📭</div>
@@ -4472,7 +4490,7 @@ async function submitVoucher() {
         data['المتبقي قبل السداد'] = before;
         data['المتبقي بعد السداد'] = Math.max(0, before - Number(data['المبلغ المسدد']));
         break;
-    }
+      }
 
       case 'obligationPay': {
         if (!data['البيان']) throw new Error('اختر الالتزام');
@@ -4483,7 +4501,8 @@ async function submitVoucher() {
         data['المتبقي قبل السداد'] = before;
         data['المتبقي بعد السداد'] = Math.max(0, before - Number(data['المبلغ المسدد']));
         break;
-    }
+      }
+
       case 'investProfit':  data['نوع الحركة'] = 'استلام أرباح'; break;
       case 'investLiquid':  data['نوع الحركة'] = 'تصفية جزئية';  break;
       case 'investAdd':     data['نوع الحركة'] = 'إضافة رأس مال'; break;
@@ -4517,7 +4536,7 @@ document.addEventListener('click', (e) => {
   const [type, op] = btn.dataset.voucher.split(':');
   openVoucherModal(type, op, btn.dataset.presetItem);
 });
-
+  
 /* ═══ التحميل الأولي ═══ */
 loadFromSheets();
 setTimeout(() => {

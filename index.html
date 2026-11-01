@@ -3990,13 +3990,14 @@ const VOUCHER_OPS = {
 
 let CURRENT_VOUCHER = { type:'in', op:'subscription' };
 
-function openVoucherModal(presetType, presetOp, presetItem) {   // ← ضيف presetItem
+function openVoucherModal(presetType, presetOp, presetItem) {
   CURRENT_VOUCHER.type = presetType || 'in';
   CURRENT_VOUCHER.op = presetOp || VOUCHER_OPS[CURRENT_VOUCHER.type][0].id;
   document.getElementById('voucherForm').innerHTML = '';
   document.getElementById('voucherBack').classList.add('show');
   document.body.style.overflow = 'hidden';
-  selectVoucherType(CURRENT_VOUCHER.type);
+  // 🆕 مرر الـ op عشان يفتح على العملية الصح
+  selectVoucherType(CURRENT_VOUCHER.type, CURRENT_VOUCHER.op);
   document.querySelectorAll('.voucher-tab').forEach(t => {
     t.onclick = () => selectVoucherType(t.dataset.type);
   });
@@ -4018,7 +4019,7 @@ function closeVoucherModal() {
   document.getElementById('voucherForm').innerHTML = '';
 }
 
-function selectVoucherType(type) {
+function selectVoucherType(type, preferredOp) {
   CURRENT_VOUCHER.type = type;
   document.querySelectorAll('.voucher-tab').forEach(t => {
     t.classList.remove('active-in','active-out');
@@ -4037,7 +4038,11 @@ function selectVoucherType(type) {
     sub.textContent = 'اختر العملية ثم أدخل البيانات';
   }
   renderVoucherOps();
-  selectVoucherOp(VOUCHER_OPS[type][0].id);
+  // 🆕 اختار الـ preferredOp لو موجود، وإلا أول عملية في التصنيف
+  const opToSelect = (preferredOp && VOUCHER_OPS[type].some(o => o.id === preferredOp))
+    ? preferredOp
+    : VOUCHER_OPS[type][0].id;
+  selectVoucherOp(opToSelect);
 }
 
 function renderVoucherOps() {

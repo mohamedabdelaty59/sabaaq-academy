@@ -3131,7 +3131,7 @@ function renderLoans(filter=''){
   body.innerHTML = rows.map((r,i) => {
     const name = val(r,'اسم الشخص') || val(r,'البيان');
     const { before } = obligationRemaining(name, 'قرض حسن');
-    return `<tr><td><span class="idx">${i+1}</span></td><td>${fmtDateShort(val(r,'التاريخ'))}</td><td class="name">${escapeHtml(name||'—')}</td><td class="num blue">${fmt(numField(r,'المبلغ'))}</td><td class="num gold">${fmt(before)}</td><td>${escapeHtml(val(r,'الحالة')||'—')}</td><td style="color:var(--text3)">${escapeHtml(val(r,'ملاحظات')||'—')}</td><td><button class="btn btn-pay" data-voucher="in:loanCollect" title="تحصيل">💳</button></td></tr>`;
+    return `<tr><td><span class="idx">${i+1}</span></td><td>${fmtDateShort(val(r,'التاريخ'))}</td><td class="name">${escapeHtml(name||'—')}</td><td class="num blue">${fmt(numField(r,'المبلغ'))}</td><td class="num gold">${fmt(before)}</td><td>${escapeHtml(val(r,'الحالة')||'—')}</td><td style="color:var(--text3)">${escapeHtml(val(r,'ملاحظات')||'—')}</td><td><button class="btn btn-pay" data-voucher="in:loanCollect" data-preset-item="${escapeHtml(name)}" title="تحصيل">💳</button></td></tr>`;
   }).join('');
 }
 function renderInvest(filter=''){
@@ -3158,7 +3158,7 @@ function renderObligations(filter=''){
   body.innerHTML = rows.map((r,i) => {
     const name = val(r,'البيان');
     const { before } = obligationRemaining(name, 'التزام');
-    return `<tr><td><span class="idx">${i+1}</span></td><td>${fmtDateShort(val(r,'التاريخ'))}</td><td class="name">${escapeHtml(name||'—')}</td><td class="num red">${fmt(numField(r,'المبلغ'))}</td><td class="num gold">${fmt(before)}</td><td>${escapeHtml(val(r,'الحالة')||'—')}</td><td style="color:var(--text3)">${escapeHtml(val(r,'ملاحظات')||'—')}</td><td><button class="btn btn-pay" data-voucher="out:obligationPay" title="سداد">💳</button></td></tr>`;
+    return `<tr><td><span class="idx">${i+1}</span></td><td>${fmtDateShort(val(r,'التاريخ'))}</td><td class="name">${escapeHtml(name||'—')}</td><td class="num red">${fmt(numField(r,'المبلغ'))}</td><td class="num gold">${fmt(before)}</td><td>${escapeHtml(val(r,'الحالة')||'—')}</td><td style="color:var(--text3)">${escapeHtml(val(r,'ملاحظات')||'—')}</td><td><button class="btn btn-pay" data-voucher="out:obligationPay" data-preset-item="${escapeHtml(name)}" title="سداد">💳</button></td></tr>`;
   }).join('');
 }
 function renderPackages(){
@@ -3990,7 +3990,7 @@ const VOUCHER_OPS = {
 
 let CURRENT_VOUCHER = { type:'in', op:'subscription' };
 
-function openVoucherModal(presetType, presetOp) {
+function openVoucherModal(presetType, presetOp, presetItem) {   // ← ضيف presetItem
   CURRENT_VOUCHER.type = presetType || 'in';
   CURRENT_VOUCHER.op = presetOp || VOUCHER_OPS[CURRENT_VOUCHER.type][0].id;
   document.getElementById('voucherForm').innerHTML = '';
@@ -4000,6 +4000,16 @@ function openVoucherModal(presetType, presetOp) {
   document.querySelectorAll('.voucher-tab').forEach(t => {
     t.onclick = () => selectVoucherType(t.dataset.type);
   });
+  // 🆕 اختيار الالتزام/القرض تلقائياً
+  if (presetItem) {
+    setTimeout(() => {
+      const sel = document.getElementById('voucherPayItem');
+      if (sel) {
+        sel.value = presetItem;
+        sel.dispatchEvent(new Event('change'));
+      }
+    }, 150);
+  }
 }
 
 function closeVoucherModal() {
@@ -4278,34 +4288,21 @@ function buildVoucherLoanGivenForm() {
   ].map(buildField).join('');
 }
 
-function buildVoucherInvestmentForm() {
-  const form = document.getElementById('voucherForm');
-  form.innerHTML = [
-    { n:'التاريخ', l:'التاريخ', t:'date', def:todayISO(), req:true },
-    { n:'البيان', l:'📝 اسم الاستثمار', t:'text', req:true, full:true, ph:'مثال: أسهم - شركة X' },
-    { n:'المبلغ', l:'💰 رأس المال', t:'number', req:true },
-    { n:'القيمة الحالية', l:'القيمة الحالية', t:'number', hint:'تُملأ تلقائياً من رأس المال' },
-    { n:'الحالة', l:'الحالة', t:'select', opts:['قائم','مصفى','مربح','خاسر'], def:'قائم' },
-    { n:'ملاحظات', l:'ملاحظات', t:'textarea', full:true }
-  ].map(buildField).join('');
-
-  setTimeout(() => {
-    const capInp = form.querySelector('[data-name="المبلغ"]');
-    const curInp = form.querySelector('[data-name="القيمة الحالية"]');
-    if (capInp && curInp) {
-      capInp.addEventListener('input', () => {
-        if (!curInp.value) curInp.value = capInp.value;
-      });
-    }
-  }, 30);
-}
-
 function buildVoucherPaymentForm(type) {
   const form = document.getElementById('voucherForm');
   const items = type === 'التزام'
-    ? STATE.obligations.map(o => ({ name: val(o,'البيان'), original: numField(o,'المبلغ'), remaining: numField(o,'المتبقي') || numField(o,'المبلغ') }))
-    : STATE.loans.map(l => ({ name: val(l,'اسم الشخص') || val(l,'البيان'), original: numField(l,'المبلغ'), remaining: numField(l,'المتبقي') || numField(l,'المبلغ') }));
+      ? STATE.obligations.map(o => {
+          const name = val(o,'البيان');
+          const { original, before } = obligationRemaining(name, 'التزام');
+          return { name, original, remaining: before };
+        })
+      : STATE.loans.map(l => {
+          const name = val(l,'اسم الشخص') || val(l,'البيان');
+          const { original, before } = obligationRemaining(name, 'قرض حسن');
+          return { name, original, remaining: before };
+        });
 
+  // 🆕 فحص "لا توجد التزامات/قروض"
   if (!items.length) {
     form.innerHTML = `<div style="grid-column:1/-1;padding:30px 20px;text-align:center;color:var(--text3)">
       <div style="font-size:32px;opacity:.5;margin-bottom:8px">📭</div>
@@ -4461,26 +4458,27 @@ async function submitVoucher() {
         break;
       }
 
-      case 'loanCollect':
+      case 'loanCollect': {
         if (!data['البيان']) throw new Error('اختر القرض');
         if (!data['المبلغ المسدد']) throw new Error('أدخل المبلغ المحصل');
         data['النوع'] = 'قرض حسن';
-        data['المبلغ الأصلي'] = numField(STATE.loans.find(l => (val(l,'اسم الشخص')||val(l,'البيان')) === data['البيان']) || {}, 'المبلغ');
-        data['المتبقي قبل السداد'] = Number(data['__before']?.replace?.(/[^\d.]/g,'')) || 0;
-        data['المتبقي بعد السداد'] = Math.max(0, (Number(data['__before']?.replace?.(/[^\d.]/g,'')) || 0) - data['المبلغ المسدد']);
-        delete data['__original']; delete data['__before']; delete data['__after'];
+        const { original, before } = obligationRemaining(data['البيان'], 'قرض حسن');
+        data['المبلغ الأصلي'] = original;
+        data['المتبقي قبل السداد'] = before;
+        data['المتبقي بعد السداد'] = Math.max(0, before - Number(data['المبلغ المسدد']));
         break;
+    }
 
-      case 'obligationPay':
+      case 'obligationPay': {
         if (!data['البيان']) throw new Error('اختر الالتزام');
         if (!data['المبلغ المسدد']) throw new Error('أدخل المبلغ المسدد');
         data['النوع'] = 'التزام';
-        data['المبلغ الأصلي'] = numField(STATE.obligations.find(o => val(o,'البيان') === data['البيان']) || {}, 'المبلغ');
-        data['المتبقي قبل السداد'] = Number(data['__before']?.replace?.(/[^\d.]/g,'')) || 0;
-        data['المتبقي بعد السداد'] = Math.max(0, (Number(data['__before']?.replace?.(/[^\d.]/g,'')) || 0) - data['المبلغ المسدد']);
-        delete data['__original']; delete data['__before']; delete data['__after'];
+        const { original, before } = obligationRemaining(data['البيان'], 'التزام');
+        data['المبلغ الأصلي'] = original;
+        data['المتبقي قبل السداد'] = before;
+        data['المتبقي بعد السداد'] = Math.max(0, before - Number(data['المبلغ المسدد']));
         break;
-
+    }
       case 'investProfit':  data['نوع الحركة'] = 'استلام أرباح'; break;
       case 'investLiquid':  data['نوع الحركة'] = 'تصفية جزئية';  break;
       case 'investAdd':     data['نوع الحركة'] = 'إضافة رأس مال'; break;
@@ -4512,7 +4510,7 @@ document.addEventListener('click', (e) => {
   e.stopPropagation();
   document.getElementById('fabMenu')?.classList.remove('show');
   const [type, op] = btn.dataset.voucher.split(':');
-  openVoucherModal(type, op);
+  openVoucherModal(type, op, btn.dataset.presetItem);
 });
 
 /* ═══ التحميل الأولي ═══ */

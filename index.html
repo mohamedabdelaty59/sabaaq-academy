@@ -1315,7 +1315,7 @@ html[dir="rtl"] .drawer{transform:translateX(-100%)}
 /* ══════════════════════════════════════════════════════════════════ */
 /* SCRIPT 1 — الإعدادات + STATE + Helpers + calcDue + Hydrate + API */
 /* ══════════════════════════════════════════════════════════════════ */
-const API_URL = 'https://script.google.com/macros/s/AKfycbwu5OKDUXR8_2dH9OOuKF9sev5_ETl5dcypImeCrgtKNlSsfaHalYfd_s4KNK58lpw/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycby2iAGL0FJp1jlwl8-dX4v04aJfsSgFR7x4aLoMUEXVIMPPyCujO9MtHJzz259xnYrX/exec';
 const API_TOKEN = 'SABAQ_a8f3k9m2x7p5q1w4e6r8t0y2u4i6o8a0_2024';
 
 const ACADEMY = 'أكاديمية السَّبَّاق لتعليم القرآن الكريم';
@@ -1940,7 +1940,6 @@ const FORMS = {
       { n:'رسوم التأجيل', l:'💰 رسوم التأجيل', t:'readonly-num', hint:'80 ج.م' },
       { n:'نوع الحلقة', l:'📖 نوع الحلقة', t:'select', opts:['حفظ','قراءة','تدبر','مراجعة','تجويد'], def:'حفظ', req:true },
       { n:'تفاصيل الحلقة', l:'', t:'session-details', full:true },
-      { n:'الحصة القادمة', l:'📚 الحصة القادمة (كل سطر: النوع | التفاصيل)', t:'textarea', full:true },
       { n:'ملاحظات', l:'💬 ملاحظات لولي الأمر (كل سطر ملاحظة)', t:'textarea', full:true }
     ]},
   obligation: { title:'إضافة التزام', sub:'مبلغ مستحق عليّ', ic:'📑', action:'addObligation',
@@ -2271,67 +2270,135 @@ function openForm(key){
       const ageRo = formEl.querySelector('[data-name="العمر"]');
       if(feeInp) feeInp.value = '0 ج.م';
 
+      let currentInitialItems = [];
+      let currentInitialText = '';
+
       const renderMemorizationUI = () => {
-        container.querySelector('[data-sd-content]').innerHTML = `<div class="sd-head"><div class="title">📖 السور المقيّمة (الحفظ)</div><button type="button" class="add-btn" data-add-row>➕ إضافة سورة</button></div><div data-rows></div>`;
+        container.querySelector('[data-sd-content]').innerHTML = `
+          <div class="sd-head"><div class="title">📖 السور المقيّمة</div><button type="button" class="add-btn" data-add-row>➕ إضافة سورة</button></div>
+          <div data-rows></div>
+          <div class="sd-head" style="margin-top:18px; border-color:var(--blue); background:rgba(77,157,255,.08)"><div class="title" style="color:var(--blue)">📚 الحصة القادمة</div><button type="button" class="add-btn" data-add-next-row style="background:var(--blue)">➕ إضافة سورة</button></div>
+          <div data-next-rows></div>
+        `;
         const rowsBox = container.querySelector('[data-rows]');
-        const addRow = (surah='', range='', rating='ممتاز', note='') => {
-          const idx = rowsBox.children.length + 1;
+        const nextRowsBox = container.querySelector('[data-next-rows]');
+        
+        const createRow = (surah='', range='', rating='ممتاز', note='', isNext=false) => {
+          const targetBox = isNext ? nextRowsBox : rowsBox;
+          const idx = targetBox.children.length + 1;
           const div = document.createElement('div');
           div.className = 'sd-row mem';
           div.innerHTML = `<span class="num">${idx}</span><select data-f="surah" class="surah-select">${surahOptions(surah)}</select><input type="text" data-f="range" placeholder="الآيات (1-5)" value="${escapeHtml(range)}"><select data-f="rating">${['ممتاز','جيد جداً','جيد','مقبول','يحتاج مراجعة'].map(r => `<option value="${r}" ${r===rating?'selected':''}>${r}</option>`).join('')}</select><input type="text" data-f="note" placeholder="ملاحظة" value="${escapeHtml(note)}"><button type="button" class="del-btn" data-del>✕</button>`;
-          rowsBox.appendChild(div);
-          div.querySelector('[data-del]').onclick = () => { div.remove(); [...rowsBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
+          targetBox.appendChild(div);
+          div.querySelector('[data-del]').onclick = () => { div.remove(); [...targetBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
         };
-        container.querySelector('[data-add-row]').onclick = () => addRow();
-        addRow();
+
+        container.querySelector('[data-add-row]').onclick = () => createRow('', '', 'ممتاز', '', false);
+        container.querySelector('[data-add-next-row]').onclick = () => createRow('', '', 'ممتاز', '', true);
+
+        if (currentInitialItems && currentInitialItems.length > 0) {
+          currentInitialItems.forEach(it => createRow(it.surah, it.range, it.rating, it.note, false));
+        } else {
+          createRow();
+        }
+        createRow('', '', 'ممتاز', '', true);
       };
+
       const renderReviewUI = () => {
-        container.querySelector('[data-sd-content]').innerHTML = `<div class="sd-head"><div class="title">🔄 السور المراجَعة</div><button type="button" class="add-btn" data-add-row>➕ إضافة سورة</button></div><div data-rows></div>`;
+        container.querySelector('[data-sd-content]').innerHTML = `
+          <div class="sd-head"><div class="title">🔄 السور المراجَعة</div><button type="button" class="add-btn" data-add-row>➕ إضافة سورة</button></div>
+          <div data-rows></div>
+          <div class="sd-head" style="margin-top:18px; border-color:var(--blue); background:rgba(77,157,255,.08)"><div class="title" style="color:var(--blue)">📚 الحصة القادمة</div><button type="button" class="add-btn" data-add-next-row style="background:var(--blue)">➕ إضافة سورة</button></div>
+          <div data-next-rows></div>
+        `;
         const rowsBox = container.querySelector('[data-rows]');
-        const addRow = (surah='', range='', rating='ممتاز', note='') => {
-          const idx = rowsBox.children.length + 1;
+        const nextRowsBox = container.querySelector('[data-next-rows]');
+        
+        const createRow = (surah='', range='', rating='ممتاز', note='', isNext=false) => {
+          const targetBox = isNext ? nextRowsBox : rowsBox;
+          const idx = targetBox.children.length + 1;
           const div = document.createElement('div');
           div.className = 'sd-row rev';
           div.innerHTML = `<span class="num">${idx}</span><select data-f="surah" class="surah-select">${surahOptions(surah)}</select><input type="text" data-f="range" placeholder="نطاق المراجعة" value="${escapeHtml(range)}"><select data-f="rating">${['ممتاز','جيد جداً','جيد','مقبول','يحتاج مراجعة'].map(r => `<option value="${r}" ${r===rating?'selected':''}>${r}</option>`).join('')}</select><input type="text" data-f="note" placeholder="ملاحظة" value="${escapeHtml(note)}"><button type="button" class="del-btn" data-del>✕</button>`;
-          rowsBox.appendChild(div);
-          div.querySelector('[data-del]').onclick = () => { div.remove(); [...rowsBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
+          targetBox.appendChild(div);
+          div.querySelector('[data-del]').onclick = () => { div.remove(); [...targetBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
         };
-        container.querySelector('[data-add-row]').onclick = () => addRow();
-        addRow();
+
+        container.querySelector('[data-add-row]').onclick = () => createRow('', '', 'ممتاز', '', false);
+        container.querySelector('[data-add-next-row]').onclick = () => createRow('', '', 'ممتاز', '', true);
+
+        if (currentInitialItems && currentInitialItems.length > 0) {
+          currentInitialItems.forEach(it => createRow(it.surah, it.range, it.rating, it.note, false));
+        } else {
+          createRow();
+        }
+        createRow('', '', 'ممتاز', '', true);
       };
-      const TAJWEED_RULES = ['إدغام','إخفاء','إظهار','إقلاب','مدود','غنة','تفخيم','ترقيق','وقف وابتداء','مخارج الحروف','صفات الحروف'];
+
       const renderTajweedUI = () => {
-        container.querySelector('[data-sd-content]').innerHTML = `<div class="sd-head"><div class="title">🎯 أحكام التجويد</div><button type="button" class="add-btn" data-add-row>➕ إضافة سورة</button></div><div data-rows></div>`;
-        const rowsBox = container.querySelector('[data-rows]');
-        const addRow = (surah='', rule='إدغام', rating='ممتاز', note='') => {
-          const idx = rowsBox.children.length + 1;
-          const div = document.createElement('div');
-          div.className = 'sd-row taj';
-          div.innerHTML = `<span class="num">${idx}</span><select data-f="surah" class="surah-select">${surahOptions(surah)}</select><select data-f="rule">${TAJWEED_RULES.map(r => `<option value="${r}" ${r===rule?'selected':''}>${r}</option>`).join('')}</select><select data-f="rating">${['ممتاز','جيد جداً','جيد','مقبول','يحتاج مراجعة'].map(r => `<option value="${r}" ${r===rating?'selected':''}>${r}</option>`).join('')}</select><input type="text" data-f="note" placeholder="ملاحظة" value="${escapeHtml(note)}"><button type="button" class="del-btn" data-del>✕</button>`;
-          rowsBox.appendChild(div);
-          div.querySelector('[data-del]').onclick = () => { div.remove(); [...rowsBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
-        };
-        container.querySelector('[data-add-row]').onclick = () => addRow();
-        addRow();
+        container.querySelector('[data-sd-content]').innerHTML = `
+          <div class="sd-head"><div class="title">🎯 ما تم أخذه في التجويد</div></div>
+          <div class="field full" style="margin-top:10px;">
+            <textarea data-name="tajweedText" placeholder="أحكام النون الساكنة والتنوين..." style="width:100%; padding:11px 13px; border-radius:10px; background:var(--bg2); color:var(--text); border:1px solid var(--border); min-height:80px; font-family:inherit; font-size:13.5px; outline:none; resize:vertical;">${escapeHtml(currentInitialText || '')}</textarea>
+          </div>
+          <div class="sd-head" style="margin-top:18px; border-color:var(--blue); background:rgba(77,157,255,.08)"><div class="title" style="color:var(--blue)">📚 الحصة القادمة</div></div>
+          <div class="field full" style="margin-top:10px;">
+            <textarea data-name="nextLessonText" placeholder="هنبدأ في..." style="width:100%; padding:11px 13px; border-radius:10px; background:var(--bg2); color:var(--text); border:1px solid var(--border); min-height:70px; font-family:inherit; font-size:13.5px; outline:none; resize:vertical;">${escapeHtml(currentInitialText || '')}</textarea>
+          </div>
+        `;
       };
+
       const renderReadingUI = () => {
-        container.querySelector('[data-sd-content]').innerHTML = `<div class="sd-head"><div class="title">📗 السور المقروءة</div><button type="button" class="add-btn" data-add-row>➕ إضافة سورة</button></div><div data-rows></div>`;
+        container.querySelector('[data-sd-content]').innerHTML = `
+          <div class="sd-head"><div class="title">📗 السور المقروءة</div><button type="button" class="add-btn" data-add-row>➕ إضافة سورة</button></div>
+          <div data-rows></div>
+          <div class="sd-head" style="margin-top:18px; border-color:var(--blue); background:rgba(77,157,255,.08)"><div class="title" style="color:var(--blue)">📚 الحصة القادمة</div><button type="button" class="add-btn" data-add-next-row style="background:var(--blue)">➕ إضافة سورة</button></div>
+          <div data-next-rows></div>
+        `;
         const rowsBox = container.querySelector('[data-rows]');
-        const addRow = (surah='', pages='', note='') => {
-          const idx = rowsBox.children.length + 1;
+        const nextRowsBox = container.querySelector('[data-next-rows]');
+        
+        const createRow = (surah='', pages='', note='', isNext=false) => {
+          const targetBox = isNext ? nextRowsBox : rowsBox;
+          const idx = targetBox.children.length + 1;
           const div = document.createElement('div');
           div.className = 'sd-row rd';
           div.innerHTML = `<span class="num">${idx}</span><select data-f="surah" class="surah-select">${surahOptions(surah)}</select><input type="text" data-f="pages" placeholder="عدد الصفحات" value="${escapeHtml(pages)}"><input type="text" data-f="note" placeholder="ملاحظة" value="${escapeHtml(note)}"><button type="button" class="del-btn" data-del>✕</button>`;
-          rowsBox.appendChild(div);
-          div.querySelector('[data-del]').onclick = () => { div.remove(); [...rowsBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
+          targetBox.appendChild(div);
+          div.querySelector('[data-del]').onclick = () => { div.remove(); [...targetBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
         };
-        container.querySelector('[data-add-row]').onclick = () => addRow();
-        addRow();
+
+        container.querySelector('[data-add-row]').onclick = () => createRow('', '', '', false);
+        container.querySelector('[data-add-next-row]').onclick = () => createRow('', '', '', true);
+
+        if (currentInitialItems && currentInitialItems.length > 0) {
+          currentInitialItems.forEach(it => createRow(it.surah, it.pages, it.note, false));
+        } else {
+          createRow();
+        }
+        createRow('', '', '', true);
       };
+
       const renderContemplationUI = () => {
-        container.querySelector('[data-sd-content]').innerHTML = `<div class="sd-head"><div class="title">💭 السور المتدبَّرة</div><button type="button" class="add-btn" data-add-row>➕ إضافة سورة</button></div><div data-rows></div>`;
+        container.querySelector('[data-sd-content]').innerHTML = `
+          <div class="sd-head"><div class="title">💭 السور المتدبَّرة</div><button type="button" class="add-btn" data-add-row>➕ إضافة سورة</button></div>
+          <div data-rows></div>
+          <div style="margin-top:15px; padding:12px; background:rgba(167,139,250,.08); border:1px solid rgba(167,139,250,.3); border-radius:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+               <div style="font-size:13px; font-weight:800; color:var(--purple);">💡 الدروس المستفادة (علمتني السورة)</div>
+               <button type="button" class="add-btn" data-add-learned style="background:var(--purple); padding:6px 12px; font-size:12px;">➕ إضافة درس</button>
+            </div>
+            <div data-learned-rows></div>
+          </div>
+          <div class="sd-head" style="margin-top:18px; border-color:var(--blue); background:rgba(77,157,255,.08)"><div class="title" style="color:var(--blue)">📚 الحصة القادمة</div></div>
+          <div class="field full" style="margin-top:10px;">
+            <textarea data-name="nextLessonText" placeholder="هنبدأ في..." style="width:100%; padding:11px 13px; border-radius:10px; background:var(--bg2); color:var(--text); border:1px solid var(--border); min-height:70px; font-family:inherit; font-size:13.5px; outline:none; resize:vertical;">${escapeHtml(currentInitialText || '')}</textarea>
+          </div>
+        `;
         const rowsBox = container.querySelector('[data-rows]');
-        const addRow = (surah='', verse='', note='') => {
+        const learnedBox = container.querySelector('[data-learned-rows]');
+
+        const createRow = (surah='', verse='', note='') => {
           const idx = rowsBox.children.length + 1;
           const div = document.createElement('div');
           div.className = 'sd-row con';
@@ -2339,10 +2406,34 @@ function openForm(key){
           rowsBox.appendChild(div);
           div.querySelector('[data-del]').onclick = () => { div.remove(); [...rowsBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
         };
-        container.querySelector('[data-add-row]').onclick = () => addRow();
-        addRow();
+
+        const createLearnedRow = (val='') => {
+          const idx = learnedBox.children.length + 1;
+          const div = document.createElement('div');
+          div.className = 'sd-row';
+          div.style.gridTemplateColumns = '30px 1fr 34px';
+          div.style.marginBottom = '6px';
+          div.style.padding = '8px';
+          div.innerHTML = `<span class="num" style="width:26px;height:26px;font-size:11px;">${idx}</span><input type="text" data-learned-val placeholder="اكتب الدرس المستفاد..." value="${escapeHtml(val)}" style="padding:8px 10px; font-size:13px;"><button type="button" class="del-btn" data-del style="width:30px;height:30px;font-size:13px;">✕</button>`;
+          learnedBox.appendChild(div);
+          div.querySelector('[data-del]').onclick = () => { div.remove(); [...learnedBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
+        };
+
+        container.querySelector('[data-add-row]').onclick = () => createRow();
+        container.querySelector('[data-add-learned]').onclick = () => createLearnedRow();
+
+        if (currentInitialItems && currentInitialItems.length > 0) {
+          currentInitialItems.forEach(it => createRow(it.surah, it.verse, it.note));
+        } else {
+          createRow();
+        }
+        // Note: We don't prepopulate `learned` from previous report, because learned lessons are cumulative but stored per report.
+        // Unless the user wants it, let's leave it fresh.
       };
-      const switchUI = () => {
+
+      const switchUI = (itemsData = [], textData = '') => {
+        currentInitialItems = itemsData;
+        currentInitialText = textData;
         const t = typeSel.value;
         if(t === 'تدبر') renderContemplationUI();
         else if(t === 'قراءة') renderReadingUI();
@@ -2350,8 +2441,9 @@ function openForm(key){
         else if(t === 'تجويد') renderTajweedUI();
         else renderMemorizationUI();
       };
-      typeSel.addEventListener('change', switchUI);
-      switchUI();
+      
+      typeSel.addEventListener('change', () => switchUI([], ''));
+      switchUI([], '');
 
       stuSel3.addEventListener('change', () => {
         const opt = stuSel3.selectedOptions[0];
@@ -2361,8 +2453,35 @@ function openForm(key){
           if(emailRo) emailRo.value = stu.email || '';
           if(stu.sType && typeSel) typeSel.value = stu.sType;
           if(ageRo) ageRo.value = computeAge(stu.birthdate);
+          
+          let lastDataItems = [];
+          let lastDataText = '';
+          
+          const stuReports = STATE.reports.filter(r => r.student === stu.name);
+          if (stuReports.length > 0) {
+            stuReports.sort((a,b) => new Date(b.date) - new Date(a.date));
+            const lastReport = stuReports[0];
+            const lastData = lastReport.sessionDetails || {};
+            
+            if (lastData.nextItems && lastData.nextItems.length > 0) {
+              lastDataItems = lastData.nextItems;
+              showToast('✅ تم جلب بيانات الحصة بناءً على الحلقة السابقة');
+            } else if (lastReport.nextLessonRaw) {
+              const nextLines = String(lastReport.nextLessonRaw).split('\n').filter(Boolean);
+              if (nextLines.length > 0) {
+                lastDataItems = nextLines.map(line => {
+                  const parts = line.split('|').map(x=>x.trim());
+                  return { surah: parts[0] || '', range: parts[1] || '', rating: 'ممتاز', note: parts[2] || '' };
+                });
+              }
+            }
+            lastDataText = lastData.nextLessonText || lastReport.nextLessonRaw || '';
+          }
+          
+          switchUI(lastDataItems, lastDataText);
         }
       });
+      
       statusSel.addEventListener('change', () => {
         const isPostponed = statusSel.value === 'مؤجل';
         postponeInp.disabled = !isPostponed;
@@ -2371,7 +2490,6 @@ function openForm(key){
         if(feeInp) feeInp.value = isPostponed ? '80 ج.م' : '0 ج.م';
       });
     }
-  }, 30);
 
   document.getElementById('modalBack').classList.add('show');
   setTimeout(() => {
@@ -2451,17 +2569,46 @@ async function submitForm(){
     if(stu && !data['العمر'] && stu.birthdate) data['العمر'] = computeAge(stu.birthdate);
     if(data['الحالة'] !== 'مؤجل'){ delete data['تاريخ التأجيل']; data['رسوم التأجيل'] = 0; }
     else data['رسوم التأجيل'] = POSTPONE_FEE;
+    
     const container = form.querySelector('[data-session-container]');
     const type = data['نوع الحلقة'] || 'حفظ';
     const items = [];
+    const nextItems = [];
+    let learned = [];
+    let tajweedText = '';
+    let nextLessonText = '';
+
     if(container){
-      container.querySelectorAll('.sd-row').forEach(row => {
+      // Current Items
+      container.querySelectorAll('[data-rows] .sd-row').forEach(row => {
         const obj = {};
         row.querySelectorAll('[data-f]').forEach(field => { obj[field.dataset.f] = field.value.trim(); });
         if(obj.surah) items.push(obj);
       });
+      
+      // Next Items (for Hifz, Review, Reading)
+      container.querySelectorAll('[data-next-rows] .sd-row').forEach(row => {
+        const obj = {};
+        row.querySelectorAll('[data-f]').forEach(field => { obj[field.dataset.f] = field.value.trim(); });
+        if(obj.surah) nextItems.push(obj);
+      });
+      
+      // Learned (for Tadabbur)
+      container.querySelectorAll('[data-learned-val]').forEach(inp => {
+        if(inp.value.trim()) learned.push(inp.value.trim());
+      });
+      
+      // Tajweed Text
+      const tajweedInp = container.querySelector('[data-name="tajweedText"]');
+      if (tajweedInp) tajweedText = tajweedInp.value.trim();
+      
+      // Next Lesson Text
+      const nextLessonInp = container.querySelector('[data-name="nextLessonText"]');
+      if (nextLessonInp) nextLessonText = nextLessonInp.value.trim();
     }
-    data['تفاصيل الحلقة'] = JSON.stringify({ type, items });
+
+    data['تفاصيل الحلقة'] = JSON.stringify({ type, items, nextItems, learned, tajweedText, nextLessonText });
+    data['الحصة القادمة'] = nextLessonText || ''; // Keep for backward compatibility
   }
   if(CURRENT_FORM === 'student'){
     if(data['رسوم المقابلة الفنية'] === undefined) data['رسوم المقابلة الفنية'] = 0;
@@ -3401,6 +3548,7 @@ function printStudentReport(no){
   const statusIcon = r.status === 'حاضر' ? '✅' : r.status === 'غائب' ? '❌' : '📅';
   const sd = r.sessionDetails || { type: r.sType, items: [] };
   const items = sd.items || [];
+  const nextLessonText = String(sd.nextLessonText || r.nextLessonRaw || '').trim();
   const nextRows = String(r.nextLessonRaw || '').split('\n').map(l => l.trim()).filter(Boolean)
     .map((line,i) => { const p = line.split('|').map(x => x.trim()); return { idx: i+1, type: p[0]||'—', detail: p[1]||'—' }; });
   const notes = String(r.note || '').split('\n').map(n => n.trim()).filter(Boolean);
@@ -3408,14 +3556,30 @@ function printStudentReport(no){
   let surahSection = '';
   if(items.length){
     if(sd.type === 'تدبر'){
-      surahSection = `<h3 class="sec-title">💭 السور المتدبَّرة</h3><table class="surah-tbl"><thead><tr><th style="width:50px">الرقم</th><th style="width:180px">السورة</th><th>ملاحظة التدبر</th></tr></thead><tbody>${items.map((it,i) => `<tr><td class="num">${i+1}</td><td class="surah">${escapeHtml(it.surah||'—')}</td><td class="note-cell">${escapeHtml(it.note||'—')}</td></tr>`).join('')}</tbody></table>`;
+      surahSection = `<h3 class="sec-title">💭 السور المتدبَّرة</h3><table class="surah-tbl"><thead><tr><th style="width:50px">الرقم</th><th style="width:180px">السورة</th><th style="width:80px">الآية</th><th>ملاحظة التدبر</th></tr></thead><tbody>${items.map((it,i) => `<tr><td class="num">${i+1}</td><td class="surah">${escapeHtml(it.surah||'—')}</td><td>${escapeHtml(it.verse||'—')}</td><td class="note-cell">${escapeHtml(it.note||'—')}</td></tr>`).join('')}</tbody></table>`;
+      if (sd.learned && sd.learned.length > 0) {
+         surahSection += `<h3 class="sec-title">💡 الدروس المستفادة (علمتني السورة)</h3><div style="background:#f8faf9;border:1px dashed #cfe0d6;border-radius:10px;padding:14px 22px;"><ul style="margin:0; padding:0 20px 0 0; list-style-type:disc; font-size:13px; font-weight:600; line-height:1.9; color:#4a3b1f;">${sd.learned.map(l => `<li>${escapeHtml(l)}</li>`).join('')}</ul></div>`;
+      }
     } else if(sd.type === 'قراءة'){
-      surahSection = `<h3 class="sec-title">📗 السور المقروءة</h3><table class="surah-tbl"><thead><tr><th style="width:50px">الرقم</th><th>السورة</th></tr></thead><tbody>${items.map((it,i) => `<tr><td class="num">${i+1}</td><td class="surah">${escapeHtml(it.surah||'—')}</td></tr>`).join('')}</tbody></table>`;
+      surahSection = `<h3 class="sec-title">📗 السور المقروءة</h3><table class="surah-tbl"><thead><tr><th style="width:50px">الرقم</th><th>السورة</th><th style="width:100px">الصفحات</th><th>ملاحظات</th></tr></thead><tbody>${items.map((it,i) => `<tr><td class="num">${i+1}</td><td class="surah">${escapeHtml(it.surah||'—')}</td><td>${escapeHtml(it.pages||'—')}</td><td class="note-cell">${escapeHtml(it.note||'—')}</td></tr>`).join('')}</tbody></table>`;
+    } else if (sd.type === 'تجويد') {
+      surahSection = `<h3 class="sec-title">🎯 ما تم أخذه في التجويد</h3><div style="background:#f8faf9;border:1px dashed #cfe0d6;border-radius:10px;padding:14px 22px;font-size:13.5px;color:#333;line-height:1.7;white-space:pre-wrap;">${escapeHtml(sd.tajweedText || '—')}</div>`;
+    } else if (sd.type === 'مراجعة') {
+      surahSection = `<h3 class="sec-title">🔄 السور المراجَعة</h3><table class="surah-tbl"><thead><tr><th style="width:50px">الرقم</th><th>السورة</th><th style="width:150px">النطاق</th><th style="width:130px">التقييم</th><th>ملاحظات</th></tr></thead><tbody>${items.map((it,i) => { const rt = it.rating || '—'; const cls = rt.includes('ممتاز') ? 'excellent' : rt.includes('جيد جداً') ? 'good' : 'ok'; return `<tr><td class="num">${i+1}</td><td class="surah-txt">${escapeHtml(it.surah||'—')}</td><td class="note-cell">${escapeHtml(it.range||'—')}</td><td><span class="rating ${cls}">${escapeHtml(rt)}</span></td><td class="note-cell">${escapeHtml(it.note||'—')}</td></tr>`; }).join('')}</tbody></table>`;
     } else {
-      surahSection = `<h3 class="sec-title">📖 السور المقيّمة</h3><table class="surah-tbl"><thead><tr><th style="width:50px">الرقم</th><th>السورة</th><th style="width:130px">التقييم</th><th>الملاحظات</th></tr></thead><tbody>${items.map((it,i) => { const rt = it.rating || '—'; const cls = rt.includes('ممتاز') ? 'excellent' : rt.includes('جيد جداً') ? 'good' : 'ok'; return `<tr><td class="num">${i+1}</td><td class="surah-txt">${escapeHtml(it.surah||'—')}</td><td><span class="rating ${cls}">${escapeHtml(rt)}</span></td><td class="note-cell">${escapeHtml(it.note||'—')}</td></tr>`; }).join('')}</tbody></table>`;
+      surahSection = `<h3 class="sec-title">📖 السور المقيّمة</h3><table class="surah-tbl"><thead><tr><th style="width:50px">الرقم</th><th>السورة</th><th style="width:130px">الآيات</th><th style="width:130px">التقييم</th><th>الملاحظات</th></tr></thead><tbody>${items.map((it,i) => { const rt = it.rating || '—'; const cls = rt.includes('ممتاز') ? 'excellent' : rt.includes('جيد جداً') ? 'good' : 'ok'; return `<tr><td class="num">${i+1}</td><td class="surah-txt">${escapeHtml(it.surah||'—')}</td><td class="note-cell">${escapeHtml(it.range||'—')}</td><td><span class="rating ${cls}">${escapeHtml(rt)}</span></td><td class="note-cell">${escapeHtml(it.note||'—')}</td></tr>`; }).join('')}</tbody></table>`;
     }
   }
-  const nextHtml = nextRows.length ? `<h3 class="sec-title">📚 الحصة القادمة</h3><table class="surah-tbl"><thead><tr><th style="width:60px">الرقم</th><th style="width:130px">النوع</th><th>التفاصيل</th></tr></thead><tbody>${nextRows.map(n => `<tr><td class="num">${n.idx}</td><td class="next-type">${escapeHtml(n.type)}</td><td class="next-detail">${escapeHtml(n.detail)}</td></tr>`).join('')}</tbody></table>` : '';
+
+  let nextHtml = '';
+  if (['حفظ', 'مراجعة', 'قراءة'].includes(sd.type) && sd.nextItems && sd.nextItems.length > 0) {
+    nextHtml = `<h3 class="sec-title">📚 الحصة القادمة</h3><table class="surah-tbl"><thead><tr><th style="width:50px">الرقم</th><th>السورة</th><th style="width:180px">النطاق / الآيات</th><th style="width:130px">التقييم</th></tr></thead><tbody>${sd.nextItems.map((it,i) => { const rt = it.rating || '—'; const cls = rt.includes('ممتاز') ? 'excellent' : rt.includes('جيد جداً') ? 'good' : 'ok'; return `<tr><td class="num">${i+1}</td><td class="surah-txt">${escapeHtml(it.surah||'—')}</td><td class="note-cell">${escapeHtml(it.range||it.pages||'—')}</td><td><span class="rating ${cls}">${escapeHtml(rt)}</span></td></tr>`; }).join('')}</tbody></table>`;
+  } else if (nextLessonText) {
+    nextHtml = `<h3 class="sec-title">📚 الحصة القادمة</h3><div style="background:#f8faf9;border:1px dashed #cfe0d6;border-radius:10px;padding:14px 22px;font-size:13.5px;color:#333;line-height:1.7;white-space:pre-wrap;">${escapeHtml(nextLessonText)}</div>`;
+  } else if (nextRows.length) {
+     nextHtml = `<h3 class="sec-title">📚 الحصة القادمة</h3><table class="surah-tbl"><thead><tr><th style="width:60px">الرقم</th><th style="width:130px">النوع</th><th>التفاصيل</th></tr></thead><tbody>${nextRows.map(n => `<tr><td class="num">${n.idx}</td><td class="next-type">${escapeHtml(n.type)}</td><td class="next-detail">${escapeHtml(n.detail)}</td></tr>`).join('')}</tbody></table>`;
+  }
+
   const notesHtml = notes.length ? `<h3 class="sec-title">💬 ملاحظات</h3><ul class="notes-list">${notes.map(n => `<li>${escapeHtml(n)}</li>`).join('')}</ul>` : '';
   const postponeHtml = r.status === 'مؤجل' ? `<div class="postpone-box"><div class="postpone-title">📅 الحلقة مؤجلة</div><div class="postpone-line">التاريخ الجديد: <b>${escapeHtml(r.postponeDate)}</b></div><div class="postpone-line">💰 رسوم التأجيل: <b style="color:#a01010">80 ج.م</b></div></div>` : '';
   const w = window.open('', '_blank');

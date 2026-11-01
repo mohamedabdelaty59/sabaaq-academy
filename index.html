@@ -426,6 +426,134 @@ html[dir="rtl"] .drawer{transform:translateX(-100%)}
   .bulk-bar .lbl{display:none}
   .bulk-bar button{padding:7px 10px;font-size:11.5px}
 }
+
+  /* ═══════════ تحسينات الموبايل الصغيرة (≤ 640px) ═══════════ */
+@media(max-width:640px){
+  /* 🎯 الحاوية الرئيسية */
+  .main{padding:12px 10px 90px}
+  .topbar{gap:8px;margin-bottom:14px}
+  .page-title h2{font-size:17px}
+  .page-title p{font-size:11.5px}
+
+  /* 🎯 الكروت */
+  .card{border-radius:12px;margin-bottom:14px}
+  .card-head{padding:12px;gap:6px}
+  .card-head h3{font-size:13.5px}
+  .card-body{padding:12px}
+
+  /* 🎯 KPI — عمودين مضغوطين */
+  .kpi-grid{grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+  .kpi{padding:10px 12px}
+  .kpi-head{margin-bottom:6px}
+  .kpi-ic{width:28px;height:28px;font-size:13px}
+  .kpi-trend{font-size:9.5px}
+  .kpi-val{font-size:16px}
+  .kpi-val small{font-size:11px}
+  .kpi-lbl{font-size:10px;margin-top:4px}
+
+  /* 🎯 ⭐ الجداول — ده أهم إصلاح ⭐ */
+  table{min-width:0!important;font-size:11px}
+  thead th{padding:7px 5px;font-size:9.5px;letter-spacing:0}
+  tbody td{padding:7px 5px;font-size:11px;white-space:nowrap!important;word-break:break-word;overflow-wrap:break-word}
+  tbody td.num{white-space:nowrap!important;font-size:10.5px}
+  td.name{font-size:11px}
+
+  /* أزرار الإجراءات في الجدول — تصغير مع لمس أسهل */
+  tbody td .btn{padding:3px 5px;font-size:9.5px;min-width:24px;min-height:24px;gap:2px}
+  tbody td .idx{width:20px;height:20px;font-size:9.5px}
+
+  /* الـ badges أصغر */
+  .badge{font-size:9.5px;padding:2px 6px}
+  .pkg-pill{font-size:9.5px;padding:2px 6px}
+
+  /* 🎯 التبويبات الفرعية */
+  .sub-tabs{padding:3px;gap:4px;margin-bottom:12px}
+  .sub-tab{padding:7px 10px;font-size:11.5px}
+
+  /* 🎯 فلاتر التاريخ */
+  .date-filter{padding:8px 10px;gap:6px}
+  .date-filter label{font-size:11px}
+  .date-filter input{font-size:11px;padding:6px 8px}
+  .date-filter .btn-quick{padding:5px 8px;font-size:10.5px}
+
+  /* 🎯 الأزرار العامة */
+  .btn{padding:8px 11px;font-size:12px}
+
+  /* 🎯 المودالات */
+  .modal{max-width:calc(100vw - 16px);border-radius:14px}
+  .modal-head{padding:12px 14px;gap:8px}
+  .modal-head .mh-ic{width:34px;height:34px;font-size:16px}
+  .modal-head h3{font-size:14px}
+  .modal-head .mh-sub{font-size:10.5px}
+  .modal-close{width:32px;height:32px;font-size:14px}
+  .modal-body{padding:12px 14px}
+  .modal-foot{padding:10px 12px;gap:6px}
+  .modal-foot .btn{padding:10px 12px;font-size:12.5px}
+
+  /* 🎯 الفورم */
+  .form-grid{gap:10px}
+  .field{gap:5px}
+  .field label{font-size:11.5px}
+  .field input,.field select,.field textarea{padding:9px 11px;font-size:13px;border-radius:8px}
+
+  /* 🎯 فورم السند */
+  .voucher-tabs{gap:6px;margin-bottom:12px}
+  .voucher-tab{padding:9px 6px}
+  .voucher-tab .vt-icon{font-size:20px;margin-bottom:3px}
+  .voucher-tab .vt-label{font-size:12px}
+  .voucher-tab .vt-sub{font-size:9.5px}
+  .voucher-ops{padding:6px;gap:4px;margin-bottom:12px}
+  .voucher-op{padding:6px 9px;font-size:11px}
+
+  /* 🎯 الـ FAB والـ toggle */
+  .fab{width:50px;height:50px;font-size:22px;bottom:80px;inset-inline-end:14px}
+  .fab-menu{bottom:138px;inset-inline-end:14px}
+  .fab-menu button{padding:10px 14px;font-size:12px}
+  .mob-toggle{width:50px;height:50px;inset-inline-start:14px;bottom:20px}
+
+  /* 🎯 ملف الطالب (Drawer) */
+  .drawer-head{padding:12px 14px}
+  .drawer-body{padding:12px}
+  .profile-hero{padding:14px;gap:12px}
+  .profile-avatar{width:60px;height:60px;border-radius:16px;font-size:24px}
+  .profile-info h2{font-size:17px}
+  .profile-info .meta{font-size:11px;gap:8px}
+  .stat-box{padding:10px 12px}
+  .stat-box .sb-ic{font-size:18px;margin-bottom:3px}
+  .stat-box .sb-val{font-size:17px}
+  .stat-box .sb-lbl{font-size:9.5px;margin-top:3px}
+
+  /* 🎯 التذكيرات */
+  .reminder-hero{padding:14px 16px;gap:12px}
+  .reminder-hero .rh-ic{width:48px;height:48px;font-size:22px;border-radius:12px}
+  .reminder-hero .rh-title{font-size:14px}
+  .reminder-hero .rh-sub{font-size:11px}
+
+  /* 🎯 التقويم */
+  .cal-grid{gap:3px}
+  .cal-cell{min-height:60px;padding:4px;border-radius:6px}
+  .cal-cell .day-num{font-size:10px;margin-bottom:2px}
+  .cal-cell .day-count{font-size:8px;padding:0 4px}
+  .cal-cell .sess-badge{font-size:8px;padding:1px 3px;margin:1px 0 0 0}
+  .cal-head{font-size:10.5px;padding:6px 0}
+
+  /* 🎯 الـ toast */
+  .toast{font-size:12px;padding:10px 14px;bottom:80px}
+
+  /* 🎯 الـ bulk bar */
+  .bulk-bar{bottom:80px;padding:8px 10px;gap:5px;border-radius:10px}
+  .bulk-bar button{padding:6px 9px;font-size:11px}
+
+  /* 🎯 Command Palette */
+  .cmd-box{border-radius:12px}
+  .cmd-input-wrap{padding:12px 14px;gap:8px}
+  .cmd-input{font-size:14px}
+  .cmd-kbd{display:none}
+  .cmd-item{padding:9px 11px;gap:8px}
+  .cmd-item .ci-title{font-size:12.5px}
+  .cmd-item .ci-sub{font-size:10.5px}
+}
+  
 @media print{
   .sidebar,.topbar-actions,.fab,.fab-menu,.mob-toggle,.bulk-bar,.sub-tabs,.date-filter,.pagination,.drawer,.drawer-back,.cmd-back,.toast,.loader{display:none!important}
   .main{margin:0!important;padding:10px!important}

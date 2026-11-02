@@ -757,7 +757,7 @@ html[dir="rtl"] .drawer{transform:translateX(-100%)}
                     <th>م</th><th>اسم الطالب</th><th>الباقة</th><th>السعر الشهري</th>
                     <th>رصيد افتتاحي</th><th>إجمالي المدفوع</th><th>إجمالي الخصم</th>
                     <th>رسوم التأجيل</th><th>رسوم المقابلة</th><th>عدد الدفعات</th>
-                    <th>المستحق</th><th>المتبقي</th><th>نسبة السداد</th><th>الحالة</th>
+                    <th>المستحق</th><th>الرصيد</th><th>المتبقي</th><th>نسبة السداد</th><th>الحالة</th>
                   </tr>
                 </thead>
                 <tbody id="summaryBody"></tbody>
@@ -1775,6 +1775,10 @@ function rebuildTotals(){
   t.cashOnHand = t.netCashFlow;
   t.netAssets = t.cashOnHand + t.investCurrent + t.loansOutstanding - t.obligations;
   t.collectRate = t.totalDue > 0 ? (t.totalPaid + t.totalDisc) / t.totalDue : 0;
+  t.totalCredits = STATE.summary.reduce((a, s) => {
+  const credit = Math.max(0, (s.paid + (s.disc || 0)) - s.due);
+  return a + credit;
+}, 0);
   STATE.totals = t;
 }
 
@@ -3336,7 +3340,8 @@ function renderKPIs(){
     { ic:'💸', lbl:'إجمالي المصروفات', val:money(t.expenses), c:'var(--red)', bg:'rgba(255,107,107,.12)', tr:'مصروف', go:'expenses' },
     { ic:'📈', lbl:'مصادر دخل أخرى', val:money(t.otherIncome), c:'var(--blue)', bg:'rgba(77,157,255,.12)', tr:'دخل', go:'income' },
     { ic:'🤲', lbl:'الصدقة', val:money(t.charity), c:'var(--gold)', bg:'rgba(245,181,68,.12)', tr:'عبادة', go:'charity' },
-    { ic:'💎', lbl:'صافي الأصول', val:money(t.netAssets), c:'var(--gold)', bg:'rgba(245,181,68,.12)', tr:'إجمالي' }
+    { ic:'💎', lbl:'صافي الأصول', val:money(t.netAssets), c:'var(--gold)', bg:'rgba(245,181,68,.12)', tr:'إجمالي' },
+    { ic:'💰', lbl:'أرصدة الطلاب الدائنة', val:money(t.totalCredits), c:'var(--brand)', bg:'rgba(45,212,167,.12)', tr:'رصيد', go:'students' },
   ];
   document.getElementById('kpiGrid').innerHTML = kpis.map(k => `<div class="kpi ${k.go?'clickable':''}" ${k.go?`data-act="goTo" data-sec="${k.go}"`:''} style="--accent:${k.c};--accent-bg:${k.bg}"><div class="kpi-head"><div class="kpi-ic">${k.ic}</div><div class="kpi-trend">${k.tr}</div></div><div class="kpi-val" style="color:${k.c}">${k.val}</div><div class="kpi-lbl">${k.lbl}</div></div>`).join('');
   const cashKpis = [
@@ -3410,7 +3415,12 @@ function renderStudents(filter=''){
     <tr>
       <td><input type="checkbox" class="bulk-check row-check-student" data-name="${escapeHtml(s.name)}" ${selectedIds.students.has(s.name) ? 'checked' : ''}></td>
       <td><span class="idx">${s.id}</span></td>
-      <td class="name">${escapeHtml(s.name)}</td>
+      <td class="name">${escapeHtml(s.name)}${(() => {
+    const sm = STATE.summary.find(x => x.name === s.name);
+  if (!sm) return '';
+  const credit = Math.max(0, (sm.paid + (sm.disc || 0)) - sm.due);
+  return credit > 0 ? ` <span class="badge gold" style="font-size:10px;padding:2px 6px">💰 ${fmt(credit)}</span>` : '';
+})()}</td>
       <td>${escapeHtml(s.phone || '—')}</td>
       <td>${escapeHtml(s.phone2 || '—')}</td>
       <td>${s.email ? `<a href="mailto:${escapeHtml(s.email)}" style="color:var(--blue)">${escapeHtml(s.email)}</a>` : '—'}</td>
@@ -3433,12 +3443,33 @@ function renderSummary(filter=''){
   const q = filter.trim().toLowerCase();
   const rows = STATE.summary.filter(s => !q || s.name.toLowerCase().includes(q));
   const body = document.getElementById('summaryBody');
-  if(!rows.length){ body.innerHTML = emptyRow(14); return; }
+  if(!rows.length){ body.innerHTML = emptyRow(15); return; }
   body.innerHTML = rows.map((s,i) => {
     const rate = s.due > 0 ? Math.min((s.paid + (s.disc||0)) / s.due, 1) : 0;
-    return `<tr><td><span class="idx">${i+1}</span></td><td class="name">${escapeHtml(s.name)}</td><td><span class="pkg-pill">${s.pkg} حلقات</span></td><td class="num">${fmt(s.price)}</td><td class="num ${s.openingBalance>0?'blue':''}">${s.openingBalance>0?fmt(s.openingBalance):'—'}</td><td class="num green">${fmt(s.paid)}</td><td class="num gold">${s.disc ? fmt(s.disc) : '—'}</td><td class="num gold">${s.postponeFees > 0 ? fmt(s.postponeFees) : '—'}</td><td class="num" style="color:var(--purple)">${s.interviewFee > 0 ? fmt(s.interviewFee) : '—'}</td><td class="num">${s.count}</td><td class="num">${fmt(s.due)}</td><td class="num ${s.remaining>0?'red':'green'}">${fmt(s.remaining)}</td><td><div style="display:flex;align-items:center;gap:9px"><div class="prog" style="flex:1"><i style="width:${(rate*100).toFixed(0)}%"></i></div><span style="font-size:11.5px;font-weight:800;color:var(--text3);min-width:34px">${(rate*100).toFixed(0)}%</span></div></td><td>${statusBadge(s.state)}</td></tr>`;
+    const credit = Math.max(0, (s.paid + (s.disc || 0)) - s.due);
+    const creditCell = credit > 0
+      ? `<span class="num green" style="font-weight:900">${fmt(credit)}</span>`
+      : '<span style="color:var(--text3)">—</span>';
+    return `<tr>
+      <td><span class="idx">${i+1}</span></td>
+      <td class="name">${escapeHtml(s.name)}</td>
+      <td><span class="pkg-pill">${s.pkg} حلقات</span></td>
+      <td class="num">${fmt(s.price)}</td>
+      <td class="num ${s.openingBalance>0?'blue':''}">${s.openingBalance>0?fmt(s.openingBalance):'—'}</td>
+      <td class="num green">${fmt(s.paid)}</td>
+      <td class="num gold">${s.disc ? fmt(s.disc) : '—'}</td>
+      <td class="num gold">${s.postponeFees > 0 ? fmt(s.postponeFees) : '—'}</td>
+      <td class="num" style="color:var(--purple)">${s.interviewFee > 0 ? fmt(s.interviewFee) : '—'}</td>
+      <td class="num">${s.count}</td>
+      <td class="num">${fmt(s.due)}</td>
+      <td>${creditCell}</td>
+      <td class="num ${s.remaining>0?'red':'green'}">${fmt(s.remaining)}</td>
+      <td><div style="display:flex;align-items:center;gap:9px"><div class="prog" style="flex:1"><i style="width:${(rate*100).toFixed(0)}%"></i></div><span style="font-size:11.5px;font-weight:800;color:var(--text3);min-width:34px">${(rate*100).toFixed(0)}%</span></div></td>
+      <td>${statusBadge(s.state)}</td>
+    </tr>`;
   }).join('');
 }
+  
 function renderCash(filter=''){
   const q = filter.trim().toLowerCase();
   const { from, to } = window._cashDateFilter || {};
@@ -4377,6 +4408,7 @@ window.addEventListener('resize', () => { Object.values(charts).forEach(c => c &
 const VOUCHER_OPS = {
   in: [
     { id:'subscription', icon:'📦', label:'اشتراك شهري',  action:'addReceipt',    special:'subscription' },
+    { id:'credit',       icon:'💰', label:'رصيد للطالب',  action:'addReceipt',    special:'credit' },
     { id:'prepaid',      icon:'💳', label:'دفع مقدم',     action:'addReceipt',    special:'prepaid' },
     { id:'income',       icon:'💵', label:'دخل آخر',      action:'addIncome',     special:'income' },
     { id:'loanCollect',  icon:'🤝', label:'تحصيل قرض',    action:'addPayment',    special:'loanCollect' },
@@ -4477,6 +4509,7 @@ function renderVoucherForm(opId) {
   const builders = {
     subscription: buildVoucherSubscriptionForm,
     prepaid:      buildVoucherPrepaidForm,
+    credit:       buildVoucherCreditForm,
     income:       buildVoucherIncomeForm,
     loanCollect:  () => buildVoucherPaymentForm('قرض حسن'),
     investProfit: () => buildVoucherInvestTransForm('استلام أرباح'),
@@ -4660,6 +4693,18 @@ function buildVoucherIncomeForm() {
     { n:'البيان', l:'📝 البيان / المصدر', t:'text', req:true, full:true, ph:'مثال: تبرع من فاعل خير' },
     { n:'المبلغ', l:'💰 المبلغ', t:'number', req:true, full:true },
     { n:'ملاحظات', l:'ملاحظات', t:'textarea', full:true }
+  ].map(buildField).join('');
+}
+
+  function buildVoucherCreditForm() {
+  const form = document.getElementById('voucherForm');
+  form.innerHTML = [
+    { n:'التاريخ', l:'التاريخ', t:'date', def:todayISO(), req:true },
+    { n:'طريقة الدفع', l:'طريقة الدفع', t:'select', opts:['نقدي','تحويل بنكي','محفظة إلكترونية','شيك'], def:'نقدي' },
+    { n:'اسم الطالب', l:'👨‍🎓 الطالب', t:'select-student', req:true, full:true },
+    { n:'المبلغ', l:'💰 مبلغ الرصيد', t:'number', req:true, full:true },
+    { n:'سبب الرصيد', l:'📝 سبب الرصيد', t:'select', opts:['دفعة زيادة','تعويض','هدية','تصحيح محاسبي','أخرى'], def:'دفعة زيادة', full:true },
+    { n:'ملاحظات', l:'ملاحظات إضافية', t:'textarea', full:true }
   ].map(buildField).join('');
 }
 
@@ -4883,6 +4928,22 @@ async function submitVoucher() {
         data['نوع الباقة'] = (data['نوع الباقة'] || '').replace(' حلقات','');
         const userNote = data['ملاحظات'] || '';
         data['ملاحظات'] = `📌 دفعة مقدمة · ${months} أشهر · ${startLabel} → ${endLabel}` + (userNote ? ' — ' + userNote : '');
+        break;
+      }
+
+      case 'credit': {
+        if (!data['اسم الطالب']) throw new Error('اختر الطالب');
+        if (!data['المبلغ']) throw new Error('أدخل المبلغ');
+        const reason = data['سبب الرصيد'] || 'دفعة زيادة';
+        const userNote = data['ملاحظات'] || '';
+        data['نوع الباقة'] = '';
+        data['المبلغ المستحق'] = 0;
+        data['المبلغ المدفوع'] = Number(data['المبلغ']);
+        data['خصم'] = 0;
+        data['الفترة المستحقة'] = '';
+        data['ملاحظات'] = `💰 رصيد للطالب — ${reason}` + (userNote ? ' — ' + userNote : '');
+        delete data['المبلغ'];
+        delete data['سبب الرصيد'];
         break;
       }
 

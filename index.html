@@ -4602,7 +4602,7 @@ function buildVoucherPrepaidForm() {
     const content = document.getElementById('voucherPrepaidContent');
 
     const recalc = () => {
-      const price = Number(priceInp?.value) || 0;
+      const price = Number((priceInp?.value || '0').replace(/[^\d.]/g, '')) || 0;
       const months = Number(monthsInp?.value) || 0;
       const total = price * months;
       let disc = 0;

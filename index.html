@@ -1319,7 +1319,7 @@ html[dir="rtl"] .drawer{transform:translateX(-100%)}
 /* ══════════════════════════════════════════════════════════════════ */
 /* SCRIPT 1 — الإعدادات + STATE + Helpers + calcDue + Hydrate + API */
 /* ══════════════════════════════════════════════════════════════════ */
-const API_URL = 'https://script.google.com/macros/s/AKfycbyM76T5QOgZhMBHhup_mGwIIf12wpMJLox4xUAn1VM7OONNZ79hjXAUEx6UbWFl6Ijs/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbw9ZWr3VSDNShF9fITRID0-6eZfhxNFrTs0WDs74bquMJ6a6Emx_TbZhF7PRLYMCfiw/exec';
 const API_TOKEN = 'SABAQ_a8f3k9m2x7p5q1w4e6r8t0y2u4i6o8a0_2024';
 
 const ACADEMY = 'أكاديمية السَّبَّاق لتعليم القرآن الكريم';
@@ -1615,6 +1615,7 @@ STATE.packages = (raw.packages||[]).filter(p => val(p,'نوع الباقة','typ
       teacher: val(r,'اسم المعلم')||'',
       age: val(r,'العمر')||'',
       status: val(r,'الحالة')||'حاضر',
+      absenceReason: val(r,'سبب الغياب')||'',
       sType: val(r,'نوع الحلقة')||'حفظ',
       sessionDetails,
       nextLessonRaw: val(r,'الحصة القادمة')||'',
@@ -1960,20 +1961,24 @@ const FORMS = {
       { n:'سعر الباقة', l:'السعر الجديد', t:'number', req:true },
       { n:'ملاحظات', l:'سبب التغيير', t:'textarea', full:true }
     ]},
-  studentReport: { title:'تقرير حلقة الطالب', sub:'يُرسل تلقائياً بالبريد — حقول ذكية حسب نوع الحلقة', ic:'📋', action:'addStudentReport',
-    fields: [
-      { n:'التاريخ', l:'📅 تاريخ التقييم', t:'date', req:true, def:'today' },
-      { n:'اسم الطالب', l:'👨‍🎓 الطالب', t:'select-student', req:true, full:true },
-      { n:'البريد الإلكتروني', l:'✉️ البريد الإلكتروني', t:'readonly', full:true, hint:'يُملأ تلقائياً' },
-      { n:'اسم المعلم', l:'👨‍🏫 اسم المعلم', t:'select', opts:TEACHERS, def:TEACHERS[0], req:true },
-      { n:'العمر', l:'🎂 عمر الطالب', t:'readonly', hint:'يُحسب تلقائياً' },
-      { n:'الحالة', l:'🎯 حالة الحضور', t:'select', opts:['حاضر','غائب','مؤجل'], def:'حاضر', req:true },
-      { n:'تاريخ التأجيل', l:'📅 تاريخ التأجيل الجديد', t:'postpone-date' },
-      { n:'رسوم التأجيل', l:'💰 رسوم التأجيل', t:'readonly-num', hint:'80 ج.م' },
-      { n:'نوع الحلقة', l:'📖 نوع الحلقة', t:'select', opts:['حفظ','قراءة','تدبر','مراجعة','تجويد'], def:'حفظ', req:true },
-      { n:'تفاصيل الحلقة', l:'', t:'session-details', full:true },
-      { n:'ملاحظات', l:'💬 ملاحظات لولي الأمر (كل سطر ملاحظة)', t:'textarea', full:true }
-    ]},
+studentReport: { title:'تقرير حلقة الطالب', sub:'يُرسل تلقائياً بالبريد — حقول ذكية حسب نوع الحلقة', ic:'📋', action:'addStudentReport',
+  fields: [
+    { n:'التاريخ', l:'📅 تاريخ التقييم', t:'date', req:true, def:'today' },
+    { n:'اسم الطالب', l:'👨‍🎓 الطالب', t:'select-student', req:true, full:true },
+    { n:'البريد الإلكتروني', l:'✉️ البريد الإلكتروني', t:'readonly', full:true, hint:'يُملأ تلقائياً' },
+    { n:'اسم المعلم', l:'👨‍🏫 اسم المعلم', t:'select', opts:TEACHERS, def:TEACHERS[0], req:true },
+    { n:'العمر', l:'🎂 عمر الطالب', t:'readonly', hint:'يُحسب تلقائياً' },
+    { n:'الحالة', l:'🎯 حالة الحضور', t:'select', opts:['حاضر','غائب','مؤجل'], def:'حاضر', req:true },
+{ n:'سبب الغياب', l:'📋 سبب الغياب', t:'select',
+  opts:['مريض','سفر','مرافقة مريض','ظرف عائلي طارئ','حالة وفاة','مناسبة عائلية'],
+  def:'', placeholder:'— اختر سبب الغياب —', full:true,
+  style:'display:none', hint:'مطلوب عند اختيار "غائب"' },
+    { n:'تاريخ التأجيل', l:'📅 تاريخ التأجيل الجديد', t:'postpone-date' },
+    { n:'رسوم التأجيل', l:'💰 رسوم التأجيل', t:'readonly-num', hint:'80 ج.م' },
+    { n:'نوع الحلقة', l:'📖 نوع الحلقة', t:'select', opts:['حفظ','قراءة','تدبر','مراجعة','تجويد'], def:'حفظ', req:true },
+    { n:'تفاصيل الحلقة', l:'', t:'session-details', full:true },
+    { n:'ملاحظات', l:'💬 ملاحظات لولي الأمر (كل سطر ملاحظة)', t:'textarea', full:true }
+  ]},
   obligation: { title:'إضافة التزام', sub:'مبلغ مستحق عليّ', ic:'📑', action:'addObligation',
     fields: [
       { n:'التاريخ', l:'التاريخ', t:'date', req:true, def:'today' },
@@ -2014,11 +2019,14 @@ let CURRENT_KEY_VALUE = null;
 function buildField(f){
   const wrapCls = 'field' + (f.full ? ' full' : '');
   const id = 'f_' + Math.random().toString(36).slice(2,9);
+  const wrapStyle = f.style ? ` style="${f.style}"` : '';
+  const wrapDataField = ` data-field="${escapeHtml(f.n)}"`;
   let input = '';
   if(f.t === 'textarea'){
     input = `<textarea id="${id}" data-name="${escapeHtml(f.n)}" placeholder="${escapeHtml(f.ph||'')}"></textarea>`;
-  } else if(f.t === 'select'){
-    input = `<select id="${id}" data-name="${escapeHtml(f.n)}">${f.opts.map(o=>`<option value="${escapeHtml(o)}" ${o===f.def?'selected':''}>${escapeHtml(o)}</option>`).join('')}</select>`;
+} else if(f.t === 'select'){
+    const placeholder = f.placeholder ? `<option value="">${escapeHtml(f.placeholder)}</option>` : '';
+    input = `<select id="${id}" data-name="${escapeHtml(f.n)}">${placeholder}${f.opts.map(o=>`<option value="${escapeHtml(o)}" ${o===f.def?'selected':''}>${escapeHtml(o)}</option>`).join('')}</select>`;
   } else if(f.t === 'select-pkg'){
     input = `<select id="${id}" data-name="${escapeHtml(f.n)}" data-pkg-select><option value="">— اختر الباقة —</option>${STATE.packages.map(p=>`<option value="${p.type}">${p.type} حلقات — ${fmt(p.price)} / ${fmt(p.priceForeign)} ج.م</option>`).join('')}</select>`;
   } else if(f.t === 'select-student'){
@@ -2059,7 +2067,7 @@ function buildField(f){
   }
   const hint = f.hint ? `<span class="hint-txt">· ${escapeHtml(f.hint)}</span>` : '';
   const lbl = f.l ? `<label for="${id}">${escapeHtml(f.l)} ${f.req?'<span class="req">*</span>':''} ${hint}</label>` : '';
-  return `<div class="${wrapCls}">${lbl}${input}</div>`;
+  return `<div class="${wrapCls}"${wrapDataField}${wrapStyle}>${lbl}${input}</div>`;
 }
 
 function renderStudentRegistrationPreview(form){
@@ -2548,16 +2556,40 @@ const renderReadingUI = () => {
         }
       });
       
-      statusSel.addEventListener('change', () => {
-        const isPostponed = statusSel.value === 'مؤجل';
+      const applyStatusVisibility = () => {
+        const status = statusSel.value;
+        const isPostponed = status === 'مؤجل';
+        const isAbsent = status === 'غائب';
+
+        // حقول التأجيل
         postponeInp.disabled = !isPostponed;
         postponeInp.style.opacity = isPostponed ? '1' : '.5';
         if(!isPostponed) postponeInp.value = '';
         if(feeInp) feeInp.value = isPostponed ? '80 ج.م' : '0 ج.م';
-      });
-    }
-  }, 30);   // ← السطر الناقص
 
+        // إظهار/إخفاء سبب الغياب
+        const absenceField = formEl.querySelector('[data-field="سبب الغياب"]');
+        if (absenceField) absenceField.style.display = isAbsent ? '' : 'none';
+
+        // إخفاء حقول الحضور عند الغياب
+        const sessionField = formEl.querySelector('[data-field="تفاصيل الحلقة"]');
+        if (sessionField) sessionField.style.display = isAbsent ? 'none' : '';
+
+        const typeField = formEl.querySelector('[data-field="نوع الحلقة"]');
+        if (typeField) typeField.style.display = isAbsent ? 'none' : '';
+
+        const postponeDateField = formEl.querySelector('[data-field="تاريخ التأجيل"]');
+        if (postponeDateField) postponeDateField.style.display = isAbsent ? 'none' : '';
+
+        const postponeFeeField = formEl.querySelector('[data-field="رسوم التأجيل"]');
+        if (postponeFeeField) postponeFeeField.style.display = isAbsent ? 'none' : '';
+      };
+
+      statusSel.addEventListener('change', applyStatusVisibility);
+      applyStatusVisibility();
+    }
+  }, 30);
+  
   document.getElementById('modalBack').classList.add('show');
   setTimeout(() => {
     const first = formEl.querySelector('input:not([readonly]):not([disabled]),select:not([disabled]),textarea');
@@ -2630,52 +2662,68 @@ async function submitForm(){
 
   if(CURRENT_KEY_VALUE !== null && CURRENT_KEY_VALUE !== undefined) data._key = CURRENT_KEY_VALUE;
 
-  if(CURRENT_FORM === 'studentReport'){
+    if(CURRENT_FORM === 'studentReport'){
     const stu = STATE.students.find(s => s.name === data['اسم الطالب']);
     if(stu && !data['البريد الإلكتروني'] && stu.email) data['البريد الإلكتروني'] = stu.email;
     if(stu && !data['العمر'] && stu.birthdate) data['العمر'] = computeAge(stu.birthdate);
-    if(data['الحالة'] !== 'مؤجل'){ delete data['تاريخ التأجيل']; data['رسوم التأجيل'] = 0; }
-    else data['رسوم التأجيل'] = POSTPONE_FEE;
-    
-    const container = form.querySelector('[data-session-container]');
-    const type = data['نوع الحلقة'] || 'حفظ';
-    const items = [];
-    const nextItems = [];
-    let learned = [];
-    let tajweedText = '';
-    let nextLessonText = '';
 
-    if(container){
-      // Current Items
-      container.querySelectorAll('[data-rows] .sd-row').forEach(row => {
-        const obj = {};
-        row.querySelectorAll('[data-f]').forEach(field => { obj[field.dataset.f] = field.value.trim(); });
-        if(obj.surah) items.push(obj);
-      });
-      
-      // Next Items (for Hifz, Review, Reading)
-      container.querySelectorAll('[data-next-rows] .sd-row').forEach(row => {
-        const obj = {};
-        row.querySelectorAll('[data-f]').forEach(field => { obj[field.dataset.f] = field.value.trim(); });
-        if(obj.surah) nextItems.push(obj);
-      });
-      
-      // Learned (for Tadabbur)
-      container.querySelectorAll('[data-learned-val]').forEach(inp => {
-        if(inp.value.trim()) learned.push(inp.value.trim());
-      });
-      
-      // Tajweed Text
-      const tajweedInp = container.querySelector('[data-name="tajweedText"]');
-      if (tajweedInp) tajweedText = tajweedInp.value.trim();
-      
-      // Next Lesson Text
-      const nextLessonInp = container.querySelector('[data-name="nextLessonText"]');
-      if (nextLessonInp) nextLessonText = nextLessonInp.value.trim();
+    const status = data['الحالة'];
+
+    if (status === 'غائب') {
+      // 🆕 الغياب: سبب الغياب إلزامي — وإلغاء باقي حقول الحلقة
+      if (!data['سبب الغياب']) {
+        showToast('⚠️ اختر سبب الغياب أولاً');
+        const reasonSel = form.querySelector('[data-name="سبب الغياب"]');
+        if (reasonSel) reasonSel.focus();
+        return;
+      }
+      delete data['تاريخ التأجيل'];
+      delete data['نوع الحلقة'];
+      data['رسوم التأجيل'] = 0;
+      data['تفاصيل الحلقة'] = '';
+      data['الحصة القادمة'] = '';
+    } else if (status === 'مؤجل') {
+      data['رسوم التأجيل'] = POSTPONE_FEE;
+      data['سبب الغياب'] = '';
+    } else {
+      delete data['تاريخ التأجيل'];
+      delete data['سبب الغياب'];
+      data['رسوم التأجيل'] = 0;
     }
 
-    data['تفاصيل الحلقة'] = JSON.stringify({ type, items, nextItems, learned, tajweedText, nextLessonText });
-    data['الحصة القادمة'] = nextLessonText || ''; // Keep for backward compatibility
+    // جمع تفاصيل الحلقة فقط للحضور والتأجيل
+    if (status !== 'غائب') {
+      const container = form.querySelector('[data-session-container]');
+      const type = data['نوع الحلقة'] || 'حفظ';
+      const items = [];
+      const nextItems = [];
+      let learned = [];
+      let tajweedText = '';
+      let nextLessonText = '';
+
+      if(container){
+        container.querySelectorAll('[data-rows] .sd-row').forEach(row => {
+          const obj = {};
+          row.querySelectorAll('[data-f]').forEach(field => { obj[field.dataset.f] = field.value.trim(); });
+          if(obj.surah) items.push(obj);
+        });
+        container.querySelectorAll('[data-next-rows] .sd-row').forEach(row => {
+          const obj = {};
+          row.querySelectorAll('[data-f]').forEach(field => { obj[field.dataset.f] = field.value.trim(); });
+          if(obj.surah) nextItems.push(obj);
+        });
+        container.querySelectorAll('[data-learned-val]').forEach(inp => {
+          if(inp.value.trim()) learned.push(inp.value.trim());
+        });
+        const tajweedInp = container.querySelector('[data-name="tajweedText"]');
+        if (tajweedInp) tajweedText = tajweedInp.value.trim();
+        const nextLessonInp = container.querySelector('[data-name="nextLessonText"]');
+        if (nextLessonInp) nextLessonText = nextLessonInp.value.trim();
+      }
+
+      data['تفاصيل الحلقة'] = JSON.stringify({ type, items, nextItems, learned, tajweedText, nextLessonText });
+      data['الحصة القادمة'] = nextLessonText || '';
+    }
   }
   if(CURRENT_FORM === 'student'){
     if(data['رسوم المقابلة الفنية'] === undefined) data['رسوم المقابلة الفنية'] = 0;
@@ -3503,7 +3551,14 @@ function renderReports(filter=''){
     const statusIcon = r.status === 'حاضر' ? '✅' : r.status === 'غائب' ? '❌' : '📅';
     const sendOk = r.sendStatus && r.sendStatus.indexOf('✅') === 0;
     const itemsCount = (r.sessionDetails?.items || []).length;
-    const details = itemsCount ? `${itemsCount} سورة — ${escapeHtml(r.sType||'')}` : '—';
+
+    let details = '—';
+    if (r.status === 'غائب' && r.absenceReason) {
+      details = `<span style="color:var(--red);font-weight:700">📋 ${escapeHtml(r.absenceReason)}</span>`;
+    } else if (itemsCount) {
+      details = `${itemsCount} سورة — ${escapeHtml(r.sType||'')}`;
+    }
+
     return `<tr><td><span class="idx">${r.no}</span></td><td>${fmtDateShort(r.date)}</td><td class="name">${escapeHtml(r.student)}</td><td><span class="badge purple">${escapeHtml(r.sType||'—')}</span></td><td><span class="badge ${statusColor}">${statusIcon} ${escapeHtml(r.status)}</span></td><td>${r.postponeDate ? fmtDateShort(r.postponeDate) : '—'}</td><td class="num ${r.postponeFee>0?'red':''}">${r.postponeFee>0 ? fmt(r.postponeFee)+' ج.م' : '—'}</td><td style="font-size:12px;color:var(--text3)">${details}</td><td><span class="badge ${sendOk?'ok':'late'}" style="font-size:10.5px">${escapeHtml(r.sendStatus||'—')}</span></td><td style="white-space:nowrap"><button class="btn btn-print" data-act="printStudentReport" data-id="${r.no}" title="طباعة">🖨️</button><button class="btn btn-edit" data-act="resendReportEmail" data-id="${r.no}" title="إعادة إرسال">📧</button></td></tr>`;
   }).join('');
 }
@@ -3675,10 +3730,15 @@ function printStudentReport(no){
   }
 
   const notesHtml = notes.length ? `<h3 class="sec-title">💬 ملاحظات</h3><ul class="notes-list">${notes.map(n => `<li>${escapeHtml(n)}</li>`).join('')}</ul>` : '';
+  const absenceHtml = (r.status === 'غائب' && r.absenceReason) ? `
+  <div style="margin-top:20px;padding:14px 20px;background:#fdeaea;border:1.5px solid #ffb3b3;border-radius:10px">
+    <div style="font-size:13px;color:#a01010;font-weight:800;margin-bottom:6px">📋 سبب الغياب</div>
+    <div style="font-size:14px;color:#4a1a1a;font-weight:800">${escapeHtml(r.absenceReason)}</div>
+  </div>` : '';
   const postponeHtml = r.status === 'مؤجل' ? `<div class="postpone-box"><div class="postpone-title">📅 الحلقة مؤجلة</div><div class="postpone-line">التاريخ الجديد: <b>${escapeHtml(r.postponeDate)}</b></div><div class="postpone-line">💰 رسوم التأجيل: <b style="color:#a01010">80 ج.م</b></div></div>` : '';
   const w = window.open('', '_blank');
   if (!w) { showToast('⚠️ الرجاء السماح بالنوافذ المنبثقة'); return; }
-  w.document.write(`<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>تقرير - ${escapeHtml(r.student)}</title><link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet"><style>@page{size:A4;margin:15mm}*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Tajawal',sans-serif;background:#f5f7fa;color:#1a1a1a;padding:24px;-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{max-width:800px;margin:auto;background:#fff;padding:32px 38px;border-radius:14px;box-shadow:0 12px 40px -16px rgba(0,0,0,.15)}.header-tbl{width:100%;border-collapse:collapse;padding-bottom:0;border-bottom:3px solid #2f5c45;margin-bottom:8px}.header-tbl td{vertical-align:middle;padding-bottom:14px}.logo-img{display:inline-block;width:72px;height:72px;object-fit:contain;border-radius:50%;background:#fff;padding:4px;border:1px solid #cfe0d6}.academy-title h1{font-size:22px;font-weight:900;color:#2f5c45;margin:0 0 3px}.academy-title h2{font-size:12px;color:#888;font-weight:600;letter-spacing:1.2px;margin:0}.doc-badge{display:inline-block;background:#2f5c45;color:#fff;padding:7px 14px;border-radius:22px;font-size:11.5px;font-weight:800;white-space:nowrap}.header-underline{height:2px;background:linear-gradient(90deg,transparent,#c9a961,transparent);margin-bottom:22px;opacity:.6}.report-title{text-align:center;font-size:18px;font-weight:900;color:#1a1a1a;margin:6px 0 20px;position:relative;padding-bottom:10px}.student-info{background:linear-gradient(135deg,#f8faf9,#eef5f0);border:1px solid #cfe0d6;border-radius:12px;padding:18px 22px;margin-bottom:22px;border-right:4px solid #2f5c45}.info-tbl{width:100%;border-collapse:collapse}.info-tbl td{padding:5px 0;font-size:13.5px}.info-tbl .lbl{color:#5c8a6f;font-weight:700;display:inline-block;min-width:100px}.info-tbl .val{color:#1a1a1a;font-weight:800}.sec-title{font-size:15px;font-weight:900;color:#2f5c45;margin:20px 0 12px;padding-right:12px;position:relative}.sec-title::before{content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);width:4px;height:18px;background:linear-gradient(180deg,#c9a961,#2f5c45);border-radius:4px}table.surah-tbl{width:100%;border-collapse:collapse;margin-bottom:8px;border-radius:10px;overflow:hidden}.surah-tbl thead th{background:linear-gradient(135deg,#2f5c45,#1e3a2f);color:#fff;padding:12px 10px;font-size:12.5px;font-weight:800;text-align:center}.surah-tbl tbody td{padding:11px 10px;border-bottom:1px solid #e8efe9;text-align:center;font-size:13px;color:#333}.surah-tbl tbody tr:nth-child(even) td{background:#fbfdfc}.surah-tbl .num{font-weight:800;color:#2f5c45;background:#f8faf9;width:50px}.surah-tbl .surah{font-weight:800;color:#2f5c45;font-size:13.5px}.rating{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:800}.rating.excellent{background:#eafaf3;color:#0a6b4d}.rating.good{background:#e3f0ff;color:#1e6ec7}.rating.ok{background:#fdf5e3;color:#8a5a00}.notes-list{background:#fdf9f0;border:1.5px dashed #e0c8a0;border-radius:10px;padding:14px 22px;list-style:none}.notes-list li{padding:7px 22px 7px 0;font-size:13.5px;color:#4a3b1f;position:relative;line-height:1.6;font-weight:600}.notes-list li::before{content:'◆';position:absolute;right:0;top:7px;color:#c9a961;font-size:11px}.postpone-box{margin-top:20px;padding:14px 20px;background:#fdf5e3;border:1.5px solid #e0c8a0;border-radius:10px}.postpone-title{font-size:13px;color:#8a5a00;font-weight:800;margin-bottom:6px}.postpone-line{font-size:13px;color:#4a3b1f;margin-top:4px}.sig-tbl{width:100%;border-collapse:collapse;border-top:2px dashed #cfe0d6;margin-top:38px}.sig-tbl td{width:33%;text-align:center;padding:22px 8px 10px;vertical-align:bottom}.sig-tbl .line{border-bottom:1.5px solid #2f5c45;height:36px;margin-bottom:8px}.sig-tbl .lbl{font-size:12px;color:#555;font-weight:600}.footer-tbl{width:100%;border-collapse:collapse;border-top:1px solid #e8efe9;margin-top:20px}.footer-tbl td{text-align:center;padding:18px 0 0}.footer-tbl .academy{color:#2f5c45;font-weight:800;font-size:12px}.footer-tbl .note{color:#888;font-size:11px;margin-top:3px}@media print{body{padding:0;background:#fff}.page{box-shadow:none;border-radius:0;padding:20px}}</style></head><body><div class="page"><table class="header-tbl"><tr><td style="width:90px;text-align:right;padding-right:14px"><img src="${LOGO_URL}" alt="logo" class="logo-img"></td><td style="text-align:center"><div class="academy-title"><h1>أكاديمية السَّبَّاق</h1><h2>لتعليم القرآن الكريم</h2></div></td><td style="width:120px;text-align:left;padding-left:10px"><div class="doc-badge">تقرير رقم #${reportNo}</div></td></tr></table><div class="header-underline"></div><h2 class="report-title">بيانات الطالب</h2><div class="student-info"><table class="info-tbl"><tr><td style="width:50%"><span class="lbl">الاسم:</span><span class="val">${escapeHtml(r.student)}</span></td><td style="width:50%"><span class="lbl">التاريخ:</span><span class="val">${escapeHtml(dateFormatted)}</span></td></tr><tr><td><span class="lbl">المعلم:</span><span class="val">${escapeHtml(r.teacher || '—')}</span></td><td><span class="lbl">العمر:</span><span class="val">${escapeHtml(r.age || '—')}</span></td></tr><tr><td><span class="lbl">نوع الحلقة:</span><span class="val">${escapeHtml(r.sType || '—')}</span></td><td><span class="lbl">الحالة:</span><span class="val">${statusIcon} ${escapeHtml(r.status)}</span></td></tr></table></div>${surahSection}${nextHtml}${notesHtml}${postponeHtml}<table class="sig-tbl"><tr><td><div class="line"></div><div class="lbl">توقيع المعلم</div></td><td><div class="line"></div><div class="lbl">توقيع المدير</div></td><td><div class="line"></div><div class="lbl">توقيع الإدارة</div></td></tr></table><table class="footer-tbl"><tr><td><div class="academy">${ACADEMY}</div><div class="note">هذا التقرير صادر آلياً — ${fmtDate(new Date())}</div></td></tr></table></div><script>window.onload=function(){setTimeout(function(){window.print();},600);};<\/script></body></html>`);
+  w.document.write(`<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>تقرير - ${escapeHtml(r.student)}</title><link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet"><style>@page{size:A4;margin:15mm}*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Tajawal',sans-serif;background:#f5f7fa;color:#1a1a1a;padding:24px;-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{max-width:800px;margin:auto;background:#fff;padding:32px 38px;border-radius:14px;box-shadow:0 12px 40px -16px rgba(0,0,0,.15)}.header-tbl{width:100%;border-collapse:collapse;padding-bottom:0;border-bottom:3px solid #2f5c45;margin-bottom:8px}.header-tbl td{vertical-align:middle;padding-bottom:14px}.logo-img{display:inline-block;width:72px;height:72px;object-fit:contain;border-radius:50%;background:#fff;padding:4px;border:1px solid #cfe0d6}.academy-title h1{font-size:22px;font-weight:900;color:#2f5c45;margin:0 0 3px}.academy-title h2{font-size:12px;color:#888;font-weight:600;letter-spacing:1.2px;margin:0}.doc-badge{display:inline-block;background:#2f5c45;color:#fff;padding:7px 14px;border-radius:22px;font-size:11.5px;font-weight:800;white-space:nowrap}.header-underline{height:2px;background:linear-gradient(90deg,transparent,#c9a961,transparent);margin-bottom:22px;opacity:.6}.report-title{text-align:center;font-size:18px;font-weight:900;color:#1a1a1a;margin:6px 0 20px;position:relative;padding-bottom:10px}.student-info{background:linear-gradient(135deg,#f8faf9,#eef5f0);border:1px solid #cfe0d6;border-radius:12px;padding:18px 22px;margin-bottom:22px;border-right:4px solid #2f5c45}.info-tbl{width:100%;border-collapse:collapse}.info-tbl td{padding:5px 0;font-size:13.5px}.info-tbl .lbl{color:#5c8a6f;font-weight:700;display:inline-block;min-width:100px}.info-tbl .val{color:#1a1a1a;font-weight:800}.sec-title{font-size:15px;font-weight:900;color:#2f5c45;margin:20px 0 12px;padding-right:12px;position:relative}.sec-title::before{content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);width:4px;height:18px;background:linear-gradient(180deg,#c9a961,#2f5c45);border-radius:4px}table.surah-tbl{width:100%;border-collapse:collapse;margin-bottom:8px;border-radius:10px;overflow:hidden}.surah-tbl thead th{background:linear-gradient(135deg,#2f5c45,#1e3a2f);color:#fff;padding:12px 10px;font-size:12.5px;font-weight:800;text-align:center}.surah-tbl tbody td{padding:11px 10px;border-bottom:1px solid #e8efe9;text-align:center;font-size:13px;color:#333}.surah-tbl tbody tr:nth-child(even) td{background:#fbfdfc}.surah-tbl .num{font-weight:800;color:#2f5c45;background:#f8faf9;width:50px}.surah-tbl .surah{font-weight:800;color:#2f5c45;font-size:13.5px}.rating{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:800}.rating.excellent{background:#eafaf3;color:#0a6b4d}.rating.good{background:#e3f0ff;color:#1e6ec7}.rating.ok{background:#fdf5e3;color:#8a5a00}.notes-list{background:#fdf9f0;border:1.5px dashed #e0c8a0;border-radius:10px;padding:14px 22px;list-style:none}.notes-list li{padding:7px 22px 7px 0;font-size:13.5px;color:#4a3b1f;position:relative;line-height:1.6;font-weight:600}.notes-list li::before{content:'◆';position:absolute;right:0;top:7px;color:#c9a961;font-size:11px}.postpone-box{margin-top:20px;padding:14px 20px;background:#fdf5e3;border:1.5px solid #e0c8a0;border-radius:10px}.postpone-title{font-size:13px;color:#8a5a00;font-weight:800;margin-bottom:6px}.postpone-line{font-size:13px;color:#4a3b1f;margin-top:4px}.sig-tbl{width:100%;border-collapse:collapse;border-top:2px dashed #cfe0d6;margin-top:38px}.sig-tbl td{width:33%;text-align:center;padding:22px 8px 10px;vertical-align:bottom}.sig-tbl .line{border-bottom:1.5px solid #2f5c45;height:36px;margin-bottom:8px}.sig-tbl .lbl{font-size:12px;color:#555;font-weight:600}.footer-tbl{width:100%;border-collapse:collapse;border-top:1px solid #e8efe9;margin-top:20px}.footer-tbl td{text-align:center;padding:18px 0 0}.footer-tbl .academy{color:#2f5c45;font-weight:800;font-size:12px}.footer-tbl .note{color:#888;font-size:11px;margin-top:3px}@media print{body{padding:0;background:#fff}.page{box-shadow:none;border-radius:0;padding:20px}}</style></head><body><div class="page"><table class="header-tbl"><tr><td style="width:90px;text-align:right;padding-right:14px"><img src="${LOGO_URL}" alt="logo" class="logo-img"></td><td style="text-align:center"><div class="academy-title"><h1>أكاديمية السَّبَّاق</h1><h2>لتعليم القرآن الكريم</h2></div></td><td style="width:120px;text-align:left;padding-left:10px"><div class="doc-badge">تقرير رقم #${reportNo}</div></td></tr></table><div class="header-underline"></div><h2 class="report-title">بيانات الطالب</h2><div class="student-info"><table class="info-tbl"><tr><td style="width:50%"><span class="lbl">الاسم:</span><span class="val">${escapeHtml(r.student)}</span></td><td style="width:50%"><span class="lbl">التاريخ:</span><span class="val">${escapeHtml(dateFormatted)}</span></td></tr><tr><td><span class="lbl">المعلم:</span><span class="val">${escapeHtml(r.teacher || '—')}</span></td><td><span class="lbl">العمر:</span><span class="val">${escapeHtml(r.age || '—')}</span></td></tr><tr><td><span class="lbl">نوع الحلقة:</span><span class="val">${escapeHtml(r.sType || '—')}</span></td><td><span class="lbl">الحالة:</span><span class="val">${statusIcon} ${escapeHtml(r.status)}</span></td></tr></table></div>${absenceHtml}${surahSection}${nextHtml}${notesHtml}${postponeHtml}<table class="sig-tbl"><tr><td><div class="line"></div><div class="lbl">توقيع المعلم</div></td><td><div class="line"></div><div class="lbl">توقيع المدير</div></td><td><div class="line"></div><div class="lbl">توقيع الإدارة</div></td></tr></table><table class="footer-tbl"><tr><td><div class="academy">${ACADEMY}</div><div class="note">هذا التقرير صادر آلياً — ${fmtDate(new Date())}</div></td></tr></table></div><script>window.onload=function(){setTimeout(function(){window.print();},600);};<\/script></body></html>`);
   w.document.close();
 }
 </script>

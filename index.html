@@ -4223,7 +4223,19 @@ cmdResults?.addEventListener('click', e => {
 });
 cmdBack?.addEventListener('click', e => { if (e.target === cmdBack) closeCommandPalette(); });
 document.addEventListener('keydown', e => {
-  if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); if (cmdBack.classList.contains('show')) closeCommandPalette(); else openCommandPalette(); }
+  const isCtrlK = (e.ctrlKey || e.metaKey) && (e.code === 'KeyK' || String(e.key).toLowerCase() === 'k');
+  if (isCtrlK) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (cmdBack.classList.contains('show')) closeCommandPalette();
+    else openCommandPalette();
+    return;
+  }
+  // 🎁 اختصار إضافي: / يفتح البحث السريع (زي GitHub و Twitter)
+  if (e.key === '/' && !e.target.closest('input, textarea, select, [contenteditable="true"]')) {
+    e.preventDefault();
+    openCommandPalette();
+  }
 });
 
 let selectedIds = { students: new Set(), follow: new Set() };

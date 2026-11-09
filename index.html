@@ -1319,7 +1319,7 @@ html[dir="rtl"] .drawer{transform:translateX(-100%)}
 /* ══════════════════════════════════════════════════════════════════ */
 /* SCRIPT 1 — الإعدادات + STATE + Helpers + calcDue + Hydrate + API */
 /* ══════════════════════════════════════════════════════════════════ */
-const API_URL = 'https://script.google.com/macros/s/AKfycbxxjl4NyH7YeA0BzIF5mS00BorwuonAXz3K-OPP3PoyHF-Fw4KdcJhNiO0he4j2jYcG/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxbe5fZHgUuFmqSRlexCJm_uhyLO05eOo_YiFaoehGSNRRN-CAwQIgnAGuViitnwzAX/exec';
 const API_TOKEN = 'SABAQ_a8f3k9m2x7p5q1w4e6r8t0y2u4i6o8a0_2024';
 
 const ACADEMY = 'أكاديمية السَّبَّاق لتعليم القرآن الكريم';
@@ -1626,7 +1626,8 @@ STATE.packages = (raw.packages||[]).filter(p => val(p,'نوع الباقة','typ
       note: val(r,'ملاحظات')||'',
       sendStatus: val(r,'حالة الإرسال')||'',
       vacationStart: toISODate(val(r,'من تاريخ'))||'',
-      vacationEnd: toISODate(val(r,'إلى تاريخ'))||''
+      vacationEnd: toISODate(val(r,'إلى تاريخ'))||'',
+      vacationReason: val(r,'سبب الأجازة')||''
     };
   });
 
@@ -1976,6 +1977,7 @@ studentReport: { title:'تقرير حلقة الطالب', sub:'يُرسل تل�
     { n:'سبب الغياب', l:'📋 سبب الغياب', t:'select', opts:['مريض','سفر','مرافقة مريض','ظرف عائلي طارئ','حالة وفاة','مناسبة عائلية'], def:'', placeholder:'— اختر سبب الغياب —', full:true, style:'display:none' },
     { n:'من تاريخ', l:'📅 من تاريخ', t:'date', style:'display:none', full:true },
     { n:'إلى تاريخ', l:'📅 إلى تاريخ', t:'date', style:'display:none', full:true },
+    { n:'سبب الأجازة', l:'📋 سبب الأجازة', t:'select', opts:['عيد الفطر','عيد الأضحى','العشر الأواخر من رمضان','إجازة صيفية','إجازة مرضية','إجازة امتحانات','أخرى'], def:'', placeholder:'— اختر سبب الأجازة —', full:true, style:'display:none' },
     { n:'تاريخ التأجيل', l:'📅 تاريخ التأجيل الجديد', t:'postpone-date' },
     { n:'رسوم التأجيل', l:'💰 رسوم التأجيل', t:'readonly-num', hint:'80 ج.م' },
     { n:'نوع الحلقة', l:'📖 نوع الحلقة', t:'select', opts:['حفظ','قراءة','تدبر','مراجعة','تجويد'], def:'حفظ', req:true },
@@ -2575,8 +2577,10 @@ const renderReadingUI = () => {
 
         const vacStartField = formEl.querySelector('[data-field="من تاريخ"]');
         const vacEndField = formEl.querySelector('[data-field="إلى تاريخ"]');
+        const vacReasonField = formEl.querySelector('[data-field="سبب الأجازة"]');
         if (vacStartField) vacStartField.style.display = isVacation ? '' : 'none';
         if (vacEndField) vacEndField.style.display = isVacation ? '' : 'none';
+        if (vacReasonField) vacReasonField.style.display = isVacation ? '' : 'none';
 
         const hideHalaqa = isAbsent || isVacation;
         const sessionField = formEl.querySelector('[data-field="تفاصيل الحلقة"]');
@@ -2673,41 +2677,45 @@ async function submitForm(){
 
     const status = data['الحالة'];
 
-    if (status === 'غائب') {
-      if (!data['سبب الغياب']) {
-        showToast('⚠️ اختر سبب الغياب أولاً');
-        return;
-      }
-      delete data['تاريخ التأجيل'];
-      delete data['نوع الحلقة'];
-      delete data['من تاريخ'];
-      delete data['إلى تاريخ'];
+if (status === 'غائب') {
+  if (!data['سبب الغياب']) { showToast('⚠️ اختر سبب الغياب أولاً'); return; }
+  delete data['تاريخ التأجيل'];
+  delete data['نوع الحلقة'];
+  delete data['من تاريخ'];
+  delete data['إلى تاريخ'];
+  delete data['سبب الأجازة'];  // ← أضف ده
       data['رسوم التأجيل'] = 0;
       data['تفاصيل الحلقة'] = '';
       data['الحصة القادمة'] = '';
-    } else if (status === 'مؤجل') {
-      data['رسوم التأجيل'] = POSTPONE_FEE;
-      data['سبب الغياب'] = '';
-      delete data['من تاريخ'];
-      delete data['إلى تاريخ'];
-    } else if (status === 'أجازة') {
-      if (!data['من تاريخ'] || !data['إلى تاريخ']) {
-        showToast('⚠️ يجب تحديد تاريخ بداية ونهاية الأجازة');
-        return;
-      }
-      data['رسوم التأجيل'] = 0;
-      data['تفاصيل الحلقة'] = '';
-      data['الحصة القادمة'] = '';
-      data['سبب الغياب'] = '';
-      delete data['تاريخ التأجيل'];
-      delete data['نوع الحلقة'];
-    } else {
-      delete data['تاريخ التأجيل'];
-      delete data['سبب الغياب'];
-      delete data['من تاريخ'];
-      delete data['إلى تاريخ'];
-      data['رسوم التأجيل'] = 0;
-    }
+} else if (status === 'مؤجل') {
+  data['رسوم التأجيل'] = POSTPONE_FEE;
+  data['سبب الغياب'] = '';
+  delete data['من تاريخ'];
+  delete data['إلى تاريخ'];
+  delete data['سبب الأجازة'];  // ← أضف ده
+} else if (status === 'أجازة') {
+  if (!data['من تاريخ'] || !data['إلى تاريخ']) {
+    showToast('⚠️ يجب تحديد تاريخ بداية ونهاية الأجازة');
+    return;
+  }
+  if (!data['سبب الأجازة']) {
+    showToast('⚠️ يجب اختيار سبب الأجازة');
+    return;
+  }
+  data['رسوم التأجيل'] = 0;
+  data['تفاصيل الحلقة'] = '';
+  data['الحصة القادمة'] = '';
+  data['سبب الغياب'] = '';
+  delete data['تاريخ التأجيل'];
+  delete data['نوع الحلقة'];
+} else {
+  delete data['تاريخ التأجيل'];
+  delete data['سبب الغياب'];
+  delete data['من تاريخ'];
+  delete data['إلى تاريخ'];
+  delete data['سبب الأجازة'];  // ← أضف ده
+  data['رسوم التأجيل'] = 0;
+}
 
     // جمع تفاصيل الحلقة فقط للحضور
     if (status === 'حاضر') {
@@ -3570,10 +3578,11 @@ function renderReports(filter=''){
     const sendOk = r.sendStatus && r.sendStatus.indexOf('✅') === 0;
     const itemsCount = (r.sessionDetails?.items || []).length;
 
-    let details = '—';
-    if (r.status === 'أجازة') {
-      details = `<span style="color:var(--gold);font-weight:700">🏖️ من ${fmtDateShort(r.vacationStart)} إلى ${fmtDateShort(r.vacationEnd)}</span>`;
-    } else if (r.status === 'غائب' && r.absenceReason) {
+let details = '—';
+if (r.status === 'أجازة') {
+  const reasonTxt = r.vacationReason ? ` — ${r.vacationReason}` : '';
+  details = `<span style="color:var(--gold);font-weight:700">🏖️ من ${fmtDateShort(r.vacationStart)} إلى ${fmtDateShort(r.vacationEnd)}${escapeHtml(reasonTxt)}</span>`;
+} else if (r.status === 'غائب' && r.absenceReason) {
       details = `<span style="color:var(--red);font-weight:700">📋 ${escapeHtml(r.absenceReason)}</span>`;
     } else if (itemsCount) {
       details = `${itemsCount} سورة — ${escapeHtml(r.sType||'')}`;
@@ -3755,11 +3764,12 @@ function printStudentReport(no){
     <div style="font-size:13px;color:#a01010;font-weight:800;margin-bottom:6px">📋 سبب الغياب</div>
     <div style="font-size:14px;color:#4a1a1a;font-weight:800">${escapeHtml(r.absenceReason)}</div>
   </div>` : '';
-    const vacationHtml = r.status === 'أجازة' ? `
-    <div style="margin-top:20px;padding:14px 20px;background:#fdf5e3;border:1.5px solid #e0c8a0;border-radius:10px">
-      <div style="font-size:13px;color:#8a5a00;font-weight:800;margin-bottom:6px">🏖️ أجازة</div>
-      <div style="font-size:14px;color:#4a3b1f;font-weight:800">من: ${escapeHtml(fmtDateShort(r.vacationStart))} إلى: ${escapeHtml(fmtDateShort(r.vacationEnd))}</div>
-    </div>` : '';
+const vacationHtml = r.status === 'أجازة' ? `
+<div style="margin-top:20px;padding:14px 20px;background:#fdf5e3;border:1.5px solid #e0c8a0;border-radius:10px">
+  <div style="font-size:13px;color:#8a5a00;font-weight:800;margin-bottom:6px">🏖️ أجازة</div>
+  <div style="font-size:14px;color:#4a3b1f;font-weight:800">من: ${escapeHtml(fmtDateShort(r.vacationStart))} إلى: ${escapeHtml(fmtDateShort(r.vacationEnd))}</div>
+  ${r.vacationReason ? `<div style="font-size:13px;color:#8a5a00;margin-top:6px;font-weight:700">📋 السبب: ${escapeHtml(r.vacationReason)}</div>` : ''}
+</div>` : '';
   const postponeHtml = r.status === 'مؤجل' ? `<div class="postpone-box"><div class="postpone-title">📅 الحلقة مؤجلة</div><div class="postpone-line">التاريخ الجديد: <b>${escapeHtml(r.postponeDate)}</b></div><div class="postpone-line">💰 رسوم التأجيل: <b style="color:#a01010">80 ج.م</b></div></div>` : '';
   const w = window.open('', '_blank');
   if (!w) { showToast('⚠️ الرجاء السماح بالنوافذ المنبثقة'); return; }
@@ -4327,7 +4337,7 @@ function exportTableCSV(tableKey) {
   if (tableKey === 'students') { headers = ['الاسم','هاتف1','هاتف2','البريد','الحلقة','الباقة','السعر','المواعيد','التسجيل','الحالة']; rows = STATE.students.map(s => [s.name, s.phone, s.phone2, s.email, s.sType, s.pkg, s.price, s.schedule, s.reg, s.status]); filename = 'سجل_الطلاب'; }
   else if (tableKey === 'summary') { headers = ['الاسم','الباقة','السعر','افتتاحي','مدفوع','خصم','مستحق','متبقي','حالة']; rows = STATE.summary.map(s => [s.name, s.pkg, s.price, s.openingBalance, s.paid, s.disc, s.due, s.remaining, s.state]); filename = 'ملخص_الطلاب'; }
   else if (tableKey === 'receipts') { headers = ['رقم','التاريخ','الطالب','الباقة','المستحق','المدفوع','الخصم','المتبقي','الطريقة','الفترة']; rows = STATE.receipts.map(r => [r.no, r.date, r.student, r.pkg, r.due, r.paid, r.disc, r.remaining, r.method, r.period]); filename = 'سندات_الاستلام'; }
-  else if (tableKey === 'reports') { headers = ['#','التاريخ','الطالب','النوع','الحالة','تأجيل','رسوم','عدد السور']; rows = STATE.reports.map(r => [r.no, r.date, r.student, r.sType, r.status, r.postponeDate, r.postponeFee, (r.sessionDetails?.items||[]).length]); filename = 'تقارير_الطلاب'; }
+  else if (tableKey === 'reports') { headers = ['#','التاريخ','الطالب','النوع','الحالة','تأجيل','رسوم','عدد السور','سبب الأجازة']; rows = STATE.reports.map(r => [r.no, r.date, r.student, r.sType, r.status, r.postponeDate, r.postponeFee, (r.sessionDetails?.items||[]).length, r.vacationReason || '']); filename = 'تقارير_الطلاب'; }
   else if (tableKey === 'income') { headers = ['التاريخ','البيان','المبلغ','طريقة']; rows = STATE.otherIncome.map(r => [val(r,'التاريخ'), val(r,'البيان'), numField(r,'المبلغ'), val(r,'طريقة الاستلام')]); filename = 'مصادر_دخل'; }
   else if (tableKey === 'expenses') { headers = ['التاريخ','البيان','المبلغ','النوع']; rows = STATE.expenses.map(r => [val(r,'التاريخ'), val(r,'البيان'), numField(r,'المبلغ'), val(r,'النوع')]); filename = 'مصروفات'; }
   if (!rows.length) { showToast('⚠️ لا توجد بيانات'); return; }

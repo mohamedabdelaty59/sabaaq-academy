@@ -1848,7 +1848,7 @@ function buildScheduleString(days, time){
   if(d && t) return `${d} — ${t}`;
   return d || t || '';
 }
-function initScheduleDropdown(container){
+function initScheduleDropdown(container, maxDays){
   const trigger = container.querySelector('.sched-dd-trigger');
   const txt     = container.querySelector('.sdd-txt');
   const panel   = container.querySelector('.sched-dd-panel');
@@ -1857,25 +1857,71 @@ function initScheduleDropdown(container){
   const timeInp = container.querySelector('[data-schedule-time]');
   const hidden  = container.querySelector('[data-schedule-value]');
   const clearBtn= container.querySelector('[data-schedule-clear]');
+
+  container._maxDays = maxDays || null;
+
   const update = () => {
     const selected = [...checks].filter(c => c.checked).map(c => c.dataset.day);
     const time = timeInp.value.trim();
     const str = buildScheduleString(selected, time);
     hidden.value = str;
+
+    const limit = container._maxDays;
+    const limitSuffix = limit ? ` (${selected.length}/${limit})` : '';
+
     if(selected.length || time){
       txt.classList.remove('empty');
       const dTxt = selected.length ? selected.join(' · ') : '';
       const tTxt = time ? ` — ${time}` : '';
-      txt.textContent = dTxt + tTxt;
+      txt.textContent = dTxt + tTxt + limitSuffix;
     } else {
       txt.classList.add('empty');
-      txt.textContent = '— اختر أيام الحلقة —';
+      txt.textContent = limit
+        ? `— اختر أيام الحلقة (بحد أقصى ${limit}) —`
+        : '— اختر أيام الحلقة —';
     }
     items.forEach(it => {
       const cb = it.querySelector('input[type=checkbox]');
       it.classList.toggle('checked', cb.checked);
     });
   };
+
+  // 🆕 الحد الأقصى: يمنع التحديد الزيادة فقط عند تغيير المستخدم
+  checks.forEach(cb => {
+    cb.onchange = (e) => {
+      if (container._maxDays && e.target.checked) {
+        const count = [...checks].filter(c => c.checked).length;
+        if (count > container._maxDays) {
+          e.target.checked = false;
+          showToast(`⚠️ الباقة دي بتسمح بـ ${container._maxDays} ${container._maxDays === 1 ? 'يوم' : 'أيام'} في الأسبوع فقط`);
+          return;
+        }
+      }
+      update();
+    };
+  });
+
+  timeInp.addEventListener('input', update);
+  if(clearBtn){ clearBtn.onclick = (e) => { e.stopPropagation(); checks.forEach(c => c.checked = false); timeInp.value = ''; update(); }; }
+
+  // API للاستخدام الخارجي (عند تغيير الباقة)
+  container._setMaxDays = (newMax) => {
+    container._maxDays = newMax;
+    if (newMax) {
+      const checked = [...checks].filter(c => c.checked);
+      if (checked.length > newMax) {
+        checked.slice(newMax).forEach(c => c.checked = false);
+        showToast(`⚠️ تم الاحتفاظ بـ ${newMax} ${newMax === 1 ? 'يوم' : 'أيام'} فقط حسب الباقة`);
+      }
+    }
+    update();
+  };
+
+  container._update = update;
+  container._checks = checks;
+  container._timeInp = timeInp;
+
+  // trigger/panel setup
   trigger.onclick = (e) => { e.stopPropagation(); container.classList.toggle('open'); };
   panel.onclick = (e) => e.stopPropagation();
   const outsideHandler = (e) => { if(!container.contains(e.target)) container.classList.remove('open'); };
@@ -1883,12 +1929,7 @@ function initScheduleDropdown(container){
   const oldCleanup = container._cleanup;
   if (typeof oldCleanup === 'function') { try { oldCleanup(); } catch(e){} }
   container._cleanup = () => { document.removeEventListener('pointerdown', outsideHandler); };
-  checks.forEach(cb => { cb.onchange = update; });
-  timeInp.addEventListener('input', update);
-  if(clearBtn){ clearBtn.onclick = (e) => { e.stopPropagation(); checks.forEach(c => c.checked = false); timeInp.value = ''; update(); }; }
-  container._update = update;
-  container._checks = checks;
-  container._timeInp = timeInp;
+
   update();
 }
 function setScheduleDropdownValue(container, value){
@@ -1973,7 +2014,9 @@ studentReport: { title:'تقرير حلقة الطالب', sub:'يُرسل تل�
     { n:'البريد الإلكتروني', l:'✉️ البريد الإلكتروني', t:'readonly', full:true, hint:'يُملأ تلقائياً' },
     { n:'اسم المعلم', l:'👨‍🏫 اسم المعلم', t:'select', opts:TEACHERS, def:TEACHERS[0], req:true },
     { n:'العمر', l:'🎂 عمر الطالب', t:'readonly', hint:'يُحسب تلقائياً' },
-    { n:'الحالة', l:'🎯 حالة الحضور', t:'select', opts:['حاضر','غائب','غائب بدون إذن','مؤجل','أجازة'], def:'حاضر', req:true },
+    { n:'الحالة', l:'🎯 حالة الحضور', t:'select',
+  opts:['حاضر','غائب','غياب بدون إذن','مؤجل','أجازة'], 
+  def:'حاضر', req:true },
     { n:'سبب الغياب', l:'📋 سبب الغياب', t:'select', opts:['مريض','سفر','مرافقة مريض','ظرف عائلي طارئ','حالة وفاة','مناسبة عائلية'], def:'', placeholder:'— اختر سبب الغياب —', full:true, style:'display:none' },
     { n:'من تاريخ', l:'📅 من تاريخ', t:'date', style:'display:none', full:true },
     { n:'إلى تاريخ', l:'📅 إلى تاريخ', t:'date', style:'display:none', full:true },
@@ -2221,8 +2264,13 @@ function openForm(key){
     const amountInput = formEl.querySelector('[data-name="المبلغ"]');
     const remainingInput = formEl.querySelector('[data-name="المتبقي"]');
     const currentValInput = formEl.querySelector('[data-name="القيمة الحالية"]');
-    const schPicker = formEl.querySelector('[data-schedule-picker]');
-    if(schPicker) initScheduleDropdown(schPicker);
+const schPicker = formEl.querySelector('[data-schedule-picker]');
+if(schPicker) {
+  const pkgSel = formEl.querySelector('[data-pkg-select]');
+  const pkgType = pkgSel && pkgSel.value ? Number(pkgSel.value) : 0;
+  const maxDays = pkgType ? Math.round(pkgType / 4) : null;
+  initScheduleDropdown(schPicker, maxDays);
+}
 
     if(amountInput){
       const attach = (target) => {
@@ -2241,13 +2289,22 @@ function openForm(key){
       });
     }
     if(pkgSel){
-      const priceInput = formEl.querySelector('[data-name="سعر الباقة"]');
-      pkgSel.addEventListener('change', () => {
-        if(!priceInput || priceInput.value) return;
-        const p = STATE.packages.find(x => String(x.type) === pkgSel.value);
-        if(p) priceInput.placeholder = `افتراضي: ${fmt(p.price)} ج.م`;
-      });
+  const priceInput = formEl.querySelector('[data-name="سعر الباقة"]');
+  pkgSel.addEventListener('change', () => {
+    // placeholder السعر
+    if(priceInput && !priceInput.value) {
+      const p = STATE.packages.find(x => String(x.type) === pkgSel.value);
+      if(p) priceInput.placeholder = `افتراضي: ${fmt(p.price)} ج.م`;
     }
+    // 🆕 تحديث حد الأيام
+    const pkgType = Number(pkgSel.value) || 0;
+    const newMaxDays = pkgType ? Math.round(pkgType / 4) : null;
+    const sch = formEl.querySelector('[data-schedule-picker]');
+    if (sch && sch._setMaxDays) {
+      sch._setMaxDays(newMaxDays);
+    }
+  });
+}
     if(CURRENT_FORM === 'student'){
       const regInp = formEl.querySelector('[data-name="تاريخ التسجيل"]');
       const priceInp = formEl.querySelector('[data-name="سعر الباقة"]');
@@ -2315,283 +2372,317 @@ function openForm(key){
       const ageRo = formEl.querySelector('[data-name="العمر"]');
       if(feeInp) feeInp.value = '0 ج.م';
 
-      let currentInitialItems = [];
-      let currentInitialText = '';
+let currentInitialItems = [];
+let currentInitialText = '';
+let currentInitialTajweed = '';   // 🆕
 
 const renderMemorizationUI = () => {
-        container.querySelector('[data-sd-content]').innerHTML = `
-          <div class="sd-head"><div class="title">📖 السور المقيّمة</div><button type="button" class="add-btn" data-add-row>➕ إضافة سورة</button></div>
-          <div data-rows></div>
-          <div class="sd-head" style="margin-top:18px; border-color:var(--blue); background:rgba(77,157,255,.08)"><div class="title" style="color:var(--blue)">📚 الحصة القادمة</div><button type="button" class="add-btn" data-add-next-row style="background:var(--blue)">➕ إضافة سورة</button></div>
-          <div data-next-rows></div>
-        `;
-        const rowsBox = container.querySelector('[data-rows]');
-        const nextRowsBox = container.querySelector('[data-next-rows]');
-        
-        const createRow = (surah='', range='', rating='ممتاز', note='') => {
-          const idx = rowsBox.children.length + 1;
-          const div = document.createElement('div');
-          div.className = 'sd-row mem';
-          div.innerHTML = `<span class="num">${idx}</span><select data-f="surah" class="surah-select">${surahOptions(surah)}</select><input type="text" data-f="range" placeholder="الآيات (1-5)" value="${escapeHtml(range)}"><select data-f="rating">${['ممتاز','جيد جداً','جيد','مقبول','يحتاج مراجعة'].map(r => `<option value="${r}" ${r===rating?'selected':''}>${r}</option>`).join('')}</select><input type="text" data-f="note" placeholder="ملاحظة" value="${escapeHtml(note)}"><button type="button" class="del-btn" data-del>✕</button>`;
-          rowsBox.appendChild(div);
-          div.querySelector('[data-del]').onclick = () => { div.remove(); [...rowsBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
-        };
+  container.querySelector('[data-sd-content]').innerHTML = `
+    <div class="sd-head"><div class="title">📖 السور المقيّمة</div><button type="button" class="add-btn" data-add-row>➕ إضافة سورة</button></div>
+    <div data-rows></div>
+    <div class="sd-head" style="margin-top:18px; border-color:var(--blue); background:rgba(77,157,255,.08)"><div class="title" style="color:var(--blue)">📚 الحصة القادمة</div><button type="button" class="add-btn" data-add-next-row style="background:var(--blue)">➕ إضافة سورة</button></div>
+    <div data-next-rows></div>
+    <div class="field full" style="margin-top:10px;">
+      <textarea data-name="nextLessonText" placeholder="ملاحظات إضافية للحصة القادمة (مثال: يراجع البقرة آية 1-5 — سيُحفظ من سورة الكهف)" style="width:100%; padding:11px 13px; border-radius:10px; background:var(--bg2); color:var(--text); border:1px solid var(--border); min-height:60px; font-family:inherit; font-size:13px; outline:none; resize:vertical;">${escapeHtml(currentInitialText || '')}</textarea>
+    </div>
+  `;
+  const rowsBox = container.querySelector('[data-rows]');
+  const nextRowsBox = container.querySelector('[data-next-rows]');
 
-        // ✅ صف الحصة القادمة — بدون تقييم ولا ملاحظة
-        const createNextRow = (surah='', range='') => {
-          const idx = nextRowsBox.children.length + 1;
-          const div = document.createElement('div');
-          div.className = 'sd-row next-mem';
-          div.innerHTML = `<span class="num">${idx}</span><select data-f="surah" class="surah-select">${surahOptions(surah)}</select><input type="text" data-f="range" placeholder="الآيات (1-5)" value="${escapeHtml(range)}"><button type="button" class="del-btn" data-del>✕</button>`;
-          nextRowsBox.appendChild(div);
-          div.querySelector('[data-del]').onclick = () => { div.remove(); [...nextRowsBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
-        };
+  const createRow = (surah='', range='', rating='ممتاز', note='') => {
+    const idx = rowsBox.children.length + 1;
+    const div = document.createElement('div');
+    div.className = 'sd-row mem';
+    div.innerHTML = `<span class="num">${idx}</span><select data-f="surah" class="surah-select">${surahOptions(surah)}</select><input type="text" data-f="range" placeholder="الآيات (1-5)" value="${escapeHtml(range)}"><select data-f="rating">${['ممتاز','جيد جداً','جيد','مقبول','يحتاج مراجعة'].map(r => `<option value="${r}" ${r===rating?'selected':''}>${r}</option>`).join('')}</select><input type="text" data-f="note" placeholder="ملاحظة" value="${escapeHtml(note)}"><button type="button" class="del-btn" data-del>✕</button>`;
+    rowsBox.appendChild(div);
+    div.querySelector('[data-del]').onclick = () => { div.remove(); [...rowsBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
+  };
 
-        container.querySelector('[data-add-row]').onclick = () => createRow();
-        container.querySelector('[data-add-next-row]').onclick = () => createNextRow();
+  const createNextRow = (surah='', range='') => {
+    const idx = nextRowsBox.children.length + 1;
+    const div = document.createElement('div');
+    div.className = 'sd-row next-mem';
+    div.innerHTML = `<span class="num">${idx}</span><select data-f="surah" class="surah-select">${surahOptions(surah)}</select><input type="text" data-f="range" placeholder="الآيات (1-5)" value="${escapeHtml(range)}"><button type="button" class="del-btn" data-del>✕</button>`;
+    nextRowsBox.appendChild(div);
+    div.querySelector('[data-del]').onclick = () => { div.remove(); [...nextRowsBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
+  };
 
-        if (currentInitialItems && currentInitialItems.length > 0) {
-          currentInitialItems.forEach(it => createRow(it.surah, it.range, it.rating, it.note));
-        } else {
-          createRow();
-        }
-        createNextRow();
-      };
+  container.querySelector('[data-add-row]').onclick = () => createRow();
+  container.querySelector('[data-add-next-row]').onclick = () => createNextRow();
+
+  if (currentInitialItems && currentInitialItems.length > 0) {
+    currentInitialItems.forEach(it => createRow(it.surah, it.range, it.rating, it.note));
+  } else {
+    createRow();
+  }
+  createNextRow();
+};
 
 const renderReviewUI = () => {
-        container.querySelector('[data-sd-content]').innerHTML = `
-          <div class="sd-head"><div class="title">🔄 السور المراجَعة</div><button type="button" class="add-btn" data-add-row>➕ إضافة سورة</button></div>
-          <div data-rows></div>
-          <div class="sd-head" style="margin-top:18px; border-color:var(--blue); background:rgba(77,157,255,.08)"><div class="title" style="color:var(--blue)">📚 الحصة القادمة</div><button type="button" class="add-btn" data-add-next-row style="background:var(--blue)">➕ إضافة سورة</button></div>
-          <div data-next-rows></div>
-        `;
-        const rowsBox = container.querySelector('[data-rows]');
-        const nextRowsBox = container.querySelector('[data-next-rows]');
-        
-        const createRow = (surah='', range='', rating='ممتاز', note='') => {
-          const idx = rowsBox.children.length + 1;
-          const div = document.createElement('div');
-          div.className = 'sd-row rev';
-          div.innerHTML = `<span class="num">${idx}</span><select data-f="surah" class="surah-select">${surahOptions(surah)}</select><input type="text" data-f="range" placeholder="نطاق المراجعة" value="${escapeHtml(range)}"><select data-f="rating">${['ممتاز','جيد جداً','جيد','مقبول','يحتاج مراجعة'].map(r => `<option value="${r}" ${r===rating?'selected':''}>${r}</option>`).join('')}</select><input type="text" data-f="note" placeholder="ملاحظة" value="${escapeHtml(note)}"><button type="button" class="del-btn" data-del>✕</button>`;
-          rowsBox.appendChild(div);
-          div.querySelector('[data-del]').onclick = () => { div.remove(); [...rowsBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
-        };
+  container.querySelector('[data-sd-content]').innerHTML = `
+    <div class="sd-head"><div class="title">🔄 السور المراجَعة</div><button type="button" class="add-btn" data-add-row>➕ إضافة سورة</button></div>
+    <div data-rows></div>
+    <div class="sd-head" style="margin-top:18px; border-color:var(--blue); background:rgba(77,157,255,.08)"><div class="title" style="color:var(--blue)">📚 الحصة القادمة</div><button type="button" class="add-btn" data-add-next-row style="background:var(--blue)">➕ إضافة سورة</button></div>
+    <div data-next-rows></div>
+    <div class="field full" style="margin-top:10px;">
+      <textarea data-name="nextLessonText" placeholder="ملاحظات إضافية للحصة القادمة..." style="width:100%; padding:11px 13px; border-radius:10px; background:var(--bg2); color:var(--text); border:1px solid var(--border); min-height:60px; font-family:inherit; font-size:13px; outline:none; resize:vertical;">${escapeHtml(currentInitialText || '')}</textarea>
+    </div>
+  `;
+  const rowsBox = container.querySelector('[data-rows]');
+  const nextRowsBox = container.querySelector('[data-next-rows]');
 
-        // ✅ صف الحصة القادمة — بدون تقييم ولا ملاحظة
-        const createNextRow = (surah='', range='') => {
-          const idx = nextRowsBox.children.length + 1;
-          const div = document.createElement('div');
-          div.className = 'sd-row next-rev';
-          div.innerHTML = `<span class="num">${idx}</span><select data-f="surah" class="surah-select">${surahOptions(surah)}</select><input type="text" data-f="range" placeholder="نطاق المراجعة" value="${escapeHtml(range)}"><button type="button" class="del-btn" data-del>✕</button>`;
-          nextRowsBox.appendChild(div);
-          div.querySelector('[data-del]').onclick = () => { div.remove(); [...nextRowsBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
-        };
+  const createRow = (surah='', range='', rating='ممتاز', note='') => {
+    const idx = rowsBox.children.length + 1;
+    const div = document.createElement('div');
+    div.className = 'sd-row rev';
+    div.innerHTML = `<span class="num">${idx}</span><select data-f="surah" class="surah-select">${surahOptions(surah)}</select><input type="text" data-f="range" placeholder="نطاق المراجعة" value="${escapeHtml(range)}"><select data-f="rating">${['ممتاز','جيد جداً','جيد','مقبول','يحتاج مراجعة'].map(r => `<option value="${r}" ${r===rating?'selected':''}>${r}</option>`).join('')}</select><input type="text" data-f="note" placeholder="ملاحظة" value="${escapeHtml(note)}"><button type="button" class="del-btn" data-del>✕</button>`;
+    rowsBox.appendChild(div);
+    div.querySelector('[data-del]').onclick = () => { div.remove(); [...rowsBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
+  };
 
-        container.querySelector('[data-add-row]').onclick = () => createRow();
-        container.querySelector('[data-add-next-row]').onclick = () => createNextRow();
+  const createNextRow = (surah='', range='') => {
+    const idx = nextRowsBox.children.length + 1;
+    const div = document.createElement('div');
+    div.className = 'sd-row next-rev';
+    div.innerHTML = `<span class="num">${idx}</span><select data-f="surah" class="surah-select">${surahOptions(surah)}</select><input type="text" data-f="range" placeholder="نطاق المراجعة" value="${escapeHtml(range)}"><button type="button" class="del-btn" data-del>✕</button>`;
+    nextRowsBox.appendChild(div);
+    div.querySelector('[data-del]').onclick = () => { div.remove(); [...nextRowsBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
+  };
 
-        if (currentInitialItems && currentInitialItems.length > 0) {
-          currentInitialItems.forEach(it => createRow(it.surah, it.range, it.rating, it.note));
-        } else {
-          createRow();
-        }
-        createNextRow();
-      };
+  container.querySelector('[data-add-row]').onclick = () => createRow();
+  container.querySelector('[data-add-next-row]').onclick = () => createNextRow();
+
+  if (currentInitialItems && currentInitialItems.length > 0) {
+    currentInitialItems.forEach(it => createRow(it.surah, it.range, it.rating, it.note));
+  } else {
+    createRow();
+  }
+  createNextRow();
+};
 
 const renderTajweedUI = () => {
-        container.querySelector('[data-sd-content]').innerHTML = `
-          <div class="sd-head"><div class="title">🎯 ما تم أخذه في التجويد</div></div>
-          <div class="field full" style="margin-top:10px;">
-            <textarea data-name="tajweedText" placeholder="أحكام النون الساكنة والتنوين..." style="width:100%; padding:11px 13px; border-radius:10px; background:var(--bg2); color:var(--text); border:1px solid var(--border); min-height:80px; font-family:inherit; font-size:13.5px; outline:none; resize:vertical;"></textarea>
-          </div>
-          <div class="sd-head" style="margin-top:18px; border-color:var(--blue); background:rgba(77,157,255,.08)"><div class="title" style="color:var(--blue)">📚 الحصة القادمة</div></div>
-          <div class="field full" style="margin-top:10px;">
-            <textarea data-name="nextLessonText" placeholder="هنبدأ في..." style="width:100%; padding:11px 13px; border-radius:10px; background:var(--bg2); color:var(--text); border:1px solid var(--border); min-height:70px; font-family:inherit; font-size:13.5px; outline:none; resize:vertical;">${escapeHtml(currentInitialText || '')}</textarea>
-          </div>
-        `;
-      };
+  container.querySelector('[data-sd-content]').innerHTML = `
+    <div class="sd-head"><div class="title">🎯 ما تم أخذه في التجويد</div></div>
+    <div class="field full" style="margin-top:10px;">
+      <textarea data-name="tajweedText" placeholder="أحكام النون الساكنة والتنوين..." style="width:100%; padding:11px 13px; border-radius:10px; background:var(--bg2); color:var(--text); border:1px solid var(--border); min-height:80px; font-family:inherit; font-size:13.5px; outline:none; resize:vertical;">${escapeHtml(currentInitialTajweed || '')}</textarea>
+    </div>
+    <div class="sd-head" style="margin-top:18px; border-color:var(--blue); background:rgba(77,157,255,.08)">
+      <div class="title" style="color:var(--blue)">📚 الحصة القادمة</div>
+    </div>
+    <div class="field full" style="margin-top:10px;">
+      <textarea data-name="nextLessonText" placeholder="هنبدأ في..." style="width:100%; padding:11px 13px; border-radius:10px; background:var(--bg2); color:var(--text); border:1px solid var(--border); min-height:70px; font-family:inherit; font-size:13.5px; outline:none; resize:vertical;">${escapeHtml(currentInitialText || '')}</textarea>
+    </div>`;
+};
 
 const renderReadingUI = () => {
-        container.querySelector('[data-sd-content]').innerHTML = `
-          <div class="sd-head"><div class="title">📗 السور المقروءة</div><button type="button" class="add-btn" data-add-row>➕ إضافة سورة</button></div>
-          <div data-rows></div>
-          <div class="sd-head" style="margin-top:18px; border-color:var(--blue); background:rgba(77,157,255,.08)"><div class="title" style="color:var(--blue)">📚 الحصة القادمة</div><button type="button" class="add-btn" data-add-next-row style="background:var(--blue)">➕ إضافة سورة</button></div>
-          <div data-next-rows></div>
-        `;
-        const rowsBox = container.querySelector('[data-rows]');
-        const nextRowsBox = container.querySelector('[data-next-rows]');
-        
-        const createRow = (surah='', pages='', note='') => {
-          const idx = rowsBox.children.length + 1;
-          const div = document.createElement('div');
-          div.className = 'sd-row rd';
-          div.innerHTML = `<span class="num">${idx}</span><select data-f="surah" class="surah-select">${surahOptions(surah)}</select><input type="text" data-f="pages" placeholder="عدد الصفحات" value="${escapeHtml(pages)}"><input type="text" data-f="note" placeholder="ملاحظة" value="${escapeHtml(note)}"><button type="button" class="del-btn" data-del>✕</button>`;
-          rowsBox.appendChild(div);
-          div.querySelector('[data-del]').onclick = () => { div.remove(); [...rowsBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
-        };
+  container.querySelector('[data-sd-content]').innerHTML = `
+    <div class="sd-head"><div class="title">📗 السور المقروءة</div><button type="button" class="add-btn" data-add-row>➕ إضافة سورة</button></div>
+    <div data-rows></div>
+    <div class="sd-head" style="margin-top:18px; border-color:var(--blue); background:rgba(77,157,255,.08)"><div class="title" style="color:var(--blue)">📚 الحصة القادمة</div><button type="button" class="add-btn" data-add-next-row style="background:var(--blue)">➕ إضافة سورة</button></div>
+    <div data-next-rows></div>
+    <div class="field full" style="margin-top:10px;">
+      <textarea data-name="nextLessonText" placeholder="ملاحظات إضافية للحصة القادمة..." style="width:100%; padding:11px 13px; border-radius:10px; background:var(--bg2); color:var(--text); border:1px solid var(--border); min-height:60px; font-family:inherit; font-size:13px; outline:none; resize:vertical;">${escapeHtml(currentInitialText || '')}</textarea>
+    </div>
+  `;
+  const rowsBox = container.querySelector('[data-rows]');
+  const nextRowsBox = container.querySelector('[data-next-rows]');
 
-        // ✅ صف الحصة القادمة — بدون ملاحظة
-        const createNextRow = (surah='', pages='') => {
-          const idx = nextRowsBox.children.length + 1;
-          const div = document.createElement('div');
-          div.className = 'sd-row next-rd';
-          div.innerHTML = `<span class="num">${idx}</span><select data-f="surah" class="surah-select">${surahOptions(surah)}</select><input type="text" data-f="pages" placeholder="عدد الصفحات" value="${escapeHtml(pages)}"><button type="button" class="del-btn" data-del>✕</button>`;
-          nextRowsBox.appendChild(div);
-          div.querySelector('[data-del]').onclick = () => { div.remove(); [...nextRowsBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
-        };
+  const createRow = (surah='', pages='', note='') => {
+    const idx = rowsBox.children.length + 1;
+    const div = document.createElement('div');
+    div.className = 'sd-row rd';
+    div.innerHTML = `<span class="num">${idx}</span><select data-f="surah" class="surah-select">${surahOptions(surah)}</select><input type="text" data-f="pages" placeholder="عدد الصفحات" value="${escapeHtml(pages)}"><input type="text" data-f="note" placeholder="ملاحظة" value="${escapeHtml(note)}"><button type="button" class="del-btn" data-del>✕</button>`;
+    rowsBox.appendChild(div);
+    div.querySelector('[data-del]').onclick = () => { div.remove(); [...rowsBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
+  };
 
-        container.querySelector('[data-add-row]').onclick = () => createRow();
-        container.querySelector('[data-add-next-row]').onclick = () => createNextRow();
+  const createNextRow = (surah='', pages='') => {
+    const idx = nextRowsBox.children.length + 1;
+    const div = document.createElement('div');
+    div.className = 'sd-row next-rd';
+    div.innerHTML = `<span class="num">${idx}</span><select data-f="surah" class="surah-select">${surahOptions(surah)}</select><input type="text" data-f="pages" placeholder="عدد الصفحات" value="${escapeHtml(pages)}"><button type="button" class="del-btn" data-del>✕</button>`;
+    nextRowsBox.appendChild(div);
+    div.querySelector('[data-del]').onclick = () => { div.remove(); [...nextRowsBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
+  };
 
-        if (currentInitialItems && currentInitialItems.length > 0) {
-          currentInitialItems.forEach(it => createRow(it.surah, it.pages, it.note));
-        } else {
-          createRow();
-        }
-        createNextRow();
-      };
+  container.querySelector('[data-add-row]').onclick = () => createRow();
+  container.querySelector('[data-add-next-row]').onclick = () => createNextRow();
+
+  if (currentInitialItems && currentInitialItems.length > 0) {
+    currentInitialItems.forEach(it => createRow(it.surah, it.pages, it.note));
+  } else {
+    createRow();
+  }
+  createNextRow();
+};
 
   const renderContemplationUI = () => {
-        container.querySelector('[data-sd-content]').innerHTML = `
-          <div class="sd-head">
-            <div class="title">💭 السور المتدبَّرة</div>
-            <button type="button" class="add-btn" data-add-row>➕ إضافة سورة</button>
-          </div>
-          <div data-rows></div>
+  container.querySelector('[data-sd-content]').innerHTML = `
+    <div class="sd-head">
+      <div class="title">💭 السور المتدبَّرة</div>
+      <button type="button" class="add-btn" data-add-row>➕ إضافة سورة</button>
+    </div>
+    <div data-rows></div>
 
-          <div class="sd-head" style="margin-top:18px; border-color:rgba(167,139,250,.4); background:linear-gradient(135deg,rgba(167,139,250,.14),rgba(167,139,250,.04));">
-            <div class="title" style="color:var(--purple)">💡 الدروس المستفادة (علمتني السورة)</div>
-            <button type="button" class="add-btn" data-add-learned style="background:linear-gradient(135deg,var(--purple),#8b6cf0); color:#fff; box-shadow:0 4px 14px -4px rgba(167,139,250,.6);">➕ إضافة درس</button>
-          </div>
-          <div data-learned-rows style="padding:2px 0;"></div>
+    <div class="sd-head" style="margin-top:18px; border-color:rgba(167,139,250,.4); background:linear-gradient(135deg,rgba(167,139,250,.14),rgba(167,139,250,.04));">
+      <div class="title" style="color:var(--purple)">💡 الدروس المستفادة (علمتني السورة)</div>
+      <button type="button" class="add-btn" data-add-learned style="background:linear-gradient(135deg,var(--purple),#8b6cf0); color:#fff;">➕ إضافة درس</button>
+    </div>
+    <div data-learned-rows style="padding:2px 0;"></div>
 
-          <div class="sd-head" style="margin-top:18px; border-color:var(--blue); background:rgba(77,157,255,.08)">
-            <div class="title" style="color:var(--blue)">📚 الحصة القادمة</div>
-          </div>
-          <div class="field full" style="margin-top:10px;">
-            <textarea data-name="nextLessonText" placeholder="هنبدأ في..." style="width:100%; padding:11px 13px; border-radius:10px; background:var(--bg2); color:var(--text); border:1px solid var(--border); min-height:70px; font-family:inherit; font-size:13.5px; outline:none; resize:vertical;">${escapeHtml(currentInitialText || '')}</textarea>
-          </div>
-        `;
-        const rowsBox = container.querySelector('[data-rows]');
-        const learnedBox = container.querySelector('[data-learned-rows]');
+    <div class="sd-head" style="margin-top:18px; border-color:var(--blue); background:rgba(77,157,255,.08)">
+      <div class="title" style="color:var(--blue)">📚 الحصة القادمة</div>
+      <button type="button" class="add-btn" data-add-next-row style="background:var(--blue)">➕ إضافة سورة</button>
+    </div>
+    <div data-next-rows></div>
 
-        const createRow = (surah='', verse='', note='') => {
-          const idx = rowsBox.children.length + 1;
-          const div = document.createElement('div');
-          div.className = 'sd-row con';
-          div.innerHTML = `<span class="num">${idx}</span><select data-f="surah" class="surah-select">${surahOptions(surah)}</select><input type="text" data-f="verse" placeholder="رقم الآية (اختياري)" value="${escapeHtml(verse)}"><input type="text" data-f="note" placeholder="ملاحظة التدبر..." value="${escapeHtml(note)}"><button type="button" class="del-btn" data-del>✕</button>`;
-          rowsBox.appendChild(div);
-          div.querySelector('[data-del]').onclick = () => { div.remove(); [...rowsBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
-        };
+    <div class="field full" style="margin-top:10px;">
+      <textarea data-name="nextLessonText" placeholder="ملاحظات إضافية..." style="width:100%; padding:11px 13px; border-radius:10px; background:var(--bg2); color:var(--text); border:1px solid var(--border); min-height:70px; font-family:inherit; font-size:13.5px; outline:none; resize:vertical;">${escapeHtml(currentInitialText || '')}</textarea>
+    </div>
+  `;
+  const rowsBox = container.querySelector('[data-rows]');
+  const learnedBox = container.querySelector('[data-learned-rows]');
+  const nextRowsBox = container.querySelector('[data-next-rows]');
 
-        const createLearnedRow = (val='') => {
-          const idx = learnedBox.children.length + 1;
-          const div = document.createElement('div');
-          div.style.cssText = 'display:grid; grid-template-columns:32px 1fr 34px; gap:9px; align-items:center; padding:9px 11px; background:rgba(167,139,250,.06); border:1px solid rgba(167,139,250,.22); border-radius:10px; margin-bottom:8px;';
-          div.innerHTML = `
-            <span style="width:28px; height:28px; display:grid; place-items:center; background:rgba(167,139,250,.18); color:var(--purple); border:1px solid rgba(167,139,250,.35); border-radius:8px; font-size:11.5px; font-weight:800;">${idx}</span>
-            <input type="text" data-learned-val placeholder="اكتب الدرس المستفاد..." value="${escapeHtml(val)}" style="background:var(--bg2); border:1px solid var(--border); color:var(--text); padding:9px 12px; border-radius:8px; font-family:inherit; font-size:13px; outline:none; width:100%;">
-            <button type="button" class="del-btn" data-del style="width:32px; height:32px;">✕</button>
-          `;
-          learnedBox.appendChild(div);
-          div.querySelector('[data-del]').onclick = () => {
-            div.remove();
-            [...learnedBox.children].forEach((el, i) => el.querySelector('span').textContent = i + 1);
-          };
-        };
+  const createRow = (surah='', verse='', note='') => {
+    const idx = rowsBox.children.length + 1;
+    const div = document.createElement('div');
+    div.className = 'sd-row con';
+    div.innerHTML = `<span class="num">${idx}</span><select data-f="surah" class="surah-select">${surahOptions(surah)}</select><input type="text" data-f="verse" placeholder="رقم الآية (اختياري)" value="${escapeHtml(verse)}"><input type="text" data-f="note" placeholder="ملاحظة التدبر..." value="${escapeHtml(note)}"><button type="button" class="del-btn" data-del>✕</button>`;
+    rowsBox.appendChild(div);
+    div.querySelector('[data-del]').onclick = () => { div.remove(); [...rowsBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
+  };
 
-        container.querySelector('[data-add-row]').onclick = () => createRow();
-        container.querySelector('[data-add-learned]').onclick = () => createLearnedRow();
+  const createLearnedRow = (val='') => {
+    const idx = learnedBox.children.length + 1;
+    const div = document.createElement('div');
+    div.style.cssText = 'display:grid; grid-template-columns:32px 1fr 34px; gap:9px; align-items:center; padding:9px 11px; background:rgba(167,139,250,.06); border:1px solid rgba(167,139,250,.22); border-radius:10px; margin-bottom:8px;';
+    div.innerHTML = `
+      <span style="width:28px; height:28px; display:grid; place-items:center; background:rgba(167,139,250,.18); color:var(--purple); border:1px solid rgba(167,139,250,.35); border-radius:8px; font-size:11.5px; font-weight:800;">${idx}</span>
+      <input type="text" data-learned-val placeholder="اكتب الدرس المستفاد..." value="${escapeHtml(val)}" style="background:var(--bg2); border:1px solid var(--border); color:var(--text); padding:9px 12px; border-radius:8px; font-family:inherit; font-size:13px; outline:none; width:100%;">
+      <button type="button" class="del-btn" data-del style="width:32px; height:32px;">✕</button>
+    `;
+    learnedBox.appendChild(div);
+    div.querySelector('[data-del]').onclick = () => {
+      div.remove();
+      [...learnedBox.children].forEach((el, i) => el.querySelector('span').textContent = i + 1);
+    };
+  };
 
-        if (currentInitialItems && currentInitialItems.length > 0) {
-          currentInitialItems.forEach(it => createRow(it.surah, it.verse, it.note));
-        } else {
-          createRow();
-        }
-      };
+  // 🆕 صف الحصة القادمة
+  const createNextRow = (surah='', range='') => {
+    const idx = nextRowsBox.children.length + 1;
+    const div = document.createElement('div');
+    div.className = 'sd-row next-mem';
+    div.innerHTML = `<span class="num">${idx}</span><select data-f="surah" class="surah-select">${surahOptions(surah)}</select><input type="text" data-f="range" placeholder="الآيات / النطاق" value="${escapeHtml(range)}"><button type="button" class="del-btn" data-del>✕</button>`;
+    nextRowsBox.appendChild(div);
+    div.querySelector('[data-del]').onclick = () => { div.remove(); [...nextRowsBox.children].forEach((el, i) => el.querySelector('.num').textContent = i + 1); };
+  };
 
-      const switchUI = (itemsData = [], textData = '') => {
-        currentInitialItems = itemsData;
-        currentInitialText = textData;
-        const t = typeSel.value;
-        if(t === 'تدبر') renderContemplationUI();
-        else if(t === 'قراءة') renderReadingUI();
-        else if(t === 'مراجعة') renderReviewUI();
-        else if(t === 'تجويد') renderTajweedUI();
-        else renderMemorizationUI();
-      };
+  container.querySelector('[data-add-row]').onclick = () => createRow();
+  container.querySelector('[data-add-learned]').onclick = () => createLearnedRow();
+  container.querySelector('[data-add-next-row]').onclick = () => createNextRow();
+
+  if (currentInitialItems && currentInitialItems.length > 0) {
+    currentInitialItems.forEach(it => createRow(it.surah, it.verse, it.note));
+  } else {
+    createRow();
+  }
+  createNextRow();
+};
+
+const switchUI = (itemsData = [], textData = '', tajweedData = '') => {
+  currentInitialItems = itemsData;
+  currentInitialText = textData;
+  currentInitialTajweed = tajweedData;   // 🆕
+  const t = typeSel.value;
+  if(t === 'تدبر') renderContemplationUI();
+  else if(t === 'قراءة') renderReadingUI();
+  else if(t === 'مراجعة') renderReviewUI();
+  else if(t === 'تجويد') renderTajweedUI();
+  else renderMemorizationUI();
+};
       
       typeSel.addEventListener('change', () => switchUI([], ''));
       switchUI([], '');
 
       stuSel3.addEventListener('change', () => {
-        const opt = stuSel3.selectedOptions[0];
-        if(!opt || !opt.value) return;
-        const stu = STATE.students.find(s => s.name === opt.value);
-        if(stu){
-          if(emailRo) emailRo.value = stu.email || '';
-          if(stu.sType && typeSel) typeSel.value = stu.sType;
-          if(ageRo) ageRo.value = computeAge(stu.birthdate);
-          
-          let lastDataItems = [];
-          let lastDataText = '';
-          
-          const stuReports = STATE.reports.filter(r => r.student === stu.name);
-          if (stuReports.length > 0) {
-            stuReports.sort((a,b) => new Date(b.date) - new Date(a.date));
-            const lastReport = stuReports[0];
-            const lastData = lastReport.sessionDetails || {};
-            
-            if (lastData.nextItems && lastData.nextItems.length > 0) {
-              lastDataItems = lastData.nextItems;
-              showToast('✅ تم جلب بيانات الحصة بناءً على الحلقة السابقة');
-            } else if (lastReport.nextLessonRaw) {
-              const nextLines = String(lastReport.nextLessonRaw).split('\n').filter(Boolean);
-              if (nextLines.length > 0) {
-                lastDataItems = nextLines.map(line => {
-                  const parts = line.split('|').map(x=>x.trim());
-                  return { surah: parts[0] || '', range: parts[1] || '', rating: 'ممتاز', note: parts[2] || '' };
-                });
-              }
-            }
-            lastDataText = lastData.nextLessonText || lastReport.nextLessonRaw || '';
-          }
-          
-          switchUI(lastDataItems, lastDataText);
-        }
-      });
+  const opt = stuSel3.selectedOptions[0];
+  if(!opt || !opt.value) return;
+  const stu = STATE.students.find(s => s.name === opt.value);
+  if(!stu) return;
+
+  if(emailRo) emailRo.value = stu.email || '';
+  if(stu.sType && typeSel) typeSel.value = stu.sType;
+  if(ageRo) ageRo.value = computeAge(stu.birthdate);
+
+  let lastDataItems = [];
+  let lastDataText = '';
+  let lastTajweedText = '';
+
+  const stuReports = STATE.reports.filter(r => r.student === stu.name);
+  if (stuReports.length > 0) {
+    stuReports.sort((a,b) => new Date(b.date) - new Date(a.date));
+    const lastReport = stuReports[0];
+    const lastData = lastReport.sessionDetails || {};
+
+    // ✅ جلب صفوف "الحصة القادمة" مهما كان النوع
+    if (Array.isArray(lastData.nextItems) && lastData.nextItems.length > 0) {
+      lastDataItems = lastData.nextItems;
+    } else if (lastReport.nextLessonRaw) {
+      // fallback للصيغة القديمة/النصية
+      const lines = String(lastReport.nextLessonRaw).split('\n').filter(Boolean);
+      lastDataItems = lines.map(line => {
+        const p = line.split('|').map(x => x.trim());
+        return { surah: p[0] || '', range: p[1] || '' };
+      }).filter(x => x.surah);
+    }
+
+    // ✅ النص موجود في كل الأحوال
+    lastDataText = lastData.nextLessonText || lastReport.nextLessonRaw || '';
+    lastTajweedText = lastData.tajweedText || '';
+
+    if (lastDataItems.length || lastDataText) {
+      showToast('✅ تم جلب الحصة القادمة من الحلقة السابقة');
+    }
+  }
+
+  switchUI(lastDataItems, lastDataText, lastTajweedText);
+});
       
       const applyStatusVisibility = () => {
-        const status = statusSel.value;
-        const isPostponed = status === 'مؤجل';
-        const isAbsent = status === 'غائب';
-        const isVacation = status === 'أجازة';
+  const status = statusSel.value;
+  const isPostponed = status === 'مؤجل';
+  const isAbsent = status === 'غائب';
+  const isUnjustified = status === 'غياب بدون إذن';  // 🆕
+  const isVacation = status === 'أجازة';
+  const hideHalaqa = isAbsent || isUnjustified || isVacation;
 
-        postponeInp.disabled = !isPostponed;
-        postponeInp.style.opacity = isPostponed ? '1' : '.5';
-        if(!isPostponed) postponeInp.value = '';
-        if(feeInp) feeInp.value = isPostponed ? '80 ج.م' : '0 ج.م';
+  postponeInp.disabled = !isPostponed;
+  postponeInp.style.opacity = isPostponed ? '1' : '.5';
+  if(!isPostponed) postponeInp.value = '';
+  if(feeInp) feeInp.value = isPostponed ? '80 ج.م' : '0 ج.م';
 
-        const absenceField = formEl.querySelector('[data-field="سبب الغياب"]');
-        if (absenceField) absenceField.style.display = isAbsent ? '' : 'none';
+  const absenceField = formEl.querySelector('[data-field="سبب الغياب"]');
+  // سبب الغياب يظهر فقط لو "غائب" بعذر
+  if (absenceField) absenceField.style.display = isAbsent ? '' : 'none';
 
-        const vacStartField = formEl.querySelector('[data-field="من تاريخ"]');
-        const vacEndField = formEl.querySelector('[data-field="إلى تاريخ"]');
-        const vacReasonField = formEl.querySelector('[data-field="سبب الأجازة"]');
-        if (vacStartField) vacStartField.style.display = isVacation ? '' : 'none';
-        if (vacEndField) vacEndField.style.display = isVacation ? '' : 'none';
-        if (vacReasonField) vacReasonField.style.display = isVacation ? '' : 'none';
+  const vacStartField = formEl.querySelector('[data-field="من تاريخ"]');
+  const vacEndField = formEl.querySelector('[data-field="إلى تاريخ"]');
+  const vacReasonField = formEl.querySelector('[data-field="سبب الأجازة"]');
+  if (vacStartField) vacStartField.style.display = isVacation ? '' : 'none';
+  if (vacEndField) vacEndField.style.display = isVacation ? '' : 'none';
+  if (vacReasonField) vacReasonField.style.display = isVacation ? '' : 'none';
 
-        const hideHalaqa = isAbsent || isVacation;
-        const sessionField = formEl.querySelector('[data-field="تفاصيل الحلقة"]');
-        if (sessionField) sessionField.style.display = hideHalaqa ? 'none' : '';
-        const typeField = formEl.querySelector('[data-field="نوع الحلقة"]');
-        if (typeField) typeField.style.display = hideHalaqa ? 'none' : '';
-        const postponeDateField = formEl.querySelector('[data-field="تاريخ التأجيل"]');
-        if (postponeDateField) postponeDateField.style.display = isAbsent || isVacation ? 'none' : '';
-        const postponeFeeField = formEl.querySelector('[data-field="رسوم التأجيل"]');
-        if (postponeFeeField) postponeFeeField.style.display = isAbsent || isVacation ? 'none' : '';
-      };
+  const sessionField = formEl.querySelector('[data-field="تفاصيل الحلقة"]');
+  if (sessionField) sessionField.style.display = hideHalaqa ? 'none' : '';
+  const typeField = formEl.querySelector('[data-field="نوع الحلقة"]');
+  if (typeField) typeField.style.display = hideHalaqa ? 'none' : '';
+  const postponeDateField = formEl.querySelector('[data-field="تاريخ التأجيل"]');
+  if (postponeDateField) postponeDateField.style.display = (isAbsent || isUnjustified || isVacation) ? 'none' : '';
+  const postponeFeeField = formEl.querySelector('[data-field="رسوم التأجيل"]');
+  if (postponeFeeField) postponeFeeField.style.display = (isAbsent || isUnjustified || isVacation) ? 'none' : '';
+};
 
       statusSel.addEventListener('change', applyStatusVisibility);
       applyStatusVisibility();
@@ -2718,39 +2809,43 @@ if (status === 'غائب') {
 }
 
     // جمع تفاصيل الحلقة فقط للحضور
-    if (status === 'حاضر') {
-      const container = form.querySelector('[data-session-container]');
-      const type = data['نوع الحلقة'] || 'حفظ';
-      const items = [];
-      const nextItems = [];
-      let learned = [];
-      let tajweedText = '';
-      let nextLessonText = '';
+if (status === 'حاضر') {
+  const container = form.querySelector('[data-session-container]');
+  const type = data['نوع الحلقة'] || 'حفظ';
+  const items = [];
+  const nextItems = [];
+  let learned = [];
+  let tajweedText = '';
+  let nextLessonText = '';
 
-      if(container){
-        container.querySelectorAll('[data-rows] .sd-row').forEach(row => {
-          const obj = {};
-          row.querySelectorAll('[data-f]').forEach(field => { obj[field.dataset.f] = field.value.trim(); });
-          if(obj.surah) items.push(obj);
-        });
-        container.querySelectorAll('[data-next-rows] .sd-row').forEach(row => {
-          const obj = {};
-          row.querySelectorAll('[data-f]').forEach(field => { obj[field.dataset.f] = field.value.trim(); });
-          if(obj.surah) nextItems.push(obj);
-        });
-        container.querySelectorAll('[data-learned-val]').forEach(inp => {
-          if(inp.value.trim()) learned.push(inp.value.trim());
-        });
-        const tajweedInp = container.querySelector('[data-name="tajweedText"]');
-        if (tajweedInp) tajweedText = tajweedInp.value.trim();
-        const nextLessonInp = container.querySelector('[data-name="nextLessonText"]');
-        if (nextLessonInp) nextLessonText = nextLessonInp.value.trim();
-      }
-
-      data['تفاصيل الحلقة'] = JSON.stringify({ type, items, nextItems, learned, tajweedText, nextLessonText });
-      data['الحصة القادمة'] = nextLessonText || '';
-    }
+  if(container){
+    container.querySelectorAll('[data-rows] .sd-row').forEach(row => {
+      const obj = {}; row.querySelectorAll('[data-f]').forEach(f => { obj[f.dataset.f] = f.value.trim(); });
+      if(obj.surah) items.push(obj);
+    });
+    container.querySelectorAll('[data-next-rows] .sd-row').forEach(row => {
+      const obj = {}; row.querySelectorAll('[data-f]').forEach(f => { obj[f.dataset.f] = f.value.trim(); });
+      if(obj.surah) nextItems.push(obj);
+    });
+    container.querySelectorAll('[data-learned-val]').forEach(inp => {
+      if(inp.value.trim()) learned.push(inp.value.trim());
+    });
+    const tajweedInp = container.querySelector('[data-name="tajweedText"]');
+    if (tajweedInp) tajweedText = tajweedInp.value.trim();
+    const nextLessonInp = container.querySelector('[data-name="nextLessonText"]');
+    if (nextLessonInp) nextLessonText = nextLessonInp.value.trim();
   }
+
+  // 🆕 الحصة القادمة = نص صريح من الصفوف + النص الحر
+  const nextItemsText = nextItems.map(n => 
+    `${n.surah}${n.range ? ' (' + n.range + ')' : ''}`
+  ).join(' · ');
+
+  data['الحصة القادمة'] = [nextItemsText, nextLessonText].filter(Boolean).join(' | ');
+  data['تفاصيل الحلقة'] = JSON.stringify({ 
+    type, items, nextItems, learned, tajweedText, nextLessonText 
+  });
+}
   if(CURRENT_FORM === 'student'){
     if(data['رسوم المقابلة الفنية'] === undefined) data['رسوم المقابلة الفنية'] = 0;
     if(!data['مكان الإقامة']) data['مكان الإقامة'] = 'داخل مصر';
@@ -2796,7 +2891,18 @@ function editStudentPrice(name){
     'مكان الإقامة': s.residence || 'داخل مصر',
     'الحالة': s.status, 'ملاحظات': s.note
   }, s.name);
+
+  // 🆕 تطبيق حد الأيام الأسبوعي حسب باقة الطالب (pkg/4)
+  setTimeout(() => {
+    const form = document.getElementById('modalForm');
+    const schPicker = form?.querySelector('[data-schedule-picker]');
+    if (schPicker && schPicker._setMaxDays && s.pkg) {
+      const maxDays = Math.round(Number(s.pkg) / 4) || null;
+      schPicker._setMaxDays(maxDays);
+    }
+  }, 150);
 }
+  
 function changeStudentPackage(name){
   const s = STATE.students.find(x => x.name === name);
   if(!s){ showToast('⚠️ الطالب غير موجود'); return; }
@@ -3092,7 +3198,8 @@ function computeStudentStatsLocal(studentName){
   const timeline = [];
   reports.forEach(rep => {
     if(rep.status === 'حاضر') present++;
-    else if(rep.status === 'غائب') absent++;
+    // 🆕 احتساب "غياب بدون إذن" كغياب
+    else if(rep.status === 'غائب' || rep.status === 'غياب بدون إذن') absent++;
     else if(rep.status === 'مؤجل') postponed++;
     totalFees += rep.postponeFee || 0;
     const type = rep.sType;
@@ -3150,8 +3257,8 @@ function renderProfile(name){
   const contChips = stats.contemplatedSurahs.length ? `<div>${stats.contemplatedSurahs.map(s => `<span class="surah-chip cont">${escapeHtml(s)}</span>`).join('')}</div>` : '<div style="color:var(--text3);font-size:13px">لا توجد سور متدبَّرة بعد</div>';
   const timelineHTML = stats.timeline.length
     ? `<div class="timeline">${stats.timeline.slice().reverse().map(t => {
-        const cls = t.status === 'حاضر' ? 'ok' : t.status === 'غائب' ? 'late' : 'gold';
-        const ic = t.status === 'حاضر' ? '✅' : t.status === 'غائب' ? '❌' : '📅';
+        const cls = t.status === 'حاضر' ? 'ok' : (t.status === 'غائب' || t.status === 'غياب بدون إذن') ? 'late' : 'gold';
+const ic = t.status === 'حاضر' ? '✅' : t.status === 'غائب' ? '❌' : t.status === 'غياب بدون إذن' ? '🚫' : '📅';
         return `<div class="timeline-item"><div class="timeline-dot ${cls}"></div><div class="timeline-body"><div class="tb-top"><span class="tb-date">${fmtDateShort(t.date)}</span><span class="badge ${cls === 'ok' ? 'ok' : cls === 'late' ? 'late' : 'gold'}">${ic} ${escapeHtml(t.status)}</span></div><div class="tb-meta">📖 ${escapeHtml(t.type || '—')} — ${t.count} سورة</div></div></div>`;
       }).join('')}</div>`
     : '<div class="empty" style="padding:30px"><div class="e-ic">📭</div><p>لا توجد تقارير بعد</p></div>';
@@ -3167,7 +3274,8 @@ function printProfileReport(name){
   const today = new Date().toLocaleDateString('ar-EG');
   const ageTxt = computeAge(stu.birthdate) || '—';
   const w = window.open('', '_blank');
-  w.document.write(`<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>ملف الطالب - ${escapeHtml(name)}</title><link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet"><style>@page{size:A4;margin:15mm}*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Tajawal',sans-serif;background:#f5f7fa;color:#1a1a1a;padding:24px;-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{max-width:800px;margin:auto;background:#fff;border-radius:14px;overflow:hidden;padding:30px 34px;box-shadow:0 12px 40px -16px rgba(0,0,0,.15)}.head{display:flex;align-items:center;justify-content:space-between;padding-bottom:16px;border-bottom:3px solid #2f5c45;margin-bottom:20px}.head .acad h1{font-size:20px;font-weight:900;color:#2f5c45}.head .acad h2{font-size:12px;color:#888;font-weight:600}.head .badge{background:#2f5c45;color:#fff;padding:6px 14px;border-radius:20px;font-size:11px;font-weight:800}.logo-img{width:72px;height:72px;object-fit:contain;border-radius:50%;background:#fff;padding:4px;border:1px solid #cfe0d6}.title{text-align:center;font-size:19px;font-weight:900;margin:8px 0 18px}.hero{background:linear-gradient(135deg,#f8faf9,#eef5f0);border:1px solid #cfe0d6;border-radius:12px;padding:16px 20px;margin-bottom:18px;border-right:4px solid #2f5c45}.hero h2{font-size:20px;font-weight:900;color:#2f5c45;margin-bottom:8px}.hero .meta{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;font-size:12.5px;color:#555;font-weight:600}.hero .meta b{color:#1a1a1a;font-weight:800}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}.stat{background:#f8faf9;border:1px solid #cfe0d6;border-radius:10px;padding:12px;text-align:center;border-top:3px solid #2f5c45}.stat .v{font-size:20px;font-weight:900;color:#2f5c45}.stat .l{font-size:10.5px;color:#666;font-weight:700;margin-top:5px}.suggest{background:linear-gradient(135deg,#fdf5e3,#f8fafb);border:1.5px solid #c9a961;border-radius:12px;padding:14px 20px;margin-bottom:18px}.suggest .s-lbl{font-size:11px;color:#8a5a00;font-weight:800;margin-bottom:5px}.suggest .s-val{font-size:20px;font-weight:900;color:#8a5a00}.suggest .s-res{font-size:12px;color:#555;font-weight:600;margin-top:4px}h3{font-size:14px;font-weight:900;color:#2f5c45;margin:16px 0 8px;padding-right:10px;border-right:4px solid #c9a961}.chip{display:inline-block;padding:4px 10px;border-radius:20px;background:#eafaf3;color:#0a6b4d;font-size:11.5px;font-weight:800;margin:3px;border:1px solid #b8d4c1}.chip.b{background:#e3f0ff;color:#1e6ec7;border-color:#c8d8f0}.chip.p{background:#f0e9ff;color:#6d4ac9;border-color:#d6c8f5}table{width:100%;border-collapse:collapse;font-size:12.5px;border-radius:10px;overflow:hidden}thead th{background:linear-gradient(135deg,#2f5c45,#1e3a2f);color:#fff;padding:9px 8px;font-size:11.5px;font-weight:800;text-align:center}tbody td{padding:8px;border-bottom:1px solid #e8efe9;text-align:center;color:#333}tbody tr:nth-child(even) td{background:#fbfdfc}.bdg{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:800}.bdg.ok{background:#eafaf3;color:#0a6b4d}.bdg.late{background:#fdeaea;color:#a01010}.bdg.gold{background:#fdf5e3;color:#8a5a00}.foot{text-align:center;font-size:10.5px;color:#888;padding-top:14px;margin-top:16px;border-top:1px solid #e8efe9}@media print{body{padding:0;background:#fff}.page{box-shadow:none;padding:20px}}</style></head><body><div class="page"><div class="head"><div><img src="${LOGO_URL}" alt="logo" class="logo-img"></div><div class="acad" style="text-align:center;flex:1"><h1>أكاديمية السَّبَّاق</h1><h2>لتعليم القرآن الكريم</h2></div><div class="badge">ملف الطالب — ${today}</div></div><div class="title">📄 ملف الطالب الشخصي</div><div class="hero"><h2>${escapeHtml(name)}</h2><div class="meta"><span>📱 الهاتف: <b>${escapeHtml(stu.phone || '—')}</b></span><span>📱 هاتف 2: <b>${escapeHtml(stu.phone2 || '—')}</b></span><span>✉️ البريد: <b>${escapeHtml(stu.email || '—')}</b></span><span>📖 نوع الحلقة: <b>${escapeHtml(stu.sType || '—')}</b></span><span>📦 الباقة: <b>${stu.pkg} حلقات (${fmt(stu.price)} ج.م)</b></span><span>🕐 المواعيد: <b>${escapeHtml(stu.schedule || '—')}</b></span><span>📅 التسجيل: <b>${fmtDateShort(stu.reg)}</b></span><span>🎂 العمر: <b>${escapeHtml(ageTxt)}</b></span><span>🏁 افتتاحي: <b>${fmt(sm.openingBalance || 0)} ج.م</b></span><span>💵 المتبقي: <b style="color:${(sm.remaining||0)>0?'#a01010':'#0a6b4d'}">${fmt(sm.remaining || 0)} ج.م</b></span></div></div><div class="stats"><div class="stat"><div class="v">${stats.memorizedCount}</div><div class="l">سورة محفوظة</div></div><div class="stat"><div class="v">${stats.readCount}</div><div class="l">سورة مقروءة</div></div><div class="stat"><div class="v">${stats.contemplatedCount}</div><div class="l">سورة متدبَّرة</div></div><div class="stat"><div class="v">${stats.avgRating || '—'}</div><div class="l">متوسط التقييم</div></div><div class="stat"><div class="v">${stats.attendanceRate}%</div><div class="l">نسبة الحضور</div></div><div class="stat"><div class="v">${stats.totalReports}</div><div class="l">التقارير</div></div><div class="stat"><div class="v">${fmt(sm.postponeFees || 0)}</div><div class="l">رسوم التأجيل</div></div><div class="stat"><div class="v" style="color:${(sm.remaining||0) > 0 ? '#a01010' : '#0a6b4d'}">${fmt(sm.remaining || 0)}</div><div class="l">المتبقي</div></div></div><div class="suggest"><div class="s-lbl">🎯 اقتراح السورة القادمة</div><div class="s-val">${escapeHtml(sug.surah)}</div><div class="s-res">${escapeHtml(sug.reason || '')}</div></div><h3>📖 السور المحفوظة</h3><div>${stats.memorizedSurahs.length ? stats.memorizedSurahs.map(s => `<span class="chip">${escapeHtml(s)}</span>`).join('') : '<span style="color:#888;font-size:12px">لا يوجد</span>'}</div><h3>📗 السور المقروءة</h3><div>${stats.readSurahs.length ? stats.readSurahs.map(s => `<span class="chip b">${escapeHtml(s)}</span>`).join('') : '<span style="color:#888;font-size:12px">لا يوجد</span>'}</div><h3>💭 السور المتدبَّرة</h3><div>${stats.contemplatedSurahs.length ? stats.contemplatedSurahs.map(s => `<span class="chip p">${escapeHtml(s)}</span>`).join('') : '<span style="color:#888;font-size:12px">لا يوجد</span>'}</div><h3>🕐 السجل الزمني</h3>${stats.timeline.length ? `<table><thead><tr><th>التاريخ</th><th>الحالة</th><th>النوع</th><th>عدد السور</th></tr></thead><tbody>${stats.timeline.slice().reverse().map(t => { const cls = t.status === 'حاضر' ? 'ok' : t.status === 'غائب' ? 'late' : 'gold'; const ic = t.status === 'حاضر' ? '✅' : t.status === 'غائب' ? '❌' : '📅'; return `<tr><td>${fmtDateShort(t.date)}</td><td><span class="bdg ${cls}">${ic} ${escapeHtml(t.status)}</span></td><td>${escapeHtml(t.type || '—')}</td><td>${t.count}</td></tr>`; }).join('')}</tbody></table>` : '<div style="text-align:center;color:#888;padding:20px">لا توجد تقارير</div>'}<div class="foot">نظام أكاديمية السَّبَّاق — ${today}</div></div><script>window.onload=function(){setTimeout(function(){window.print();},600);};<\/script></body></html>`);
+  w.document.write(`<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>ملف الطالب - ${escapeHtml(name)}</title><link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet"><style>@page{size:A4;margin:15mm}*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Tajawal',sans-serif;background:#f5f7fa;color:#1a1a1a;padding:24px;-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{max-width:800px;margin:auto;background:#fff;border-radius:14px;overflow:hidden;padding:30px 34px;box-shadow:0 12px 40px -16px rgba(0,0,0,.15)}.head{display:flex;align-items:center;justify-content:space-between;padding-bottom:16px;border-bottom:3px solid #2f5c45;margin-bottom:20px}.head .acad h1{font-size:20px;font-weight:900;color:#2f5c45}.head .acad h2{font-size:12px;color:#888;font-weight:600}.head .badge{background:#2f5c45;color:#fff;padding:6px 14px;border-radius:20px;font-size:11px;font-weight:800}.logo-img{width:72px;height:72px;object-fit:contain;border-radius:50%;background:#fff;padding:4px;border:1px solid #cfe0d6}.title{text-align:center;font-size:19px;font-weight:900;margin:8px 0 18px}.hero{background:linear-gradient(135deg,#f8faf9,#eef5f0);border:1px solid #cfe0d6;border-radius:12px;padding:16px 20px;margin-bottom:18px;border-right:4px solid #2f5c45}.hero h2{font-size:20px;font-weight:900;color:#2f5c45;margin-bottom:8px}.hero .meta{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;font-size:12.5px;color:#555;font-weight:600}.hero .meta b{color:#1a1a1a;font-weight:800}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}.stat{background:#f8faf9;border:1px solid #cfe0d6;border-radius:10px;padding:12px;text-align:center;border-top:3px solid #2f5c45}.stat .v{font-size:20px;font-weight:900;color:#2f5c45}.stat .l{font-size:10.5px;color:#666;font-weight:700;margin-top:5px}.suggest{background:linear-gradient(135deg,#fdf5e3,#f8fafb);border:1.5px solid #c9a961;border-radius:12px;padding:14px 20px;margin-bottom:18px}.suggest .s-lbl{font-size:11px;color:#8a5a00;font-weight:800;margin-bottom:5px}.suggest .s-val{font-size:20px;font-weight:900;color:#8a5a00}.suggest .s-res{font-size:12px;color:#555;font-weight:600;margin-top:4px}h3{font-size:14px;font-weight:900;color:#2f5c45;margin:16px 0 8px;padding-right:10px;border-right:4px solid #c9a961}.chip{display:inline-block;padding:4px 10px;border-radius:20px;background:#eafaf3;color:#0a6b4d;font-size:11.5px;font-weight:800;margin:3px;border:1px solid #b8d4c1}.chip.b{background:#e3f0ff;color:#1e6ec7;border-color:#c8d8f0}.chip.p{background:#f0e9ff;color:#6d4ac9;border-color:#d6c8f5}table{width:100%;border-collapse:collapse;font-size:12.5px;border-radius:10px;overflow:hidden}thead th{background:linear-gradient(135deg,#2f5c45,#1e3a2f);color:#fff;padding:9px 8px;font-size:11.5px;font-weight:800;text-align:center}tbody td{padding:8px;border-bottom:1px solid #e8efe9;text-align:center;color:#333}tbody tr:nth-child(even) td{background:#fbfdfc}.bdg{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:800}.bdg.ok{background:#eafaf3;color:#0a6b4d}.bdg.late{background:#fdeaea;color:#a01010}.bdg.gold{background:#fdf5e3;color:#8a5a00}.foot{text-align:center;font-size:10.5px;color:#888;padding-top:14px;margin-top:16px;border-top:1px solid #e8efe9}@media print{body{padding:0;background:#fff}.page{box-shadow:none;padding:20px}}</style></head><body><div class="page"><div class="head"><div><img src="${LOGO_URL}" alt="logo" class="logo-img"></div><div class="acad" style="text-align:center;flex:1"><h1>أكاديمية السَّبَّاق</h1><h2>لتعليم القرآن الكريم</h2></div><div class="badge">ملف الطالب — ${today}</div></div><div class="title">📄 ملف الطالب الشخصي</div><div class="hero"><h2>${escapeHtml(name)}</h2><div class="meta"><span>📱 الهاتف: <b>${escapeHtml(stu.phone || '—')}</b></span><span>📱 هاتف 2: <b>${escapeHtml(stu.phone2 || '—')}</b></span><span>✉️ البريد: <b>${escapeHtml(stu.email || '—')}</b></span><span>📖 نوع الحلقة: <b>${escapeHtml(stu.sType || '—')}</b></span><span>📦 الباقة: <b>${stu.pkg} حلقات (${fmt(stu.price)} ج.م)</b></span><span>🕐 المواعيد: <b>${escapeHtml(stu.schedule || '—')}</b></span><span>📅 التسجيل: <b>${fmtDateShort(stu.reg)}</b></span><span>🎂 العمر: <b>${escapeHtml(ageTxt)}</b></span><span>🏁 افتتاحي: <b>${fmt(sm.openingBalance || 0)} ج.م</b></span><span>💵 المتبقي: <b style="color:${(sm.remaining||0)>0?'#a01010':'#0a6b4d'}">${fmt(sm.remaining || 0)} ج.م</b></span></div></div><div class="stats"><div class="stat"><div class="v">${stats.memorizedCount}</div><div class="l">سورة محفوظة</div></div><div class="stat"><div class="v">${stats.readCount}</div><div class="l">سورة مقروءة</div></div><div class="stat"><div class="v">${stats.contemplatedCount}</div><div class="l">سورة متدبَّرة</div></div><div class="stat"><div class="v">${stats.avgRating || '—'}</div><div class="l">متوسط التقييم</div></div><div class="stat"><div class="v">${stats.attendanceRate}%</div><div class="l">نسبة الحضور</div></div><div class="stat"><div class="v">${stats.totalReports}</div><div class="l">التقارير</div></div><div class="stat"><div class="v">${fmt(sm.postponeFees || 0)}</div><div class="l">رسوم التأجيل</div></div><div class="stat"><div class="v" style="color:${(sm.remaining||0) > 0 ? '#a01010' : '#0a6b4d'}">${fmt(sm.remaining || 0)}</div><div class="l">المتبقي</div></div></div><div class="suggest"><div class="s-lbl">🎯 اقتراح السورة القادمة</div><div class="s-val">${escapeHtml(sug.surah)}</div><div class="s-res">${escapeHtml(sug.reason || '')}</div></div><h3>📖 السور المحفوظة</h3><div>${stats.memorizedSurahs.length ? stats.memorizedSurahs.map(s => `<span class="chip">${escapeHtml(s)}</span>`).join('') : '<span style="color:#888;font-size:12px">لا يوجد</span>'}</div><h3>📗 السور المقروءة</h3><div>${stats.readSurahs.length ? stats.readSurahs.map(s => `<span class="chip b">${escapeHtml(s)}</span>`).join('') : '<span style="color:#888;font-size:12px">لا يوجد</span>'}</div><h3>💭 السور المتدبَّرة</h3><div>${stats.contemplatedSurahs.length ? stats.contemplatedSurahs.map(s => `<span class="chip p">${escapeHtml(s)}</span>`).join('') : '<span style="color:#888;font-size:12px">لا يوجد</span>'}</div><h3>🕐 السجل الزمني</h3>${stats.timeline.length ? `<table><thead><tr><th>التاريخ</th><th>الحالة</th><th>النوع</th><th>عدد السور</th></tr></thead><tbody>${stats.timeline.slice().reverse().map(t => { const cls = t.status === 'حاضر' ? 'ok' : (t.status === 'غائب' || t.status === 'غياب بدون إذن') ? 'late' : 'gold';
+const ic = t.status === 'حاضر' ? '✅' : t.status === 'غائب' ? '❌' : t.status === 'غياب بدون إذن' ? '🚫' : '📅'; return `<tr><td>${fmtDateShort(t.date)}</td><td><span class="bdg ${cls}">${ic} ${escapeHtml(t.status)}</span></td><td>${escapeHtml(t.type || '—')}</td><td>${t.count}</td></tr>`; }).join('')}</tbody></table>` : '<div style="text-align:center;color:#888;padding:20px">لا توجد تقارير</div>'}<div class="foot">نظام أكاديمية السَّبَّاق — ${today}</div></div><script>window.onload=function(){setTimeout(function(){window.print();},600);};<\/script></body></html>`);
   w.document.close();
 }
 </script>
@@ -3442,7 +3550,8 @@ function renderKPIs(){
 function renderReportsKPI(){
   const total = STATE.reports.length;
   const present = STATE.reports.filter(r => r.status === 'حاضر').length;
-  const absent = STATE.reports.filter(r => r.status === 'غائب').length;
+  // 🆕 احتساب "غياب بدون إذن" مع الغياب
+  const absent = STATE.reports.filter(r => r.status === 'غائب' || r.status === 'غياب بدون إذن').length;
   const postponed = STATE.reports.filter(r => r.status === 'مؤجل').length;
   const totalFees = STATE.reports.reduce((a,r) => a + (r.postponeFee||0), 0);
   const sent = STATE.reports.filter(r => r.sendStatus && r.sendStatus.indexOf('✅') === 0).length;
@@ -3573,19 +3682,26 @@ function renderReports(filter=''){
   const body = document.getElementById('reportsBody');
   if(!rows.length){ body.innerHTML = emptyRow(10); return; }
   body.innerHTML = rows.slice().reverse().map(r => {
-    const statusColor = r.status === 'حاضر' ? 'ok' : r.status === 'غائب' ? 'late' : 'gold';
-    const statusIcon = r.status === 'حاضر' ? '✅' : r.status === 'غائب' ? '❌' : '📅';
+    // 🆕 دعم "غياب بدون إذن"
+    const statusColor = r.status === 'حاضر' ? 'ok'
+      : (r.status === 'غائب' || r.status === 'غياب بدون إذن') ? 'late'
+      : 'gold';
+    const statusIcon = r.status === 'حاضر' ? '✅'
+      : r.status === 'غائب' ? '❌'
+      : r.status === 'غياب بدون إذن' ? '🚫'
+      : '📅';
     const sendOk = r.sendStatus && r.sendStatus.indexOf('✅') === 0;
     const itemsCount = (r.sessionDetails?.items || []).length;
 
-let details = '—';
-if (r.status === 'أجازة') {
-  const reasonTxt = r.vacationReason ? ` — ${r.vacationReason}` : '';
-  details = `<span style="color:var(--gold);font-weight:700">🏖️ من ${fmtDateShort(r.vacationStart)} إلى ${fmtDateShort(r.vacationEnd)}${escapeHtml(reasonTxt)}</span>`;
-} else if (r.status === 'غائب' && r.absenceReason) {
+    let details = '—';
+    if (r.status === 'أجازة') {
+      details = `<span style="color:var(--gold);font-weight:700">🏖️ من ${fmtDateShort(r.vacationStart)} إلى ${fmtDateShort(r.vacationEnd)}</span>`;
+    } else if (r.status === 'غياب بدون إذن') {
+      details = `<span style="color:var(--red);font-weight:700">🚫 غياب بدون إذن</span>`;
+    } else if (r.status === 'غائب' && r.absenceReason) {
       details = `<span style="color:var(--red);font-weight:700">📋 ${escapeHtml(r.absenceReason)}</span>`;
     } else if (itemsCount) {
-      details = `${itemsCount} سورة — ${escapeHtml(r.sType||'')}`;
+      details = `${itemsCount} عنصر — ${escapeHtml(r.sType||'')}`;
     }
 
     return `<tr><td><span class="idx">${r.no}</span></td><td>${fmtDateShort(r.date)}</td><td class="name">${escapeHtml(r.student)}</td><td><span class="badge purple">${escapeHtml(r.sType||'—')}</span></td><td><span class="badge ${statusColor}">${statusIcon} ${escapeHtml(r.status)}</span></td><td>${r.postponeDate ? fmtDateShort(r.postponeDate) : '—'}</td><td class="num ${r.postponeFee>0?'red':''}">${r.postponeFee>0 ? fmt(r.postponeFee)+' ج.م' : '—'}</td><td style="font-size:12px;color:var(--text3)">${details}</td><td><span class="badge ${sendOk?'ok':'late'}" style="font-size:10.5px">${escapeHtml(r.sendStatus||'—')}</span></td><td style="white-space:nowrap"><button class="btn btn-print" data-act="printStudentReport" data-id="${r.no}" title="طباعة">🖨️</button><button class="btn btn-edit" data-act="resendReportEmail" data-id="${r.no}" title="إعادة إرسال">📧</button></td></tr>`;
@@ -3723,7 +3839,13 @@ function printStudentReport(no){
   const [y, m, d] = String(r.date || '').split('-');
   const dateFormatted = r.date ? `${d}-${m}-${y}` : '—';
   const reportNo = String(r.no || 0).padStart(4,'0');
-  const statusIcon = r.status === 'حاضر' ? '✅' : r.status === 'غائب' ? '❌' : '📅';
+  
+  // 🆕 دعم "غياب بدون إذن"
+  const statusIcon = r.status === 'حاضر' ? '✅'
+    : r.status === 'غائب' ? '❌'
+    : r.status === 'غياب بدون إذن' ? '🚫'
+    : '📅';
+  
   const sd = r.sessionDetails || { type: r.sType, items: [] };
   const items = sd.items || [];
   const nextLessonText = String(sd.nextLessonText || r.nextLessonRaw || '').trim();
@@ -3752,6 +3874,9 @@ function printStudentReport(no){
   let nextHtml = '';
   if (['حفظ', 'مراجعة', 'قراءة'].includes(sd.type) && sd.nextItems && sd.nextItems.length > 0) {
     nextHtml = `<h3 class="sec-title">📚 الحصة القادمة</h3><table class="surah-tbl"><thead><tr><th style="width:50px">الرقم</th><th>السورة</th><th>النطاق / الآيات</th></tr></thead><tbody>${sd.nextItems.map((it,i) => `<tr><td class="num">${i+1}</td><td class="surah-txt">${escapeHtml(it.surah||'—')}</td><td class="note-cell">${escapeHtml(it.range || it.pages || '—')}</td></tr>`).join('')}</tbody></table>`;
+    if (nextLessonText) {
+      nextHtml += `<div style="background:#f8faf9;border:1px dashed #cfe0d6;border-radius:10px;padding:14px 22px;font-size:13.5px;color:#333;line-height:1.7;white-space:pre-wrap;margin-top:8px;">${escapeHtml(nextLessonText)}</div>`;
+    }
   } else if (nextLessonText) {
     nextHtml = `<h3 class="sec-title">📚 الحصة القادمة</h3><div style="background:#f8faf9;border:1px dashed #cfe0d6;border-radius:10px;padding:14px 22px;font-size:13.5px;color:#333;line-height:1.7;white-space:pre-wrap;">${escapeHtml(nextLessonText)}</div>`;
   } else if (nextRows.length) {
@@ -3759,17 +3884,26 @@ function printStudentReport(no){
   }
 
   const notesHtml = notes.length ? `<h3 class="sec-title">💬 ملاحظات</h3><ul class="notes-list">${notes.map(n => `<li>${escapeHtml(n)}</li>`).join('')}</ul>` : '';
+
+  // 🆕 معالجة "غياب بدون إذن"
   const absenceHtml = (r.status === 'غائب' && r.absenceReason) ? `
   <div style="margin-top:20px;padding:14px 20px;background:#fdeaea;border:1.5px solid #ffb3b3;border-radius:10px">
     <div style="font-size:13px;color:#a01010;font-weight:800;margin-bottom:6px">📋 سبب الغياب</div>
     <div style="font-size:14px;color:#4a1a1a;font-weight:800">${escapeHtml(r.absenceReason)}</div>
+  </div>`
+  : r.status === 'غياب بدون إذن' ? `
+  <div style="margin-top:20px;padding:14px 20px;background:#fdeaea;border:1.5px solid #ffb3b3;border-radius:10px">
+    <div style="font-size:13px;color:#a01010;font-weight:800;margin-bottom:6px">🚫 غياب بدون إذن</div>
+    <div style="font-size:13px;color:#4a1a1a;font-weight:600">لم يخطر ولي الأمر بغياب الطالب مسبقاً.</div>
   </div>` : '';
-const vacationHtml = r.status === 'أجازة' ? `
-<div style="margin-top:20px;padding:14px 20px;background:#fdf5e3;border:1.5px solid #e0c8a0;border-radius:10px">
-  <div style="font-size:13px;color:#8a5a00;font-weight:800;margin-bottom:6px">🏖️ أجازة</div>
-  <div style="font-size:14px;color:#4a3b1f;font-weight:800">من: ${escapeHtml(fmtDateShort(r.vacationStart))} إلى: ${escapeHtml(fmtDateShort(r.vacationEnd))}</div>
-  ${r.vacationReason ? `<div style="font-size:13px;color:#8a5a00;margin-top:6px;font-weight:700">📋 السبب: ${escapeHtml(r.vacationReason)}</div>` : ''}
-</div>` : '';
+
+  const vacationHtml = r.status === 'أجازة' ? `
+  <div style="margin-top:20px;padding:14px 20px;background:#fdf5e3;border:1.5px solid #e0c8a0;border-radius:10px">
+    <div style="font-size:13px;color:#8a5a00;font-weight:800;margin-bottom:6px">🏖️ أجازة</div>
+    <div style="font-size:14px;color:#4a3b1f;font-weight:800">من: ${escapeHtml(fmtDateShort(r.vacationStart))} إلى: ${escapeHtml(fmtDateShort(r.vacationEnd))}</div>
+    ${r.vacationReason ? `<div style="font-size:13px;color:#8a5a00;margin-top:6px;font-weight:700">📋 السبب: ${escapeHtml(r.vacationReason)}</div>` : ''}
+  </div>` : '';
+
   const postponeHtml = r.status === 'مؤجل' ? `<div class="postpone-box"><div class="postpone-title">📅 الحلقة مؤجلة</div><div class="postpone-line">التاريخ الجديد: <b>${escapeHtml(r.postponeDate)}</b></div><div class="postpone-line">💰 رسوم التأجيل: <b style="color:#a01010">80 ج.م</b></div></div>` : '';
   const w = window.open('', '_blank');
   if (!w) { showToast('⚠️ الرجاء السماح بالنوافذ المنبثقة'); return; }
@@ -3793,25 +3927,39 @@ function getSessionsForDate(date){
   const sessions = [];
   const studentByName = {};
   STATE.students.forEach(s => { studentByName[s.name] = s; });
+
   STATE.students.forEach(s => {
     if(String(s.status || '').trim() === 'موقوف') return;
     if(isStudentOnVacation(s, iso)) return;
     const sch = String(s.schedule || '');
     if(!sch) return;
     if(sch.includes(dayName)){
-      sessions.push({ name: s.name, type: s.sType || '—', pkg: s.pkg, schedule: sch, kind: 'regular', phone: s.phone || '', email: s.email || '', surahs: [], ratings: [], reportNo: null, fee: 0 });
+      sessions.push({ name: s.name, type: s.sType || '—', pkg: s.pkg, schedule: sch, kind: 'regular', status: null, phone: s.phone || '', email: s.email || '', surahs: [], ratings: [], reportNo: null, fee: 0 });
     }
   });
+
   STATE.reports.forEach(r => {
-    if(String(r.date) === iso && r.status !== 'مؤجل' && r.status !== 'أجازة'){  // ✅
+    // 🆕 "غياب بدون إذن" يُحسب كتقرير عادي (مكتمل)
+    if(String(r.date) === iso && r.status !== 'مؤجل' && r.status !== 'أجازة'){
       const items = (r.sessionDetails && r.sessionDetails.items) || [];
       const surahs = items.map(it => it.surah).filter(Boolean);
       const ratings = items.map(it => it.rating).filter(Boolean);
       const existing = sessions.find(x => x.name === r.student);
-      if(existing){ existing.kind = 'done'; existing.reportNo = r.no; existing.surahs = surahs; existing.ratings = ratings; existing.type = r.sType || existing.type; existing.sessionType = r.sType; }
-      else { const stu = studentByName[r.student] || {}; sessions.push({ name: r.student, type: r.sType || '—', pkg: stu.pkg || '', schedule: stu.schedule || '', kind: 'done', reportNo: r.no, phone: stu.phone || '', email: stu.email || '', surahs, ratings, sessionType: r.sType, fee: 0 }); }
+      if(existing){
+        existing.kind = 'done';
+        existing.reportNo = r.no;
+        existing.surahs = surahs;
+        existing.ratings = ratings;
+        existing.type = r.sType || existing.type;
+        existing.sessionType = r.sType;
+        existing.status = r.status;  // 🆕
+      } else {
+        const stu = studentByName[r.student] || {};
+        sessions.push({ name: r.student, type: r.sType || '—', pkg: stu.pkg || '', schedule: stu.schedule || '', kind: 'done', reportNo: r.no, phone: stu.phone || '', email: stu.email || '', surahs, ratings, sessionType: r.sType, status: r.status, fee: 0 });
+      }
     }
   });
+
   STATE.reports.forEach(r => {
     if(r.status === 'مؤجل' && String(r.date) === iso){
       const stu = studentByName[r.student] || {};
@@ -3820,6 +3968,7 @@ function getSessionsForDate(date){
       else { sessions.push({ name: r.student, type: r.sType || '—', pkg: stu.pkg || '', schedule: stu.schedule || '', kind: 'postponed-from', reportNo: r.no, postponeTo: r.postponeDate, fee: r.postponeFee || POSTPONE_FEE, phone: stu.phone || '', email: stu.email || '', surahs: [], ratings: [] }); }
     }
   });
+
   STATE.reports.forEach(r => {
     if(r.status === 'مؤجل' && String(r.postponeDate) === iso){
       const stu = studentByName[r.student] || {};
@@ -3829,6 +3978,7 @@ function getSessionsForDate(date){
       else { sessions.push({ name: r.student, type: r.sType || '—', pkg: stu.pkg || '', schedule: stu.schedule || '', kind: 'postponed', reportNo: r.no, fee, phone: stu.phone || '', email: stu.email || '', surahs: [], ratings: [], isPostponed: true, postponeFee: fee }); }
     }
   });
+
   return sessions;
 }
 function renderCalendar(){
@@ -3883,10 +4033,16 @@ function selectCalDay(iso){
   const postponed = sessions.filter(s => s.kind === 'postponed' || s.kind === 'postponed-from' || s.isPostponed).length;
   box.innerHTML = `<div class="card"><div class="card-head"><h3>🗓️ حلقات ${dayName} ${d} ${AR_MONTHS[m-1]} ${y}</h3><span class="spacer"></span>${regular ? `<span class="badge ok">✅ ${regular} متوقعة</span>` : ''}${done ? `<span class="badge blue">📋 ${done} تمت</span>` : ''}${postponed ? `<span class="badge gold">📅 ${postponed} مؤجل</span>` : ''}</div><div class="card-body p0"><div class="tbl-wrap"><table><thead><tr><th>#</th><th>الطالب</th><th>النوع</th><th>السور</th><th>التقييمات</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody>${sessions.map((s,i) => {
     const badges = [];
-    if(s.kind === 'done') badges.push('<span class="badge blue">📋 تمت</span>');
+    // 🆕 التمييز بين الحضور والغياب
+    if(s.kind === 'done'){
+      if(s.status === 'غائب') badges.push('<span class="badge late">❌ غائب</span>');
+      else if(s.status === 'غياب بدون إذن') badges.push('<span class="badge late">🚫 غياب بدون إذن</span>');
+      else badges.push('<span class="badge blue">📋 تمت</span>');
+    }
     else if(s.kind === 'regular') badges.push('<span class="badge ok">✅ متوقعة</span>');
     else if(s.kind === 'postponed-from') badges.push(`<span class="badge gold">📅 تم التأجيل منه</span>`);
     else if(s.isPostponed || s.kind === 'postponed') badges.push('<span class="badge gold">📅 مؤجل</span>');
+
     const surahsHtml = (s.surahs && s.surahs.length) ? s.surahs.map(su => `<span class="surah-chip">${escapeHtml(su)}</span>`).join('') : '<span style="color:var(--text3);font-size:11.5px">—</span>';
     const ratingsHtml = (s.ratings && s.ratings.length) ? s.ratings.map(r => { const cls = r.includes('ممتاز') ? 'ok' : r.includes('جيد جداً') ? 'blue' : 'gold'; return `<span class="badge ${cls}" style="font-size:10px">${escapeHtml(r)}</span>`; }).join(' ') : '<span style="color:var(--text3);font-size:11.5px">—</span>';
     return `<tr><td><span class="idx">${i+1}</span></td><td class="name">${escapeHtml(s.name)}</td><td><span class="badge purple">${escapeHtml(s.sessionType || s.type || '—')}</span></td><td style="white-space:normal;max-width:280px;line-height:1.9">${surahsHtml}</td><td style="white-space:normal;max-width:160px">${ratingsHtml}</td><td style="white-space:nowrap">${badges.join(' ')}</td><td style="white-space:nowrap"><button class="btn btn-profile" data-act="openProfile" data-name="${escapeHtml(s.name)}" title="الملف">👤</button><button class="btn btn-add" data-act="openReportFor" data-name="${escapeHtml(s.name)}" title="تقرير جديد" style="padding:5px 10px;font-size:12px">➕</button>${s.reportNo ? `<button class="btn btn-print" data-act="printStudentReport" data-id="${s.reportNo}" title="طباعة" style="padding:5px 10px;font-size:12px">🖨️</button>` : ''}</td></tr>`;
@@ -3954,7 +4110,8 @@ function computeParentReportData(studentName, monthStr){
   const reports = STATE.reports.filter(r => r.student === studentName && inRange(r.date));
   const payments = STATE.receipts.filter(r => r.student === studentName && inRange(r.date));
   const present = reports.filter(r => r.status === 'حاضر').length;
-  const absent  = reports.filter(r => r.status === 'غائب').length;
+  // 🆕 احتساب "غياب بدون إذن"
+  const absent  = reports.filter(r => r.status === 'غائب' || r.status === 'غياب بدون إذن').length;
   const postponed = reports.filter(r => r.status === 'مؤجل').length;
   const ratingMap = { 'ممتاز': 100, 'جيد جداً': 85, 'جيد': 70, 'مقبول': 55, 'يحتاج مراجعة': 40 };
   const memorized = new Set(), read = new Set(), contemplated = new Set();
@@ -4020,7 +4177,11 @@ function printParentReport(studentName){
   const lastDay = new Date(y, m, 0).getDate();
   const sessionsRows = d.reports.length ? d.reports.sort((a,b) => String(a.date).localeCompare(String(b.date))).map((r,i) => {
     const [yy,mm,dd] = String(r.date).split('-');
-    const statusIcon = r.status === 'حاضر' ? '✅' : r.status === 'غائب' ? '❌' : '📅';
+    // 🆕 دعم "غياب بدون إذن"
+    const statusIcon = r.status === 'حاضر' ? '✅'
+      : r.status === 'غائب' ? '❌'
+      : r.status === 'غياب بدون إذن' ? '🚫'
+      : '📅';
     const surahs = (r.sessionDetails?.items || []).map(it => it.surah).filter(Boolean).join('، ') || '—';
     const ratings = (r.sessionDetails?.items || []).map(it => it.rating).filter(Boolean).join('، ') || '—';
     return `<tr><td style="text-align:center">${i+1}</td><td style="text-align:center">${dd}/${mm}</td><td style="text-align:center">${escapeHtml(r.sType || '—')}</td><td style="text-align:center">${statusIcon} ${escapeHtml(r.status)}</td><td style="text-align:right;padding-right:12px">${escapeHtml(surahs)}</td><td style="text-align:center;font-size:11.5px;color:#666">${escapeHtml(ratings)}</td></tr>`;
@@ -4455,10 +4616,26 @@ document.addEventListener('click', e => { const el = e.target.closest('[data-add
 document.getElementById('modalClose').addEventListener('click', closeForm);
 document.getElementById('modalCancel').addEventListener('click', closeForm);
 document.getElementById('modalSave').addEventListener('click', submitForm);
-document.getElementById('modalBack').addEventListener('click', e => { if(e.target === e.currentTarget) closeForm(); });
+// استبدل السطر القديم:
+document.getElementById('modalBack').addEventListener('click', e => { 
+  if(e.target !== e.currentTarget) return;
+  if (CURRENT_FORM && document.getElementById('modalForm').innerHTML.trim()) {
+    if (confirm('⚠️ هل تريد إلغاء التقرير؟ سيتم فقدان كل البيانات المدخلة.')) closeForm();
+  } else closeForm();
+});
+
+// وعدّل معالج Escape:
 document.addEventListener('keydown', e => {
-  if(e.key === 'Escape') { closeForm(); closeCommandPalette(); closeDrawer(); closeVoucherModal(); }
-  if(e.key === 'Enter' && e.target.closest('#modalForm') && e.target.tagName !== 'TEXTAREA'){ e.preventDefault(); if(document.getElementById('modalSave').style.display !== 'none') submitForm(); }
+  if(e.key === 'Escape') {
+    if (CURRENT_FORM) {
+      if (confirm('⚠️ إلغاء النموذج؟ ستُفقد البيانات.')) closeForm();
+      return;
+    }
+    closeCommandPalette(); closeDrawer(); closeVoucherModal();
+  }
+  if(e.key === 'Enter' && e.target.closest('#modalForm') && e.target.tagName !== 'TEXTAREA'){
+    e.preventDefault(); submitForm();
+  }
 });
 document.addEventListener('change', e => {
   if(e.target && e.target.id === 'reportMonth') renderReport();

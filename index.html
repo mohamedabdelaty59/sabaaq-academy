@@ -2845,12 +2845,12 @@ if (status === 'حاضر') {
   data['تفاصيل الحلقة'] = JSON.stringify({ 
     type, items, nextItems, learned, tajweedText, nextLessonText 
   });
-}
+}  // ← يقفل if (status === 'حاضر')
+}  // ← ⬅️ ضيف السطر ده: يقفل if(CURRENT_FORM === 'studentReport')
   if(CURRENT_FORM === 'student'){
     if(data['رسوم المقابلة الفنية'] === undefined) data['رسوم المقابلة الفنية'] = 0;
     if(!data['مكان الإقامة']) data['مكان الإقامة'] = 'داخل مصر';
   }
-
   const btn = document.getElementById('modalSave');
   const oldTxt = btn.textContent;
   btn.textContent = '⏳ جاري الحفظ...'; btn.disabled = true;

@@ -1973,7 +1973,7 @@ studentReport: { title:'تقرير حلقة الطالب', sub:'يُرسل تل�
     { n:'البريد الإلكتروني', l:'✉️ البريد الإلكتروني', t:'readonly', full:true, hint:'يُملأ تلقائياً' },
     { n:'اسم المعلم', l:'👨‍🏫 اسم المعلم', t:'select', opts:TEACHERS, def:TEACHERS[0], req:true },
     { n:'العمر', l:'🎂 عمر الطالب', t:'readonly', hint:'يُحسب تلقائياً' },
-    { n:'الحالة', l:'🎯 حالة الحضور', t:'select', opts:['حاضر','غائب','مؤجل','أجازة'], def:'حاضر', req:true },
+    { n:'الحالة', l:'🎯 حالة الحضور', t:'select', opts:['حاضر','غائب','غائب بدون إذن','مؤجل','أجازة'], def:'حاضر', req:true },
     { n:'سبب الغياب', l:'📋 سبب الغياب', t:'select', opts:['مريض','سفر','مرافقة مريض','ظرف عائلي طارئ','حالة وفاة','مناسبة عائلية'], def:'', placeholder:'— اختر سبب الغياب —', full:true, style:'display:none' },
     { n:'من تاريخ', l:'📅 من تاريخ', t:'date', style:'display:none', full:true },
     { n:'إلى تاريخ', l:'📅 إلى تاريخ', t:'date', style:'display:none', full:true },

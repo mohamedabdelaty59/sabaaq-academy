@@ -2188,7 +2188,7 @@ function renderDuePreview(form, name){
   const d = computeDueDetails(name);
   if(!d){ content.innerHTML = '<div style="color:var(--red);font-size:13px;text-align:center;padding:10px">⚠️ الطالب غير موجود</div>'; return; }
 
-// توزيع المبالغ المدفوعة والخصومات على الشهور القديمة أولاً
+  // توزيع المبالغ المدفوعة والخصومات على الشهور القديمة أولاً
   let availablePayment = d.paid + d.disc;
   
   const unpaidOpening = Math.max(0, d.opening - availablePayment);
@@ -2200,11 +2200,10 @@ function renderDuePreview(form, name){
   const unpaidCurrent = Math.max(0, d.currentSubDue - availablePayment);
   availablePayment = Math.max(0, availablePayment - d.currentSubDue);
 
-  // ✅ التأجيل يتخصم قبل الشهر القادم
-  const unpaidPostpone = Math.max(0, d.postponeFees - availablePayment);
-  availablePayment = Math.max(0, availablePayment - d.postponeFees);
-
   const unpaidNext = Math.max(0, d.nextSubDue - availablePayment);
+  availablePayment = Math.max(0, availablePayment - d.nextSubDue);
+
+  const unpaidPostpone = Math.max(0, d.postponeFees - availablePayment);
   
   const rows = [];
   if(unpaidOpening > 0) rows.push(`<div class="ds-row"><span class="k">🏁 رصيد افتتاحي غير مسدد</span><span class="v">${fmt(unpaidOpening)} ج.م</span></div>`);
@@ -2213,12 +2212,12 @@ function renderDuePreview(form, name){
     rows.push(`<div class="ds-row"><span class="k">📅 اشتراك ${escapeHtml(d.currentSubLabel)}</span><span class="v">${fmt(unpaidCurrent)} ج.م</span></div>`);
   }
   
-  if(unpaidPostpone > 0) {
-    rows.push(`<div class="ds-row"><span class="k">⏸️ رسوم التأجيل غير المسددة</span><span class="v" style="color:var(--gold)">${fmt(unpaidPostpone)} ج.م</span></div>`);
-  }
-  
   if(d.isReminderPeriod && unpaidNext > 0) {
     rows.push(`<div class="ds-row"><span class="k">🔔 اشتراك ${escapeHtml(d.nextSubLabel)} (قادم)</span><span class="v" style="color:var(--purple)">+ ${fmt(unpaidNext)} ج.م</span></div>`);
+  }
+  
+  if(unpaidPostpone > 0) {
+    rows.push(`<div class="ds-row"><span class="k">⏸️ رسوم التأجيل غير المسددة</span><span class="v" style="color:var(--gold)">${fmt(unpaidPostpone)} ج.م</span></div>`);
   }
   
   if(unpaidInterview > 0) {
@@ -3077,10 +3076,9 @@ function renderReminder(){
         paidRemaining = Math.max(0, paidRemaining - d.interview);
         const unpaidCurrent = Math.max(0, d.currentSubDue - paidRemaining);
         paidRemaining = Math.max(0, paidRemaining - d.currentSubDue);
-        // ✅ التأجيل يتخصم قبل الشهر القادم
-        const unpaidOldPostpone = Math.max(0, d.oldPostponeFees - paidRemaining);
-        paidRemaining = Math.max(0, paidRemaining - d.oldPostponeFees);
         const unpaidNext = Math.max(0, d.nextSubDue - paidRemaining);
+        paidRemaining = Math.max(0, paidRemaining - d.nextSubDue);
+        const unpaidOldPostpone = Math.max(0, d.oldPostponeFees - paidRemaining);
         const totalSubDue = unpaidOpening + unpaidInterview + unpaidCurrent + unpaidNext;
         const subCell = totalSubDue > 0 ? `<span class="num blue" style="font-weight:800">${fmt(totalSubDue)}</span>` : '<span style="color:var(--text3)">—</span>';
         const postCell = (unpaidOldPostpone > 0 || d.newPostponeFees > 0)
@@ -3089,6 +3087,11 @@ function renderReminder(){
         const btn = (d.isPaid && d.newPostponeFees === 0) ? '<span style="color:var(--text3);font-size:11px">—</span>'
           : `<button class="btn btn-reminder" data-act="sendReminder" data-name="${escapeHtml(d.name)}">${d.isPaid ? '✅' : '🔔'}</button>`;
         return `<tr><td><span class="idx">${i+1}</span></td><td class="name">${escapeHtml(d.name)}</td><td><span class="pkg-pill">${d.pkg} حلقات</span></td><td>${subCell}</td><td>${postCell}</td><td class="num ${d.isPaid ? 'green' : 'red'}" style="font-weight:900">${fmt(d.remaining)}</td><td>${statusBadge}</td><td>${btn}</td></tr>`;
+      }).join('');
+  } catch (err) {
+    console.error("Error rendering reminders:", err);
+    const body = document.getElementById('reminderBody');
+    if (body) body.innerHTML = `<tr><td colspan="8" style="text-align:center;color:red;padding:20px;font-weight:bold;">خطأ: ${err.message}</td></tr>`;
   }
 }
 

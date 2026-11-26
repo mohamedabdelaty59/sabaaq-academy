@@ -654,6 +654,10 @@ html[dir="rtl"] .drawer{transform:translateX(-100%)}
 
     <div class="nav-label">المالية</div>
     <div class="nav-item" data-sec="collect"><span class="ic">💰</span> التحصيل <span class="nav-badge" id="nb-reminder">—</span></div>
+    <div class="nav-item" data-sec="invoices">
+  <span class="ic">🧾</span> الفواتير
+  <span class="nav-badge" id="nb-invoices">0</span>
+</div>
     <div class="nav-item" data-sec="finance"><span class="ic">📊</span> المالية</div>
     <div class="nav-item" data-sec="report"><span class="ic">📈</span> التقرير الشهري</div>
 
@@ -961,6 +965,69 @@ html[dir="rtl"] .drawer{transform:translateX(-100%)}
   </div>
 </section>
 
+    <!-- ═══════ 🆕 الفواتير ═══════ -->
+<section class="section" id="sec-invoices">
+  <div class="reminder-hero" style="border-color:rgba(77,157,255,.4);background:linear-gradient(135deg,rgba(77,157,255,.16),rgba(77,157,255,.04))">
+    <div class="rh-ic" style="background:linear-gradient(135deg,var(--blue),#2d7be0)">🧾</div>
+    <div class="rh-body">
+      <div class="rh-title" style="color:var(--blue)">نظام الفواتير الشهرية</div>
+      <div class="rh-sub">
+        تُصدر تلقائياً يوم <b>25</b> من كل شهر · الفاتورة ثابتة بعد الإصدار ·
+        المدفوعات تُخصم من الأقدم للأحدث (FIFO) · الشهر الحالي: <b id="currentBillMonth">—</b>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-add" data-act="issueInvoices" style="border-color:rgba(45,212,167,.4)">🆕 إصدار الفواتير</button>
+      <button class="btn btn-reminder" data-act="refreshInvoices">🔄 تحديث الأرصدة</button>
+    </div>
+  </div>
+
+  <div class="kpi-grid" id="invoicesKpiGrid"></div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>🧾 سجل الفواتير</h3>
+      <span class="sub">كل فاتورة = شهر واحد · لا تتغير بعد الإصدار</span>
+      <span class="spacer"></span>
+      <span class="badge blue" id="invoicesCountBadge">0 فاتورة</span>
+      <button class="btn" data-act="exportTable" data-table="invoices">📥 تصدير CSV</button>
+    </div>
+    <div class="card-body">
+      <div class="date-filter" style="gap:8px;flex-wrap:wrap">
+        <label>🔍 تصفية:</label>
+        <select id="invFilterStudent" style="background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:8px;font-family:inherit;font-size:12.5px">
+          <option value="">كل الطلاب</option>
+        </select>
+        <select id="invFilterStatus" style="background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:8px;font-family:inherit;font-size:12.5px">
+          <option value="">كل الحالات</option>
+          <option value="مفتوحة">مفتوحة</option>
+          <option value="جزئية">جزئية</option>
+          <option value="مسددة">مسددة</option>
+          <option value="ملغاة">ملغاة</option>
+        </select>
+        <select id="invFilterMonth" style="background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:8px;font-family:inherit;font-size:12.5px">
+          <option value="">كل الأشهر</option>
+        </select>
+      </div>
+    </div>
+    <div class="card-body p0">
+      <div class="tbl-wrap">
+        <table style="min-width:1100px">
+          <thead>
+            <tr>
+              <th>رقم الفاتورة</th><th>الشهر</th><th>الطالب</th><th>الباقة</th>
+              <th>الاشتراك</th><th>افتتاحي</th><th>مقابلة</th><th>تأجيلات</th>
+              <th>الإجمالي</th><th>المسدد</th><th>المتبقي</th>
+              <th>الحالة</th><th>إجراء</th>
+            </tr>
+          </thead>
+          <tbody id="invoicesBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
     <!-- ═══════ المالية الموحدة ═══════ -->
     <section class="section" id="sec-finance">
       <div class="sub-tabs">
@@ -1209,6 +1276,7 @@ html[dir="rtl"] .drawer{transform:translateX(-100%)}
 <button class="fab" id="fabBtn" title="إضافة سريعة">＋</button>
 <div class="fab-menu" id="fabMenu">
   <button type="button" data-voucher="in:subscription"><span class="fic">🧾</span> سند استلام</button>
+  <button type="button" data-act="goTo" data-sec="invoices"><span class="fic">🧾</span> الفواتير</button>
   <button type="button" data-voucher="out:expense"><span class="fic">💸</span> سند صرف</button>
   <button type="button" data-add="student"><span class="fic">👨‍🎓</span> تسجيل طالب</button>
   <button type="button" data-add="studentReport"><span class="fic">📋</span> تقرير طالب</button>
@@ -1319,7 +1387,7 @@ html[dir="rtl"] .drawer{transform:translateX(-100%)}
 /* ══════════════════════════════════════════════════════════════════ */
 /* SCRIPT 1 — الإعدادات + STATE + Helpers + calcDue + Hydrate + API */
 /* ══════════════════════════════════════════════════════════════════ */
-const API_URL = 'https://script.google.com/macros/s/AKfycbwSfy5999jdRSZU9OL2_a44iYO1rgqA5vZeArG5iwZuqQyKI_htnYEgLEYKWh6KwTs/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbwD079e9ACpNgwVJT2b3v7A-RI7YJDuE1OARcbfJJiHjOZegBa0hpAS0rRc_rspu9Xh/exec';
 const API_TOKEN = 'SABAQ_a8f3k9m2x7p5q1w4e6r8t0y2u4i6o8a0_2024';
 
 const ACADEMY = 'أكاديمية السَّبَّاق لتعليم القرآن الكريم';
@@ -1338,7 +1406,10 @@ let STATE = {
   settings:{}, packages:[], opening:[], students:[], receipts:[], summary:[],
   follow:[], otherIncome:[], expenses:[], loans:[], investments:[],
   investTrans:[], charity:[], obligations:[], payments:[], reports:[],
-  pkgChanges:[], quranSurahs:[], totals:{}, emailLog:[]
+  pkgChanges:[], quranSurahs:[], totals:{}, emailLog:[],
+  // 🆕 v11.0 — نظام الفواتير
+  invoices: [],
+  billing: { reminderDay: 25, postponeFee: 80, currentBillMonth: '' }
 };
 let STATE_REMINDER = { hasAuto: false };
 
@@ -1638,6 +1709,32 @@ STATE.packages = (raw.packages||[]).filter(p => val(p,'نوع الباقة','typ
     if (sm) s.lastPay = sm.last;
   });
   rebuildTotals();
+  // 🆕 v11.0 — قراءة الفواتير
+STATE.invoices = (raw.invoices || []).map(inv => ({
+  no:          String(inv['رقم الفاتورة'] || '').trim(),
+  issueDate:   toISODate(inv['تاريخ الإصدار']),
+  monthKey:    String(inv['شهر الفاتورة'] || '').trim(),
+  student:     String(inv['اسم الطالب'] || '').trim(),
+  studentId:   String(inv['معرّف الطالب'] || ''),
+  pkg:         String(inv['الباقة'] || ''),
+  sub:         Number(inv['سعر الاشتراك']) || 0,
+  opening:     Number(inv['رصيد افتتاحي']) || 0,
+  interview:   Number(inv['رسوم المقابلة']) || 0,
+  ppCount:     Number(inv['عدد التأجيلات']) || 0,
+  ppFees:      Number(inv['رسوم التأجيل']) || 0,
+  ppNumbers:   String(inv['أرقام التأجيلات'] || ''),
+  total:       Number(inv['إجمالي الفاتورة']) || 0,
+  paid:        Number(inv['المسدد']) || 0,
+  remaining:   Number(inv['المتبقي']) || 0,
+  status:      String(inv['الحالة'] || 'مفتوحة'),
+  note:        String(inv['ملاحظات'] || '')
+}));
+
+STATE.billing = {
+  reminderDay:      Number((raw.billing || {}).reminderDay) || 25,
+  postponeFee:      Number((raw.billing || {}).postponeFee) || 80,
+  currentBillMonth: String((raw.billing || {}).currentBillMonth || '')
+};
   STATE_REMINDER.hasAuto = !!raw.hasAutoReminder;
 }
 
@@ -2099,9 +2196,13 @@ function buildField(f){
     input = `<select id="${id}" data-name="${escapeHtml(f.n)}" disabled style="opacity:.5"><option value="">— اختر التاريخ الجديد —</option>${opts.join('')}</select>`;
   } else if(f.t === 'session-details'){
     input = `<div class="session-details-wrap" id="${id}" data-name="${escapeHtml(f.n)}" data-session-container><div data-sd-content></div></div>`;
-  } else if(f.t === 'due-preview'){
-    input = `<div class="due-summary" id="${id}" data-name="${escapeHtml(f.n)}" data-due-preview><div class="ds-title">💰 تفاصيل المستحق</div><div id="dsContent" style="color:var(--text3);font-size:13px;text-align:center;padding:10px">اختر الطالب لعرض التفاصيل</div></div>`;
-  } else if(f.t === 'student-preview'){
+} else if(f.t === 'due-preview'){
+input = `<div class="due-summary" id="${id}" data-name="${escapeHtml(f.n)}" data-due-preview><div class="ds-title">💰 تفاصيل المستحق</div><div id="dsContent" style="color:var(--text3);font-size:13px;text-align:center;padding:10px">اختر الطالب لعرض التفاصيل</div></div>`;
+} else if(f.t === 'invoice-target'){
+input = `<div class="field full" id="invoiceTargetBox" style="grid-column:1/-1;padding:12px 14px;background:linear-gradient(135deg,rgba(77,157,255,.08),rgba(77,157,255,.02));border:1px dashed rgba(77,157,255,.3);border-radius:10px;font-size:12.5px;color:var(--text3);text-align:center">
+اختر الطالب لعرض الفواتير المستهدفة
+</div>`;
+} else if(f.t === 'student-preview'){
     input = `<div class="student-preview" id="${id}" data-name="${escapeHtml(f.n)}" data-student-preview><div class="sp-title">💰 معاينة المبلغ المطلوب عند التسجيل</div><div data-sp-content><div style="color:var(--text3);font-size:12px;text-align:center;padding:8px">أكمل تاريخ التسجيل والسعر لعرض التفاصيل</div></div></div>`;
   } else if(f.t === 'schedule-picker'){
     input = `<div class="sched-dd" data-schedule-picker><div class="sched-dd-trigger"><span class="sdd-txt empty">— اختر أيام الحلقة —</span><span class="sdd-arrow">▼</span></div><div class="sched-dd-panel">${SCHEDULE_DAYS.map(d => `<label class="sdd-item"><input type="checkbox" data-day="${d}"><span>${d}</span></label>`).join('')}<div class="sdd-divider"></div><div class="sdd-time"><label>🕐 الوقت</label><input type="text" data-schedule-time placeholder="مثال: 4 عصراً"></div><button type="button" class="sdd-clear" data-schedule-clear>✕ مسح الكل</button></div><input type="hidden" data-name="${escapeHtml(f.n)}" data-schedule-value value=""></div>`;
@@ -2845,8 +2946,8 @@ if (status === 'حاضر') {
   data['تفاصيل الحلقة'] = JSON.stringify({ 
     type, items, nextItems, learned, tajweedText, nextLessonText 
   });
-}  // ← يقفل if (status === 'حاضر')
-}  // ← ⬅️ ضيف السطر ده: يقفل if(CURRENT_FORM === 'studentReport')
+} // يقفل if (status === 'حاضر')
+} // يقفل if(CURRENT_FORM === 'studentReport')
   if(CURRENT_FORM === 'student'){
     if(data['رسوم المقابلة الفنية'] === undefined) data['رسوم المقابلة الفنية'] = 0;
     if(!data['مكان الإقامة']) data['مكان الإقامة'] = 'داخل مصر';
@@ -2959,65 +3060,145 @@ function investCalc(name){
 /* ══════════════════════════════════════════════════════════════════ */
 /* SCRIPT 4 — Reminder System */
 /* ══════════════════════════════════════════════════════════════════ */
+// 🆕 v11.0 — حساب بيانات التذكير من الفواتير (FIFO)
 function computeReminderData(){
   const now = new Date();
-  const nowY = now.getFullYear();
-  const nowM = now.getMonth() + 1;
-  const nowD = now.getDate();
-  const nowIdx = nowY * 12 + (nowM - 1);
-  const isReminderPeriod = nowD >= REMINDER_DAY;
-  const nextMonthDate = new Date(nowY, nowM, 1);
+  const nowIdx = now.getFullYear() * 12 + now.getMonth();
+  const isReminderPeriod = now.getDate() >= (STATE.billing.reminderDay || 25);
+  const nextMonthDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
   const nextMonthLabel = `${AR_MONTHS[nextMonthDate.getMonth()]} ${nextMonthDate.getFullYear()}`;
+
   return STATE.students
     .filter(s => s.status !== 'موقوف' && s.email)
     .map(s => {
+      // 1) جلب فواتير الطالب (غير الملغاة) مرتبة بالأقدم
+      const studentInvoices = STATE.invoices
+        .filter(inv => inv.student === s.name && inv.status !== 'ملغاة')
+        .sort((a, b) => a.monthKey.localeCompare(b.monthKey));
+
+      // 2) الفواتير المفتوحة (عليها متبقي)
+      const openInvoices = studentInvoices.filter(inv => inv.remaining > 0.001);
+      const totalRemaining = openInvoices.reduce((a, inv) => a + inv.remaining, 0);
+
+      // 3) التأجيلات اللي لسه ما اتفوترتش
+      const deferredPostpones = STATE.reports.filter(r =>
+        r.student === s.name &&
+        r.status === 'مؤجل' &&
+        !STATE.invoices.some(inv =>
+          inv.student === s.name &&
+          (inv.ppNumbers || '').includes(`#${r.no}`)
+        )
+      );
+      const newPostponeFees = deferredPostpones.reduce((a, r) => a + (r.postponeFee || 80), 0);
+
+      // 4) حساب إجمالي المدفوع + الخصم
       const payments = STATE.receipts.filter(r => r.student === s.name);
-      const paid = payments.reduce((a,r) => a + r.paid, 0);
-      const disc = payments.reduce((a,r) => a + (r.disc || 0), 0);
-      const split = splitPostponesFrontend(s.name);
-      const calc = calcDue({
-        price: s.price, subStartISO: s.subStart, regDateISO: s.reg,
-        openingBalance: s.openingBalance, interviewFee: s.interviewFee,
-        postponeFees: split.oldPostponeFees, paid, disc
-      });
-      const skipAutoBecauseFutureStart = calc.subStartIdx > nowIdx;
+      const paid = payments.reduce((a, r) => a + r.paid, 0);
+      const disc = payments.reduce((a, r) => a + (r.disc || 0), 0);
+      const invoicedTotal = studentInvoices.reduce((a, inv) => a + inv.total, 0);
+      const credit = Math.max(0, (paid + disc) - invoicedTotal);
+
+      // 5) آخر فاتورة = أساس "الشهر القادم"
+      const lastInvIdx = studentInvoices.length
+        ? (() => {
+            const mk = studentInvoices[studentInvoices.length - 1].monthKey;
+            const [y, m] = mk.split('-').map(Number);
+            return y * 12 + (m - 1);
+          })()
+        : -1;
+      const nextUnpaidLabel = lastInvIdx >= 0
+        ? monthLabelFromIdx(lastInvIdx + 1)
+        : nextMonthLabel;
+
+      // 6) آخر سداد
+      const lastPaymentDate = payments.map(p => p.date).filter(Boolean).sort().pop() || '';
+
+      // 7) تحديد الحالة
+      const isPaid = totalRemaining <= 0.001 && newPostponeFees === 0;
+      const isLate = totalRemaining > 0 && studentInvoices.some(inv =>
+        inv.remaining > 0 && inv.monthKey < currentMonthISO()
+      );
+      const state = isPaid ? 'منتظم' : isLate ? 'متأخر' : 'مستحق';
+
+      // 8) استخراج تفاصيل الفاتورة الأحدث (للعرض في الجدول)
+      const latestInv = openInvoices[openInvoices.length - 1] || studentInvoices[studentInvoices.length - 1];
+
       return {
         name: s.name, pkg: s.pkg, email: s.email, price: s.price,
-        opening: s.openingBalance || 0, interview: s.interviewFee || 0,
-        months: calc.months, monthsCurrent: calc.monthsCurrent,
-        currentSubDue: calc.currentSubDue, nextSubDue: calc.nextSubDue, totalSubDue: calc.totalSubDue,
-        currentSubLabel: calc.currentSubLabel, nextSubLabel: calc.nextSubLabel,
-        oldPostponeFees: split.oldPostponeFees, newPostponeFees: split.newPostponeFees,
-        oldPostpones: split.oldPostpones, newPostpones: split.newPostpones,
-        postponeFees: split.oldPostponeFees + split.newPostponeFees,
-        postponedCount: split.oldPostpones.length + split.newPostpones.length,
-        postponedDetails: [...split.oldPostpones, ...split.newPostpones],
-        lastPaymentDate: split.lastPaymentDate,
-        paid, disc, due: calc.due, remaining: calc.remaining, remainingCurrent: calc.remainingCurrent,
-        isReminderPeriod: calc.isReminderPeriod, isLate: calc.isLate,
-        isPaid: calc.remaining <= 0,
-        onlyNextMonthDue: (calc.remaining > 0 && calc.remainingCurrent <= 0),
-        subStartISO: calc.subStartISO, skipAutoBecauseFutureStart,
-        currentMonthLabel: calc.currentMonthLabel, nextMonthLabel,
-        targetMonthLabel: calc.targetMonthLabel
+        opening: s.openingBalance || 0,
+        interview: s.interviewFee || 0,
+        // 🆕 بيانات الفواتير
+        invoices: studentInvoices,
+        openInvoices,
+        remaining: totalRemaining,
+        credit,
+        newPostponeFees,
+        deferredPostpones,
+        nextUnpaidLabel,
+        latestInvoiceNo: latestInv?.no || '',
+        latestInvoiceMonth: latestInv?.monthKey || '',
+        // 🆕 التوافق مع الكود القديم
+        paid, disc,
+        due: invoicedTotal,
+        isPaid, isLate, isReminderPeriod,
+        onlyNextMonthDue: totalRemaining <= 0 && newPostponeFees > 0,
+        lastPaymentDate,
+        state,
+        // ⚠️ الحقول القديمة (للتوافق مع renderReminder القديم)
+        months: studentInvoices.length,
+        monthsCurrent: 0,
+        currentSubDue: latestInv?.sub || 0,
+        nextSubDue: 0,
+        totalSubDue: studentInvoices.reduce((a, inv) => a + inv.sub, 0),
+        currentSubLabel: latestInv ? monthLabelFromIdx((() => {
+          const [y, m] = latestInv.monthKey.split('-').map(Number);
+          return y * 12 + (m - 1);
+        })()) : '',
+        nextSubLabel: '',
+        oldPostponeFees: studentInvoices.reduce((a, inv) => a + inv.ppFees, 0),
+        oldPostpones: [],
+        newPostpones: deferredPostpones.map(r => ({
+          dayName: getArabicDayName(r.date),
+          originalDate: r.date,
+          postponeDate: r.postponeDate,
+          fee: r.postponeFee || 80,
+          reportNo: r.no
+        })),
+        postponeFees: studentInvoices.reduce((a, inv) => a + inv.ppFees, 0) + newPostponeFees,
+        postponedCount: deferredPostpones.length,
+        postponedDetails: deferredPostpones,
+        subStartISO: s.subStart,
+        skipAutoBecauseFutureStart: false,
+        currentMonthLabel: AR_MONTHS[now.getMonth()] + ' ' + now.getFullYear(),
+        nextMonthLabel,
+        targetMonthLabel: nextMonthLabel,
+        remainingCurrent: totalRemaining
       };
     });
 }
 
 function renderReminder(){
   try {
+    if (!Array.isArray(STATE.invoices)) STATE.invoices = [];
+    if (!STATE.billing) STATE.billing = { reminderDay: 25, postponeFee: 80, currentBillMonth: '' };
+    
     const data = computeReminderData();
     const isReminderPeriod = data.length ? data[0].isReminderPeriod : (new Date().getDate() >= REMINDER_DAY);
-    const nextMonthLabel = data.length ? data[0].nextMonthLabel : (() => { const n = new Date(); const d = new Date(n.getFullYear(), n.getMonth()+1, 1); return `${AR_MONTHS[d.getMonth()]} ${d.getFullYear()}`; })();
+    const nextMonthLabel = data.length ? data[0].nextMonthLabel : (() => { 
+      const n = new Date(); 
+      const d = new Date(n.getFullYear(), n.getMonth()+1, 1); 
+      return `${AR_MONTHS[d.getMonth()]} ${d.getFullYear()}`; 
+    })();
+    
     const due = data.filter(d => !d.isPaid || d.newPostponeFees > 0);
-    const totalDue = due.reduce((a,d) => a + d.remaining, 0);
-    const totalCurrentSub = due.reduce((a,d) => a + d.currentSubDue, 0);
-    const totalNextSub = due.reduce((a,d) => a + d.nextSubDue, 0);
-    const totalOldPostpone = due.reduce((a,d) => a + d.oldPostponeFees, 0);
-    const totalNewPostpone = due.reduce((a,d) => a + d.newPostponeFees, 0);
-    const totalInterview = due.reduce((a,d) => a + d.interview, 0);
+    const totalDue = due.reduce((a,d) => a + (d.remaining || 0), 0);
+    const totalCurrentSub = due.reduce((a,d) => a + (d.currentSubDue || 0), 0);
+    const totalNextSub = due.reduce((a,d) => a + (d.nextSubDue || 0), 0);
+    const totalOldPostpone = due.reduce((a,d) => a + (d.oldPostponeFees || 0), 0);
+    const totalNewPostpone = due.reduce((a,d) => a + (d.newPostponeFees || 0), 0);
+    const totalInterview = due.reduce((a,d) => a + (d.interview || 0), 0);
     const auto = STATE_REMINDER.hasAuto;
-
+    
     const kpis = [
       { ic:'👥', lbl:'إجمالي الطلاب', val: fmt(data.length), c:'var(--blue)', bg:'rgba(77,157,255,.12)', tr:'طالب' },
       { ic:'⏳', lbl:'مستحق عليهم', val: fmt(due.filter(d => d.remaining > 0).length), c:'var(--gold)', bg:'rgba(245,181,68,.12)', tr:'طالب' },
@@ -3029,10 +3210,12 @@ function renderReminder(){
       { ic:'📋', lbl:'رسوم تأجيل مرحّلة', val: money(totalNewPostpone), c:'var(--blue)', bg:'rgba(77,157,255,.12)', tr:'مرحّل' },
       { ic:'🎯', lbl:'رسوم المقابلة', val: money(totalInterview), c:'var(--purple)', bg:'rgba(167,139,250,.12)', tr:'مقابلة' }
     ];
+    
     const kpiGridEl = document.getElementById('reminderKpiGrid');
     if (kpiGridEl) {
       kpiGridEl.innerHTML = kpis.map(k => `<div class="kpi" style="--accent:${k.c};--accent-bg:${k.bg}"><div class="kpi-head"><div class="kpi-ic">${k.ic}</div><div class="kpi-trend">${k.tr}</div></div><div class="kpi-val" style="color:${k.c}">${k.val}</div><div class="kpi-lbl">${k.lbl}</div></div>`).join('');
     }
+    
     const periodBadge = document.getElementById('reminderPeriodBadge');
     if (periodBadge) {
       if (isReminderPeriod) {
@@ -3042,21 +3225,25 @@ function renderReminder(){
         periodBadge.innerHTML = `<span class="badge off" style="font-size:12.5px;padding:7px 14px">⏰ التذكير المبكر يبدأ يوم ${REMINDER_DAY} — متبقي ${daysLeft} يوم</span>`;
       }
     }
+    
     const statusEl = document.getElementById('autoReminderStatus');
     if (statusEl){
       let html = auto ? '<span class="reminder-status on">التذكير التلقائي مُفعَّل</span>' : '<span class="reminder-status off">التذكير التلقائي معطَّل</span>';
       if (isReminderPeriod) html += ` <span class="reminder-status on" style="margin-inline-start:6px;background:rgba(167,139,250,.14);color:var(--purple)">🔔 التذكير المبكر مفعّل</span>`;
       statusEl.innerHTML = html;
     }
+    
     const controls = document.getElementById('autoReminderControls');
     if (controls){
       controls.innerHTML = auto
         ? `<button class="btn btn-danger" data-act="removeAutoReminder" style="flex:1;justify-content:center">🗑️ إزالة التذكير التلقائي</button><button class="btn btn-reminder" data-act="sendAllReminders" style="flex:1;justify-content:center">📤 إرسال الآن</button>`
         : `<button class="btn btn-add" data-act="installAutoReminder" style="flex:1;justify-content:center">🔔 تفعيل التذكير التلقائي</button><button class="btn btn-reminder" data-act="sendAllReminders" style="flex:1;justify-content:center">📤 إرسال الآن</button>`;
     }
+    
     const body = document.getElementById('reminderBody');
     if (!body) return;
     if (!data.length){ body.innerHTML = emptyRow(8); return; }
+    
     body.innerHTML = data
       .sort((a,b) => {
         const aNeed = a.remaining > 0 ? 1 : (a.newPostponeFees > 0 ? 0.5 : 0);
@@ -3069,29 +3256,33 @@ function renderReminder(){
         else if (d.isPaid && d.newPostponeFees > 0) statusBadge = '<span class="badge blue">✅ مرحّل</span>';
         else if (d.isLate) statusBadge = '<span class="badge late">متأخر</span>';
         else statusBadge = '<span class="badge gold">مستحق</span>';
-        let paidRemaining = d.paid + d.disc;
-        const unpaidOpening = Math.max(0, d.opening - paidRemaining);
-        paidRemaining = Math.max(0, paidRemaining - d.opening);
-        const unpaidInterview = Math.max(0, d.interview - paidRemaining);
-        paidRemaining = Math.max(0, paidRemaining - d.interview);
-        const unpaidCurrent = Math.max(0, d.currentSubDue - paidRemaining);
-        paidRemaining = Math.max(0, paidRemaining - d.currentSubDue);
-        const unpaidNext = Math.max(0, d.nextSubDue - paidRemaining);
-        paidRemaining = Math.max(0, paidRemaining - d.nextSubDue);
-        const unpaidOldPostpone = Math.max(0, d.oldPostponeFees - paidRemaining);
+        
+        let paidRemaining = (d.paid || 0) + (d.disc || 0);
+        const unpaidOpening = Math.max(0, (d.opening || 0) - paidRemaining);
+        paidRemaining = Math.max(0, paidRemaining - (d.opening || 0));
+        const unpaidInterview = Math.max(0, (d.interview || 0) - paidRemaining);
+        paidRemaining = Math.max(0, paidRemaining - (d.interview || 0));
+        const unpaidCurrent = Math.max(0, (d.currentSubDue || 0) - paidRemaining);
+        paidRemaining = Math.max(0, paidRemaining - (d.currentSubDue || 0));
+        const unpaidNext = Math.max(0, (d.nextSubDue || 0) - paidRemaining);
+        paidRemaining = Math.max(0, paidRemaining - (d.nextSubDue || 0));
+        const unpaidOldPostpone = Math.max(0, (d.oldPostponeFees || 0) - paidRemaining);
         const totalSubDue = unpaidOpening + unpaidInterview + unpaidCurrent + unpaidNext;
+        
         const subCell = totalSubDue > 0 ? `<span class="num blue" style="font-weight:800">${fmt(totalSubDue)}</span>` : '<span style="color:var(--text3)">—</span>';
         const postCell = (unpaidOldPostpone > 0 || d.newPostponeFees > 0)
           ? `<div style="display:flex;gap:4px;align-items:center;justify-content:center;flex-wrap:wrap">${unpaidOldPostpone > 0 ? `<button class="btn btn-edit" data-act="showPostponeDetails" data-name="${escapeHtml(d.name)}" style="padding:3px 8px;font-size:11px">📋 ${fmt(unpaidOldPostpone)}</button>` : ''}${d.newPostponeFees > 0 ? `<span class="badge blue" style="font-size:10px;padding:2px 6px">⏸️ ${fmt(d.newPostponeFees)}</span>` : ''}</div>`
           : '<span style="color:var(--text3)">—</span>';
+        
         const btn = (d.isPaid && d.newPostponeFees === 0) ? '<span style="color:var(--text3);font-size:11px">—</span>'
           : `<button class="btn btn-reminder" data-act="sendReminder" data-name="${escapeHtml(d.name)}">${d.isPaid ? '✅' : '🔔'}</button>`;
+        
         return `<tr><td><span class="idx">${i+1}</span></td><td class="name">${escapeHtml(d.name)}</td><td><span class="pkg-pill">${d.pkg} حلقات</span></td><td>${subCell}</td><td>${postCell}</td><td class="num ${d.isPaid ? 'green' : 'red'}" style="font-weight:900">${fmt(d.remaining)}</td><td>${statusBadge}</td><td>${btn}</td></tr>`;
       }).join('');
   } catch (err) {
     console.error("Error rendering reminders:", err);
     const body = document.getElementById('reminderBody');
-    if (body) body.innerHTML = `<tr><td colspan="8" style="text-align:center;color:red;padding:20px;font-weight:bold;">خطأ: ${err.message}</td></tr>`;
+    if (body) body.innerHTML = `<tr><td colspan="8" style="text-align:center;color:red;padding:20px;font-weight:bold;">خطأ: ${escapeHtml(err.message)}</td></tr>`;
   }
 }
 
@@ -4244,31 +4435,32 @@ function buildCharts(){
 }
 
 const SEC_GROUPS = {
-  dash:     { parent:'dash',     sub:null },
-  students: { parent:'students', sub:'list' },
-  summary:  { parent:'students', sub:'summary' },
-  follow:   { parent:'students', sub:'follow' },
-  profile:  { parent:'students', sub:'list', drawer:true },
-  sessions:      { parent:'sessions', sub:'reports' },
-  reports:       { parent:'sessions', sub:'reports' },
-  calendar:      { parent:'sessions', sub:'calendar' },
-  parentreports: { parent:'sessions', sub:'parentreports' },
-  collect:  { parent:'collect', sub:'cash' },
-  cash:     { parent:'collect', sub:'cash' },
-  reminder: { parent:'collect', sub:'reminder' },
-  finance:     { parent:'finance', sub:'overview' },
-  income:      { parent:'finance', sub:'income' },
-  expenses:    { parent:'finance', sub:'expenses' },
-  charity:     { parent:'finance', sub:'charity' },
-  loans:       { parent:'finance', sub:'loans' },
-  obligations: { parent:'finance', sub:'obligations' },
-  invest:      { parent:'finance', sub:'invest' },
-  report: { parent:'report', sub:null },
-  setup:     { parent:'setup', sub:'settings' },
-  settings:  { parent:'setup', sub:'settings' },
-  packages:  { parent:'setup', sub:'packages' },
-  opening:   { parent:'setup', sub:'opening' },
-  emaillog:  { parent:'setup', sub:'emaillog' }
+dash:     { parent:'dash',     sub:null },
+students: { parent:'students', sub:'list' },
+summary:  { parent:'students', sub:'summary' },
+follow:   { parent:'students', sub:'follow' },
+profile:  { parent:'students', sub:'list', drawer:true },
+sessions:      { parent:'sessions', sub:'reports' },
+reports:       { parent:'sessions', sub:'reports' },
+calendar:      { parent:'sessions', sub:'calendar' },
+parentreports: { parent:'sessions', sub:'parentreports' },
+collect:  { parent:'collect', sub:'cash' },
+invoices: { parent:'invoices', sub:null },
+cash:     { parent:'collect', sub:'cash' },
+reminder: { parent:'collect', sub:'reminder' },
+finance:     { parent:'finance', sub:'overview' },
+income:      { parent:'finance', sub:'income' },
+expenses:    { parent:'finance', sub:'expenses' },
+charity:     { parent:'finance', sub:'charity' },
+loans:       { parent:'finance', sub:'loans' },
+obligations: { parent:'finance', sub:'obligations' },
+invest:      { parent:'finance', sub:'invest' },
+report: { parent:'report', sub:null },
+setup:     { parent:'setup', sub:'settings' },
+settings:  { parent:'setup', sub:'settings' },
+packages:  { parent:'setup', sub:'packages' },
+opening:   { parent:'setup', sub:'opening' },
+emaillog:  { parent:'setup', sub:'emaillog' }
 };
 
 const PAGE_META_NEW = {
@@ -4276,6 +4468,7 @@ const PAGE_META_NEW = {
   students: { t:'الطلاب', s:'السجل · الملخص · المتابعة' },
   sessions: { t:'الحلقات والتقارير', s:'التقارير · التقويم · أولياء الأمور' },
   collect:  { t:'التحصيل', s:'السندات · التذكيرات' },
+  invoices:  { t:'الفواتير', s:'الفواتير الشهرية · FIFO · الأرصدة' },
   finance:  { t:'المالية', s:'الدخل · المصروفات · الاستثمارات' },
   report:   { t:'التقرير الشهري', s:'ملخص شامل للحركة المالية' },
   setup:    { t:'الإعدادات', s:'الباقات · الافتتاحي · سجل البريد' }
@@ -4302,16 +4495,17 @@ function goTo(sec){
   const meta = PAGE_META_NEW[group.parent] || PAGE_META_NEW.dash;
   document.getElementById('pageTitle').textContent = meta.t;
   document.getElementById('pageSub').textContent = meta.s;
-  const after = () => {
-    if (group.parent === 'dash') buildCharts();
-    if (group.parent === 'report') { fillReportMonths(); renderReport(); }
-    if (group.sub === 'reports') renderReportsKPI();
-    if (group.sub === 'reminder') renderReminder();
-     if (group.sub === 'settings') renderReminder();
-    if (group.sub === 'emaillog') renderEmailLog();
-    if (group.sub === 'calendar') renderCalendar();
-    if (group.sub === 'parentreports') { fillParentReportMonths(); renderParentReports(); }
-  };
+const after = () => {
+if (group.parent === 'dash') buildCharts();
+if (group.parent === 'report') { fillReportMonths(); renderReport(); }
+if (group.parent === 'invoices') renderInvoices();
+if (group.sub === 'reports') renderReportsKPI();
+if (group.sub === 'reminder') renderReminder();
+if (group.sub === 'settings') renderReminder();
+if (group.sub === 'emaillog') renderEmailLog();
+if (group.sub === 'calendar') renderCalendar();
+if (group.sub === 'parentreports') { fillParentReportMonths(); renderParentReports(); }
+};
   setTimeout(after, 60);
   window.scrollTo({ top:0, behavior:'smooth' });
   document.getElementById('sidebar')?.classList.remove('open');
@@ -4361,34 +4555,36 @@ let cmdSelectedIdx = 0;
 let cmdItems = [];
 
 const CMD_SECTIONS = [
-  { ic:'📊', title:'لوحة التحكم', tag:'قسم', sec:'dash' },
-  { ic:'👨‍🎓', title:'سجل الطلاب', tag:'قسم', sec:'students' },
-  { ic:'💰', title:'الملخص المالي', tag:'قسم', sec:'summary' },
-  { ic:'⏰', title:'متابعة الاستحقاقات', tag:'قسم', sec:'follow' },
-  { ic:'📝', title:'تقارير الحلقات', tag:'قسم', sec:'reports' },
-  { ic:'📅', title:'التقويم', tag:'قسم', sec:'calendar' },
-  { ic:'👨‍👩‍👧', title:'تقارير أولياء الأمور', tag:'قسم', sec:'parentreports' },
-  { ic:'🧾', title:'سندات الاستلام', tag:'قسم', sec:'cash' },
-  { ic:'🔔', title:'التذكيرات', tag:'قسم', sec:'reminder' },
-  { ic:'💵', title:'مصادر الدخل', tag:'قسم', sec:'income' },
-  { ic:'💸', title:'المصروفات', tag:'قسم', sec:'expenses' },
-  { ic:'🤲', title:'الصدقة', tag:'قسم', sec:'charity' },
-  { ic:'🤝', title:'القروض', tag:'قسم', sec:'loans' },
-  { ic:'📑', title:'الالتزامات', tag:'قسم', sec:'obligations' },
-  { ic:'📈', title:'الاستثمارات', tag:'قسم', sec:'invest' },
-  { ic:'📊', title:'التقرير الشهري', tag:'قسم', sec:'report' },
-  { ic:'📦', title:'الباقات', tag:'قسم', sec:'packages' },
-  { ic:'🏁', title:'الرصيد الافتتاحي', tag:'قسم', sec:'opening' },
-  { ic:'📧', title:'سجل البريد', tag:'قسم', sec:'emaillog' },
-  { ic:'⚙️', title:'الإعدادات', tag:'قسم', sec:'settings' }
+{ ic:'📊', title:'لوحة التحكم', tag:'قسم', sec:'dash' },
+{ ic:'👨‍🎓', title:'سجل الطلاب', tag:'قسم', sec:'students' },
+{ ic:'💰', title:'الملخص المالي', tag:'قسم', sec:'summary' },
+{ ic:'⏰', title:'متابعة الاستحقاقات', tag:'قسم', sec:'follow' },
+{ ic:'📝', title:'تقارير الحلقات', tag:'قسم', sec:'reports' },
+{ ic:'📅', title:'التقويم', tag:'قسم', sec:'calendar' },
+{ ic:'👨‍👩‍👧', title:'تقارير أولياء الأمور', tag:'قسم', sec:'parentreports' },
+{ ic:'🧾', title:'سندات الاستلام', tag:'قسم', sec:'cash' },
+{ ic:'🧾', title:'الفواتير', tag:'قسم', sec:'invoices' },
+{ ic:'🔔', title:'التذكيرات', tag:'قسم', sec:'reminder' },
+{ ic:'💵', title:'مصادر الدخل', tag:'قسم', sec:'income' },
+{ ic:'💸', title:'المصروفات', tag:'قسم', sec:'expenses' },
+{ ic:'🤲', title:'الصدقة', tag:'قسم', sec:'charity' },
+{ ic:'🤝', title:'القروض', tag:'قسم', sec:'loans' },
+{ ic:'📑', title:'الالتزامات', tag:'قسم', sec:'obligations' },
+{ ic:'📈', title:'الاستثمارات', tag:'قسم', sec:'invest' },
+{ ic:'📊', title:'التقرير الشهري', tag:'قسم', sec:'report' },
+{ ic:'📦', title:'الباقات', tag:'قسم', sec:'packages' },
+{ ic:'🏁', title:'الرصيد الافتتاحي', tag:'قسم', sec:'opening' },
+{ ic:'📧', title:'سجل البريد', tag:'قسم', sec:'emaillog' },
+{ ic:'⚙️', title:'الإعدادات', tag:'قسم', sec:'settings' }
 ];
 const CMD_ACTIONS = [
-  { ic:'➕', title:'تسجيل طالب جديد', tag:'عملية', action:() => openForm('student') },
-  { ic:'🧾', title:'سند استلام جديد', tag:'عملية', action:() => openVoucherModal('in','subscription') },
-  { ic:'💸', title:'سند صرف جديد', tag:'عملية', action:() => openVoucherModal('out','expense') },
-  { ic:'📋', title:'تقرير طالب جديد', tag:'عملية', action:() => openForm('studentReport') },
-  { ic:'🖨️', title:'طباعة الصفحة الحالية', tag:'عملية', action:() => window.print() },
-  { ic:'🔄', title:'تحديث البيانات', tag:'عملية', action:() => loadFromSheets() }
+{ ic:'➕', title:'تسجيل طالب جديد', tag:'عملية', action:() => openForm('student') },
+{ ic:'🧾', title:'إصدار الفواتير الآن', tag:'عملية', action:() => apiPost('issueInvoices', {}).then(r => { showToast(`✅ فواتير: ${r.created||0}`); loadFromSheets(); }) },
+{ ic:'🧾', title:'سند استلام جديد', tag:'عملية', action:() => openVoucherModal('in','subscription') },
+{ ic:'💸', title:'سند صرف جديد', tag:'عملية', action:() => openVoucherModal('out','expense') },
+{ ic:'📋', title:'تقرير طالب جديد', tag:'عملية', action:() => openForm('studentReport') },
+{ ic:'🖨️', title:'طباعة الصفحة الحالية', tag:'عملية', action:() => window.print() },
+{ ic:'🔄', title:'تحديث البيانات', tag:'عملية', action:() => loadFromSheets() }
 ];
 function openCommandPalette() {
   cmdBack.classList.add('show');
@@ -4499,6 +4695,15 @@ function exportTableCSV(tableKey) {
   else if (tableKey === 'summary') { headers = ['الاسم','الباقة','السعر','افتتاحي','مدفوع','خصم','مستحق','متبقي','حالة']; rows = STATE.summary.map(s => [s.name, s.pkg, s.price, s.openingBalance, s.paid, s.disc, s.due, s.remaining, s.state]); filename = 'ملخص_الطلاب'; }
   else if (tableKey === 'receipts') { headers = ['رقم','التاريخ','الطالب','الباقة','المستحق','المدفوع','الخصم','المتبقي','الطريقة','الفترة']; rows = STATE.receipts.map(r => [r.no, r.date, r.student, r.pkg, r.due, r.paid, r.disc, r.remaining, r.method, r.period]); filename = 'سندات_الاستلام'; }
   else if (tableKey === 'reports') { headers = ['#','التاريخ','الطالب','النوع','الحالة','تأجيل','رسوم','عدد السور','سبب الأجازة']; rows = STATE.reports.map(r => [r.no, r.date, r.student, r.sType, r.status, r.postponeDate, r.postponeFee, (r.sessionDetails?.items||[]).length, r.vacationReason || '']); filename = 'تقارير_الطلاب'; }
+    else if (tableKey === 'invoices') {
+  headers = ['رقم الفاتورة','الشهر','الطالب','الباقة','الاشتراك','افتتاحي','مقابلة','تأجيلات','رسوم تأجيل','الإجمالي','المسدد','المتبقي','الحالة'];
+  rows = STATE.invoices.map(inv => [
+    inv.no, inv.monthKey, inv.student, inv.pkg,
+    inv.sub, inv.opening, inv.interview, inv.ppCount, inv.ppFees,
+    inv.total, inv.paid, inv.remaining, inv.status
+  ]);
+  filename = 'الفواتير';
+}
   else if (tableKey === 'income') { headers = ['التاريخ','البيان','المبلغ','طريقة']; rows = STATE.otherIncome.map(r => [val(r,'التاريخ'), val(r,'البيان'), numField(r,'المبلغ'), val(r,'طريقة الاستلام')]); filename = 'مصادر_دخل'; }
   else if (tableKey === 'expenses') { headers = ['التاريخ','البيان','المبلغ','النوع']; rows = STATE.expenses.map(r => [val(r,'التاريخ'), val(r,'البيان'), numField(r,'المبلغ'), val(r,'النوع')]); filename = 'مصروفات'; }
   if (!rows.length) { showToast('⚠️ لا توجد بيانات'); return; }
@@ -4553,44 +4758,93 @@ document.addEventListener('click', (e) => {
   const sec  = t.dataset.sec;
   const form = t.dataset.form;
   const table = t.dataset.table;
-  switch (act) {
-    case 'goTo':               goTo(sec); break;
-    case 'printWindow':        window.print(); break;
-    case 'openProfile':        openProfileDrawer(name); break;
-    case 'sendReminder':       sendReminder(name, t); break;
-    case 'openReportFor':      openStudentReportFor(name); break;
-    case 'changePackage':      changeStudentPackage(name); break;
-    case 'editStudent':        editStudentPrice(name); break;
-    case 'printStudentReport': printStudentReport(Number(id)); break;
-    case 'resendReportEmail':  resendReportEmail(Number(id)); break;
-    case 'printReceipt':       printReceipt(Number(id)); break;
-    case 'resendReceiptEmail': resendReceiptEmail(Number(id)); break;
-    case 'printPayment':       printPaymentVoucher(Number(id)); break;
-    case 'editInvestment':     editInvestment(name); break;
-    case 'showInvestTrans':    showInvestTrans(name); break;
-    case 'editPackage':        editPackage(Number(id)); break;
-    case 'deletePackage':      deletePackage(Number(id)); break;
-    case 'openForm':           openForm(form); break;
-    case 'calPrev':            calPrevMonth(); break;
-    case 'calNext':            calNextMonth(); break;
-    case 'calToday':           calToday(); break;
-    case 'printCalendar':      printCalendar(); break;
-    case 'printReport':        printReport(); break;
-    case 'printProfileReport': printProfileReport(name); break;
-    case 'printParentReport':  printParentReport(name); break;
-    case 'generateAllParentReports': generateAllParentReports(); break;
-    case 'selectCalDay':       selectCalDay(t.dataset.iso); break;
-    case 'showPaymentsList':   showPaymentsList(); break;
-    case 'renderEmailLog':     renderEmailLog(); break;
-    case 'installAutoReminder':installAutoReminder(); break;
-    case 'removeAutoReminder': removeAutoReminder(); break;
-    case 'sendAllReminders':   sendAllReminders(); break;
-    case 'showPostponeDetails':showPostponeDetailsModal(name); break;
-    case 'exportTable':        exportTableCSV(table); break;
-  }
+ switch (act) {
+case 'goTo':               goTo(sec); break;
+case 'printWindow':        window.print(); break;
+
+// 🆕 v11.0 — أزرار الفواتير
+case 'issueInvoices':
+  if (!confirm('إصدار الفواتير المستحقة الآن؟')) return;
+  (async () => {
+    try {
+      const r = await apiPost('issueInvoices', {});
+      showToast(`✅ فواتير جديدة: ${r.created || 0} — تأجيلات مختومة: ${r.stamped || 0}`);
+      setTimeout(() => loadFromSheets(), 700);
+    } catch (err) { showToast('⚠️ ' + err.message); }
+  })();
+  break;
+
+case 'refreshInvoices':
+  (async () => {
+    try {
+      await apiPost('refreshInvoices', {});
+      showToast('✅ تم تحديث أرصدة الفواتير');
+      setTimeout(() => loadFromSheets(), 500);
+    } catch (err) { showToast('⚠️ ' + err.message); }
+  })();
+  break;
+
+case 'voidInvoice': {
+  const invNo = t.dataset.inv;
+  const stuName = t.dataset.student;
+  if (!confirm(`إلغاء الفاتورة ${invNo} للطالب ${stuName}؟\nسيتم إعادة تأجيلاتها للفواتير القادمة.`)) return;
+  const note = prompt('سبب الإلغاء (اختياري):', '') || '';
+  (async () => {
+    try {
+      await apiPost('voidInvoice', { 'رقم الفاتورة': invNo, 'ملاحظات': note });
+      showToast(`✅ تم إلغاء الفاتورة ${invNo}`);
+      setTimeout(() => loadFromSheets(), 700);
+    } catch (err) { showToast('⚠️ ' + err.message); }
+  })();
+  break;
+}
+
+case 'studentStatement': {
+  const name = t.dataset.name;
+  (async () => {
+    try {
+      const r = await apiPost('getStudentStatement', { 'اسم الطالب': name });
+      showStudentStatementModal(r.statement, name);
+    } catch (err) { showToast('⚠️ ' + err.message); }
+  })();
+  break;
+}
+
+case 'openProfile':        openProfileDrawer(name); break;
+case 'sendReminder':       sendReminder(name, t); break;
+case 'openReportFor':      openStudentReportFor(name); break;
+case 'changePackage':      changeStudentPackage(name); break;
+case 'editStudent':        editStudentPrice(name); break;
+case 'printStudentReport': printStudentReport(Number(id)); break;
+case 'resendReportEmail':  resendReportEmail(Number(id)); break;
+case 'printReceipt':       printReceipt(Number(id)); break;
+case 'resendReceiptEmail': resendReceiptEmail(Number(id)); break;
+case 'printPayment':       printPaymentVoucher(Number(id)); break;
+case 'editInvestment':     editInvestment(name); break;
+case 'showInvestTrans':    showInvestTrans(name); break;
+case 'editPackage':        editPackage(Number(id)); break;
+case 'deletePackage':      deletePackage(Number(id)); break;
+case 'openForm':           openForm(form); break;
+case 'calPrev':            calPrevMonth(); break;
+case 'calNext':            calNextMonth(); break;
+case 'calToday':           calToday(); break;
+case 'printCalendar':      printCalendar(); break;
+case 'printReport':        printReport(); break;
+case 'printProfileReport': printProfileReport(name); break;
+case 'printParentReport':  printParentReport(name); break;
+case 'generateAllParentReports': generateAllParentReports(); break;
+case 'selectCalDay':       selectCalDay(t.dataset.iso); break;
+case 'showPaymentsList':   showPaymentsList(); break;
+case 'renderEmailLog':     renderEmailLog(); break;
+case 'installAutoReminder':installAutoReminder(); break;
+case 'removeAutoReminder': removeAutoReminder(); break;
+case 'sendAllReminders':   sendAllReminders(); break;
+case 'showPostponeDetails':showPostponeDetailsModal(name); break;
+case 'exportTable':        exportTableCSV(table); break;
+}
 });
 
-document.querySelectorAll('.nav-item').forEach(item => {
+  document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('click', () => {
     const sec = item.dataset.sec;
     if (SEC_GROUPS[sec]) { goTo(sec); localStorage.setItem('lastSection', sec); }
@@ -4638,10 +4892,13 @@ document.addEventListener('keydown', e => {
   }
 });
 document.addEventListener('change', e => {
-  if(e.target && e.target.id === 'reportMonth') renderReport();
-  if(e.target && e.target.id === 'parentReportMonth'){ PARENT_REPORT_MONTH = e.target.value; renderParentReports(); }
+if(e.target && e.target.id === 'reportMonth') renderReport();
+if(e.target && e.target.id === 'parentReportMonth'){ PARENT_REPORT_MONTH = e.target.value; renderParentReports(); }
+if (e.target && (e.target.id === 'invFilterStudent' || e.target.id === 'invFilterStatus' || e.target.id === 'invFilterMonth')) {
+  renderInvoices();
+}
 });
-
+  
 function showToast(msg){ const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._timer); t._timer = setTimeout(() => t.classList.remove('show'), 3000); }
 function showLoader(on){ document.getElementById('loader').classList.toggle('show', on); }
 
@@ -4657,6 +4914,7 @@ function renderAll(){
   renderPackages(); renderPkgSummary(); renderSettings();
   fillReportMonths();
   renderReport();
+  renderInvoices();
   const t = STATE.totals;
   document.getElementById('nb-students').textContent = t.students || 0;
   const nbRem = document.getElementById('nb-reminder');
@@ -4688,6 +4946,194 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.addEventListener('resize', () => { Object.values(charts).forEach(c => c && c.resize()); });
+  // 🆕 v11.0 — عرض الفواتير
+function renderInvoicesKPI(){
+  const invs = STATE.invoices.filter(i => i.status !== 'ملغاة');
+  const total = invs.reduce((a, i) => a + i.total, 0);
+  const paid = invs.reduce((a, i) => a + i.paid, 0);
+  const remaining = invs.reduce((a, i) => a + i.remaining, 0);
+  const openCount = invs.filter(i => i.status === 'مفتوحة' || i.status === 'جزئية').length;
+  const paidCount = invs.filter(i => i.status === 'مسددة').length;
+  const voidCount = STATE.invoices.filter(i => i.status === 'ملغاة').length;
+
+  const kpis = [
+    { ic:'🧾', lbl:'إجمالي الفواتير', val: fmt(invs.length), c:'var(--blue)', bg:'rgba(77,157,255,.12)', tr:'فاتورة' },
+    { ic:'💰', lbl:'إجمالي المبالغ', val: money(total), c:'var(--gold)', bg:'rgba(245,181,68,.12)', tr:'مُصدَر' },
+    { ic:'✅', lbl:'إجمالي المسدد', val: money(paid), c:'var(--brand)', bg:'rgba(45,212,167,.12)', tr:'محصّل' },
+    { ic:'⏳', lbl:'إجمالي المتبقي', val: money(remaining), c:'var(--red)', bg:'rgba(255,107,107,.12)', tr:'مستحق' },
+    { ic:'📂', lbl:'فواتير مفتوحة', val: fmt(openCount), c:'var(--gold)', bg:'rgba(245,181,68,.12)', tr:'فاتورة' },
+    { ic:'✔️', lbl:'فواتير مسددة', val: fmt(paidCount), c:'var(--brand)', bg:'rgba(45,212,167,.12)', tr:'فاتورة' },
+    { ic:'🚫', lbl:'فواتير ملغاة', val: fmt(voidCount), c:'var(--text3)', bg:'rgba(107,125,146,.12)', tr:'فاتورة' },
+    { ic:'📊', lbl:'نسبة التحصيل', val: `${total > 0 ? ((paid/total)*100).toFixed(1) : 0}<small>%</small>`, c:'var(--brand)', bg:'rgba(45,212,167,.12)', tr:'كفاءة' }
+  ];
+  const el = document.getElementById('invoicesKpiGrid');
+  if (el) el.innerHTML = kpis.map(k => `<div class="kpi" style="--accent:${k.c};--accent-bg:${k.bg}"><div class="kpi-head"><div class="kpi-ic">${k.ic}</div><div class="kpi-trend">${k.tr}</div></div><div class="kpi-val" style="color:${k.c}">${k.val}</div><div class="kpi-lbl">${k.lbl}</div></div>`).join('');
+
+  const badge = document.getElementById('invoicesCountBadge');
+  if (badge) badge.textContent = `${STATE.invoices.length} فاتورة`;
+
+  const navBadge = document.getElementById('nb-invoices');
+  if (navBadge) {
+    navBadge.textContent = openCount;
+    navBadge.classList.toggle('alert', openCount > 0);
+  }
+
+  const curMonthEl = document.getElementById('currentBillMonth');
+  if (curMonthEl && STATE.billing.currentBillMonth) {
+    const [y, m] = STATE.billing.currentBillMonth.split('-').map(Number);
+    curMonthEl.textContent = `${AR_MONTHS[m-1]} ${y}`;
+  }
+}
+
+  // 🆕 v11.0 — كشف حساب الطالب (Modal)
+function showStudentStatementModal(statement, studentName){
+if (!statement) { showToast('⚠️ لا توجد بيانات'); return; }
+const invs = statement.invoices || [];
+const receipts = statement.receipts || [];
+
+const invRows = invs.map(inv => {
+  const [y, m] = inv.monthKey.split('-').map(Number);
+  const monthLabel = `${AR_MONTHS[m-1]} ${y}`;
+  const statusBadge = inv.status === 'مسددة' ? '<span class="badge ok">مسددة</span>'
+    : inv.status === 'جزئية' ? '<span class="badge gold">جزئية</span>'
+    : inv.status === 'ملغاة' ? '<span class="badge off">ملغاة</span>'
+    : '<span class="badge blue">مفتوحة</span>';
+  return `<tr>
+    <td style="font-family:monospace;font-weight:800;color:var(--blue)">${escapeHtml(inv.no)}</td>
+    <td>${monthLabel}</td>
+    <td class="num">${fmt(inv.total)}</td>
+    <td class="num green">${fmt(inv.paid)}</td>
+    <td class="num ${inv.remaining>0?'red':'green'}">${fmt(inv.remaining)}</td>
+    <td>${statusBadge}</td>
+  </tr>`;
+}).join('');
+
+const recRows = receipts.map(r => `<tr>
+  <td>Rec-${String(r['رقم الإيصال'] || '').padStart(4,'0')}</td>
+  <td>${fmtDateShort(r['التاريخ'])}</td>
+  <td class="num green">${fmt(Number(r['المبلغ المدفوع'])||0)}</td>
+  <td class="num gold">${r['خصم']?fmt(r['خصم']):'—'}</td>
+  <td>${escapeHtml(r['طريقة الدفع']||'—')}</td>
+</tr>`).join('');
+
+const modal = document.getElementById('modalBack');
+document.getElementById('modalTitle').textContent = `📄 كشف حساب — ${studentName}`;
+document.getElementById('modalSub').textContent = `${invs.length} فاتورة · ${receipts.length} إيصال`;
+document.getElementById('modalIc').textContent = '📄';
+document.getElementById('modalSave').style.display = 'none';
+document.getElementById('modalCancel').textContent = 'إغلاق';
+
+const form = document.getElementById('modalForm');
+form.className = '';
+form.style.display = 'block';
+form.innerHTML = `
+  <div style="grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
+    <div style="background:rgba(77,157,255,.1);border:1px solid rgba(77,157,255,.3);padding:12px;border-radius:10px;text-align:center">
+      <div style="font-size:11px;color:var(--blue);font-weight:700;margin-bottom:4px">💰 إجمالي الفواتير</div>
+      <div style="font-size:18px;font-weight:900;color:var(--blue)">${fmt(invs.reduce((a,i)=>a+i.total,0))} ج.م</div>
+    </div>
+    <div style="background:rgba(45,212,167,.1);border:1px solid rgba(45,212,167,.3);padding:12px;border-radius:10px;text-align:center">
+      <div style="font-size:11px;color:var(--brand);font-weight:700;margin-bottom:4px">✅ المسدد</div>
+      <div style="font-size:18px;font-weight:900;color:var(--brand)">${fmt(invs.reduce((a,i)=>a+i.paid,0))} ج.م</div>
+    </div>
+    <div style="background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.3);padding:12px;border-radius:10px;text-align:center">
+      <div style="font-size:11px;color:var(--red);font-weight:700;margin-bottom:4px">⏳ المتبقي</div>
+      <div style="font-size:18px;font-weight:900;color:var(--red)">${fmt(statement.remaining)} ج.م</div>
+    </div>
+  </div>
+  ${statement.credit > 0 ? `<div style="grid-column:1/-1;padding:10px 14px;background:rgba(45,212,167,.12);border:1px dashed rgba(45,212,167,.4);border-radius:10px;margin-bottom:12px;font-size:13px;color:var(--brand);font-weight:700;text-align:center">💰 رصيد دائن للطالب: ${fmt(statement.credit)} ج.م</div>` : ''}
+  <h4 style="grid-column:1/-1;margin:8px 0;color:var(--blue);font-size:14px">🧾 الفواتير (${invs.length})</h4>
+  <div style="grid-column:1/-1;overflow-x:auto">
+    <table style="min-width:600px">
+      <thead><tr><th>رقم الفاتورة</th><th>الشهر</th><th>الإجمالي</th><th>المسدد</th><th>المتبقي</th><th>الحالة</th></tr></thead>
+      <tbody>${invRows || '<tr><td colspan="6" style="text-align:center;color:var(--text3)">لا توجد فواتير</td></tr>'}</tbody>
+    </table>
+  </div>
+  <h4 style="grid-column:1/-1;margin:16px 0 8px;color:var(--brand);font-size:14px">🧾 سندات الاستلام (${receipts.length})</h4>
+  <div style="grid-column:1/-1;overflow-x:auto">
+    <table style="min-width:500px">
+      <thead><tr><th>رقم الإيصال</th><th>التاريخ</th><th>المدفوع</th><th>الخصم</th><th>الطريقة</th></tr></thead>
+      <tbody>${recRows || '<tr><td colspan="5" style="text-align:center;color:var(--text3)">لا توجد إيصالات</td></tr>'}</tbody>
+    </table>
+  </div>
+`;
+modal.classList.add('show');
+}
+
+
+function renderInvoices(){
+  renderInvoicesKPI();
+
+  // تعبئة فلاتر الطلاب والأشهر
+  const studentSel = document.getElementById('invFilterStudent');
+  const monthSel = document.getElementById('invFilterMonth');
+  if (studentSel && studentSel.options.length <= 1) {
+    const students = [...new Set(STATE.invoices.map(i => i.student))].sort();
+    studentSel.innerHTML = '<option value="">كل الطلاب</option>' +
+      students.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+  }
+  if (monthSel && monthSel.options.length <= 1) {
+    const months = [...new Set(STATE.invoices.map(i => i.monthKey))].sort().reverse();
+    monthSel.innerHTML = '<option value="">كل الأشهر</option>' +
+      months.map(mk => {
+        const [y, m] = mk.split('-').map(Number);
+        return `<option value="${mk}">${AR_MONTHS[m-1]} ${y}</option>`;
+      }).join('');
+  }
+
+  const studentFilter = studentSel?.value || '';
+  const statusFilter = document.getElementById('invFilterStatus')?.value || '';
+  const monthFilter = monthSel?.value || '';
+
+  let rows = STATE.invoices.slice().sort((a, b) => {
+    if (a.monthKey !== b.monthKey) return b.monthKey.localeCompare(a.monthKey);
+    return a.student.localeCompare(b.student);
+  });
+
+  if (studentFilter) rows = rows.filter(i => i.student === studentFilter);
+  if (statusFilter) rows = rows.filter(i => i.status === statusFilter);
+  if (monthFilter) rows = rows.filter(i => i.monthKey === monthFilter);
+
+  const body = document.getElementById('invoicesBody');
+  if (!body) return;
+  if (!rows.length) { body.innerHTML = emptyRow(13); return; }
+
+  body.innerHTML = rows.map(inv => {
+    const [y, m] = inv.monthKey.split('-').map(Number);
+    const monthLabel = `${AR_MONTHS[m-1]} ${y}`;
+    const statusBadge = inv.status === 'مسددة'
+      ? '<span class="badge ok">مسددة</span>'
+      : inv.status === 'جزئية'
+      ? '<span class="badge gold">جزئية</span>'
+      : inv.status === 'ملغاة'
+      ? '<span class="badge off">ملغاة</span>'
+      : '<span class="badge blue">مفتوحة</span>';
+
+    const progPct = inv.total > 0 ? Math.min((inv.paid / inv.total) * 100, 100) : 0;
+
+    return `<tr>
+      <td><span style="font-family:monospace;font-weight:800;color:var(--blue);direction:ltr;display:inline-block">${escapeHtml(inv.no)}</span></td>
+      <td style="font-weight:700">${monthLabel}</td>
+      <td class="name">${escapeHtml(inv.student)}</td>
+      <td><span class="pkg-pill">${escapeHtml(inv.pkg)} حلقات</span></td>
+      <td class="num">${fmt(inv.sub)}</td>
+      <td class="num ${inv.opening>0?'blue':''}">${inv.opening>0?fmt(inv.opening):'—'}</td>
+      <td class="num ${inv.interview>0?'gold':''}">${inv.interview>0?fmt(inv.interview):'—'}</td>
+      <td class="num ${inv.ppCount>0?'gold':''}">${inv.ppCount>0?inv.ppCount+' × '+fmt(inv.ppFees):'—'}</td>
+      <td class="num" style="font-weight:900">${fmt(inv.total)}</td>
+      <td class="num green">${fmt(inv.paid)}</td>
+      <td>
+        <div class="num ${inv.remaining>0?'red':'green'}" style="font-weight:900">${fmt(inv.remaining)}</div>
+        <div class="prog" style="margin-top:4px;min-width:60px"><i style="width:${progPct.toFixed(0)}%"></i></div>
+      </td>
+      <td>${statusBadge}</td>
+      <td style="white-space:nowrap">
+        ${inv.status !== 'ملغاة' ? `<button class="btn btn-danger" data-act="voidInvoice" data-inv="${escapeHtml(inv.no)}" data-student="${escapeHtml(inv.student)}" title="إلغاء" style="padding:4px 8px;font-size:11px">🚫</button>` : ''}
+        <button class="btn btn-profile" data-act="studentStatement" data-name="${escapeHtml(inv.student)}" title="كشف حساب" style="padding:4px 8px;font-size:11px">📄</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
 </script>
 
 <script>
@@ -4814,19 +5260,20 @@ function renderVoucherForm(opId) {
 }
 
 function buildVoucherSubscriptionForm() {
-  const form = document.getElementById('voucherForm');
-  const fields = [
-    { n:'التاريخ', l:'التاريخ', t:'date', def:todayISO(), req:true },
-    { n:'طريقة الدفع', l:'طريقة الدفع', t:'select', opts:['نقدي','تحويل بنكي','محفظة إلكترونية','شيك'], def:'نقدي' },
-    { n:'اسم الطالب', l:'👨‍🎓 الطالب', t:'select-student', req:true, full:true },
-    { n:'نوع الباقة', l:'الباقة', t:'readonly-pkg' },
-    { n:'due-preview', l:'', t:'due-preview', full:true },
-    { n:'المبلغ المستحق', l:'المستحق', t:'number', req:true },
-    { n:'المبلغ المدفوع', l:'المدفوع', t:'number', req:true },
-    { n:'خصم', l:'خصم (%)', t:'number', def:'0' }, 
-    { n:'الفترة المستحقة', l:'الفترة المستحقة', t:'month', def:currentMonthISO() },
-    { n:'ملاحظات', l:'ملاحظات', t:'textarea', full:true }
-  ];
+const form = document.getElementById('voucherForm');
+const fields = [
+{ n:'التاريخ', l:'التاريخ', t:'date', def:todayISO(), req:true },
+{ n:'طريقة الدفع', l:'طريقة الدفع', t:'select', opts:['نقدي','تحويل بنكي','محفظة إلكترونية','شيك'], def:'نقدي' },
+{ n:'اسم الطالب', l:'👨‍🎓 الطالب', t:'select-student', req:true, full:true },
+{ n:'نوع الباقة', l:'الباقة', t:'readonly-pkg' },
+{ n:'due-preview', l:'', t:'due-preview', full:true },
+{ n:'invoice-target', l:'', t:'invoice-target', full:true },
+{ n:'المبلغ المستحق', l:'المستحق', t:'number', req:true },
+{ n:'المبلغ المدفوع', l:'المدفوع', t:'number', req:true },
+{ n:'خصم', l:'خصم (%)', t:'number', def:'0' },
+{ n:'الفترة المستحقة', l:'الفترة المستحقة', t:'month', def:currentMonthISO() },
+{ n:'ملاحظات', l:'ملاحظات', t:'textarea', full:true }
+];
   form.innerHTML = fields.map(buildField).join('');
 
   setTimeout(() => {
@@ -4861,34 +5308,70 @@ function buildVoucherSubscriptionForm() {
     if (paidInp) paidInp.addEventListener('input', () => { paidInp.dataset.touched = '1'; updateLivePreview(); });
     if (discInp) discInp.addEventListener('input', updateLivePreview);
 
-    if (stuSel) {
-      stuSel.addEventListener('change', () => {
-        const opt = stuSel.selectedOptions[0];
-        if (!opt || !opt.value) return;
-        
-        if (pkgRo) pkgRo.value = opt.dataset.pkg ? opt.dataset.pkg + ' حلقات' : '';
-        
-        const d = computeDueDetails(opt.value);
-        
-        // جلب المتبقي الفعلي فقط (لتجنب عرض الشهور القديمة المدفوعة)
-        if (dueInp && !dueInp.dataset.touched) {
-          dueInp.value = (d && d.remaining > 0) ? d.remaining : (opt.dataset.price || '');
-        }
-        
-        if (periodInp && !periodInp.dataset.touched && d && d.subStartISO) {
-          periodInp.value = d.subStartISO.slice(0, 7);
-        }
-        
-        if (paidInp && !paidInp.dataset.touched) {
-          paidInp.value = dueInp.value; 
-        }
-        
-        updateLivePreview();
-      });
-      
-      if (periodInp) periodInp.addEventListener('input', () => periodInp.dataset.touched = '1');
-    }
-  }, 30);
+if (stuSel) {
+// 🆕 v11.0 — عرض الفواتير المستهدفة (FIFO)
+const invBox = form.querySelector('#invoiceTargetBox');
+const updateInvoiceTarget = () => {
+  if (!invBox || !stuSel?.value) return;
+  const studentName = stuSel.value;
+  const openInvoices = STATE.invoices
+    .filter(inv => inv.student === studentName && inv.status !== 'ملغاة' && inv.remaining > 0.001)
+    .sort((a, b) => a.monthKey.localeCompare(b.monthKey));
+
+  if (!openInvoices.length) {
+    invBox.innerHTML = `<div style="color:var(--brand);font-weight:700">✅ لا توجد فواتير مفتوحة — سيتم إنشاء فاتورة جديدة عند الحفظ</div>`;
+    return;
+  }
+
+  const totalRemaining = openInvoices.reduce((a, i) => a + i.remaining, 0);
+  const oldest = openInvoices[0];
+  const [y, m] = oldest.monthKey.split('-').map(Number);
+  const oldestLabel = `${AR_MONTHS[m-1]} ${y}`;
+
+  invBox.innerHTML = `
+    <div style="color:var(--blue);font-weight:800;margin-bottom:8px;font-size:13px">🧾 سيتم الخصم تلقائياً من الفواتير بالأقدم (FIFO):</div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      ${openInvoices.slice(0, 5).map(inv => {
+        const [iy, im] = inv.monthKey.split('-').map(Number);
+        return `<div style="display:flex;justify-content:space-between;padding:6px 10px;background:rgba(77,157,255,.06);border-radius:6px;font-size:12px">
+          <span style="font-family:monospace;color:var(--blue);font-weight:800">${escapeHtml(inv.no)}</span>
+          <span style="color:var(--text2)">${AR_MONTHS[im-1]} ${iy}</span>
+          <span style="color:var(--red);font-weight:800">متبقي: ${fmt(inv.remaining)} ج.م</span>
+        </div>`;
+      }).join('')}
+      ${openInvoices.length > 5 ? `<div style="text-align:center;color:var(--text3);font-size:11px">+ ${openInvoices.length - 5} فواتير أخرى</div>` : ''}
+    </div>
+    <div style="margin-top:8px;padding-top:8px;border-top:1px dashed rgba(77,157,255,.3);display:flex;justify-content:space-between;font-weight:800">
+      <span style="color:var(--blue)">🎯 إجمالي المتبقي على الفواتير:</span>
+      <span style="color:var(--red)">${fmt(totalRemaining)} ج.م</span>
+    </div>
+    <div style="margin-top:6px;font-size:11px;color:var(--text3);text-align:center">💡 أول فاتورة مستهدفة: <b style="color:var(--blue)">${escapeHtml(oldest.no)}</b> (${oldestLabel})</div>
+  `;
+};
+
+stuSel.addEventListener('change', () => {
+  const opt = stuSel.selectedOptions[0];
+  if (!opt || !opt.value) return;
+  if (pkgRo) pkgRo.value = opt.dataset.pkg ? opt.dataset.pkg + ' حلقات' : '';
+  const d = computeDueDetails(opt.value);
+  // جلب المتبقي الفعلي فقط (لتجنب عرض الشهور القديمة المدفوعة)
+  if (dueInp && !dueInp.dataset.touched) {
+    dueInp.value = (d && d.remaining > 0) ? d.remaining : (opt.dataset.price || '');
+  }
+  if (periodInp && !periodInp.dataset.touched && d && d.subStartISO) {
+    periodInp.value = d.subStartISO.slice(0, 7);
+  }
+  if (paidInp && !paidInp.dataset.touched) {
+    paidInp.value = dueInp.value;
+  }
+  updateLivePreview();
+  updateInvoiceTarget();
+});
+
+if (periodInp) periodInp.addEventListener('input', () => periodInp.dataset.touched = '1');
+updateInvoiceTarget();
+}
+}, 30);
 }
 
 function buildVoucherPrepaidForm() {
